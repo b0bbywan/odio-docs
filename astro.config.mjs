@@ -8,6 +8,11 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'odio docs',
+				logo: {
+					src: './src/assets/logo.svg',
+					alt: 'odio',
+				},
+				favicon: '/favicon.svg',
 				customCss: ['./src/styles/custom.css'],
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/b0bbywan/odios' }],
 			sidebar: [
