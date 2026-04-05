@@ -1,0 +1,32 @@
+---
+title: Spotify Connect
+description: Use your Pi as a Spotify Connect target.
+---
+
+Your odio node appears as a Spotify Connect device on your local network via [spotifyd](https://github.com/b0bbywan/spotifyd). Requires a Spotify Premium account.
+
+> **Note:** odio uses a [fork of spotifyd](https://github.com/b0bbywan/spotifyd) with fixed Raspberry Pi builds, served as deb packages via the odio apt repository. The fixes are pending merge into [upstream spotifyd](https://github.com/spotifyd/spotifyd).
+
+## Usage
+
+1. Open Spotify on your phone, tablet, or desktop.
+2. Tap the speaker/device icon.
+3. Select your odio node.
+
+Music streams from Spotify's servers directly to the Pi. Your phone acts as a remote — you can close the app, switch devices, or power off your computer and keep controlling playback from another Spotify client.
+
+## Playback controls
+
+The Spotify session appears as an MPRIS player in the odio application and Home Assistant with full transport controls: play, pause, next, previous, volume.
+
+## armhf performance
+
+On older armhf boards (Pi B+, Pi Zero, Pi 2), spotifyd works but can be demanding on the CPU. If you have a [Snapcast setup](/guides/snapcast/), running Spotify via Librespot on the Snapserver is a lighter alternative — the Pi then only runs the lightweight Snapclient. This is not an issue on arm64 boards.
+
+## Multi-room
+
+In Snapcast mode, Spotify audio is distributed as a stream to all rooms. Each room can be assigned to the Spotify stream independently via Snapweb or the Snapcast app — see [Snapcast setup](/guides/snapcast/).
+
+## How it works
+
+spotifyd runs as a systemd user service, outputting audio directly to PulseAudio. It registers as an MPRIS player on D-Bus, which is how the odio API picks it up and exposes playback controls. The installer handles all configuration.

@@ -1,0 +1,36 @@
+---
+title: odio application
+description: Manage all your odio nodes from a web app installable on your phone.
+---
+
+The [odio application](https://pwa.odio.love) is a web app that lets you manage all your odio nodes from one place. Install it from your browser on your phone or desktop.
+
+## Installation
+
+1. Open [pwa.odio.love](https://pwa.odio.love) in your browser.
+2. Tap "Install" or "Add to Home Screen" when prompted.
+3. Add your nodes by hostname or IP.
+
+> **Note:** Installation as a standalone app requires a browser that supports PWA (Chrome, Edge, Safari). On Firefox, the app works in the browser but cannot be installed to the home screen.
+
+## How it works
+
+The application loads each node's [embedded web UI](/guides/embedded-ui/) in an iframe. You get the full interface of each node — playback, audio routing, Bluetooth, services, power — all accessible from a single app.
+
+## Why manual configuration?
+
+A web app cannot perform mDNS/Zeroconf discovery — browsers don't have access to UDP multicast. That's why you need to add your nodes manually by hostname or IP.
+
+On first launch, click **+ Add Instance** and enter the address of your odio node:
+
+![odio application first launch — no instances configured, with an Add Instance button](../../../assets/pwa-empty.png)
+
+Enter the host/IP, port (default 8018), and an optional label for your node:
+
+![Add Instance form with Host/IP, Port, and optional Label fields](../../../assets/pwa-add-instance.png)
+
+## Multiple nodes
+
+Add as many nodes as you have. Each card shows the node name, architecture, odio-api version, and connection status. Click **Connect** to open the node's interface.
+
+![Five configured odio nodes showing name, architecture, odio-api version, IP address, and connection status](../../../assets/pwa-instances.png)

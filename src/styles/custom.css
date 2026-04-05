@@ -1,0 +1,15 @@
+/* odio dark green theme */
+:root {
+	--sl-color-accent-low: #1e3a18;
+	--sl-color-accent: #3a7020;
+	--sl-color-accent-high: #5ab81e;
+
+	--sl-color-white: #e8e4dc;
+	--sl-color-gray-1: #c8c4bc;
+	--sl-color-gray-2: #72797a;
+	--sl-color-gray-3: #486040;
+	--sl-color-gray-4: #1e3a18;
+	--sl-color-gray-5: #111a0e;
+	--sl-color-gray-6: #0d130d;
+	--sl-color-black: #0a100a;
+}

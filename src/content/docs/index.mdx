@@ -1,0 +1,23 @@
+---
+title: Install and use odio
+description: Guides and documentation for the odio audio streaming platform.
+---
+
+odio turns a Raspberry Pi (or any Debian-based system) into a complete audio streamer: Bluetooth speaker, AirPlay 2, Spotify Connect, UPnP/DLNA, multi-room, CD player, USB playback — all running in your user session.
+
+## How you control it
+
+odio is the streamer. The API and its clients (embedded UI, application, Home Assistant) act as a remote control — not a music library browser. You use your existing apps (Spotify, AirPlay, a DLNA control point, an MPD client) to pick what plays. odio gives you unified control over playback.
+
+Every audio source (Spotify, Bluetooth, AirPlay, MPD, ...) exposes itself as an [MPRIS](https://specifications.freedesktop.org/mpris/latest/) player. The [odio API](/api/overview/) discovers them all automatically and provides a single interface to control playback, volume, and services — regardless of the source.
+
+This is what the [embedded web UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), and the [Home Assistant integration](/guides/home-assistant/) all build on.
+
+![Embedded web UI showing the Audio Server with volume sliders, Media Players with Spotify playback and cover art, Bluetooth pairing controls, and Services management](../../assets/embedded-ui.png)
+
+Get started with the [Introduction](/guides/introduction/).
+
+## Links
+
+- [odio website](https://beta.odio.love)
+- [GitHub](https://github.com/b0bbywan/odios) — issues, discussions, and feature requests

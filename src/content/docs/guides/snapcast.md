@@ -1,0 +1,177 @@
+---
+title: Multi-room (Snapcast)
+description: Synchronized audio across multiple rooms with Snapcast.
+---
+
+[Snapcast](https://github.com/snapcast/snapcast) provides perfectly synchronized audio playback across multiple rooms. odio nodes run as Snapcast clients — you need a Snapserver running elsewhere (typically a NAS).
+
+## How it works
+
+Snapcast has two components:
+
+- **Snapserver** runs on your NAS or a dedicated machine. It receives audio from multiple sources (MPD, Spotify, AirPlay, PipeWire) and distributes them as synchronized streams.
+- **Snapclient** runs on each odio node. It receives a stream from the Snapserver and plays it back in perfect sync with all other clients.
+
+The heavy work (mixing, source management) is on the server. Clients are lightweight — even old Raspberry Pi B+ boards work perfectly.
+
+## Snapserver setup
+
+Install Snapserver on your NAS. Debian 13 ships Snapcast 0.31+ natively:
+
+```bash
+sudo apt install snapserver
+```
+
+> **Note:** Snapserver >= 0.31 is required for AddStream/RemoveStream support. On Debian 12, install from [GitHub releases](https://github.com/snapcast/snapcast/releases).
+
+Install [Snapweb](https://github.com/snapcast/snapweb) for the web UI:
+
+```bash
+wget https://github.com/snapcast/snapweb/releases/download/v0.9.3/snapweb_0.9.3-1_all.deb
+sudo dpkg -i snapweb_0.9.3-1_all.deb
+```
+
+Configure `/etc/snapserver.conf`:
+
+```ini
+[http]
+enabled = true
+bind_to_address = 0.0.0.0
+doc_root = /usr/share/snapweb
+
+[tcp]
+enabled = true
+bind_to_address = 0.0.0.0
+```
+
+### MPD stream
+
+Add a FIFO output to your NAS MPD config (`/etc/mpd.conf`):
+
+```
+audio_output {
+    type            "fifo"
+    name            "SnapMPD"
+    path            "/tmp/mpdfifo"
+    format          "48000:16:2"
+    mixer_type      "software"
+}
+```
+
+Then add the stream source in `/etc/snapserver.conf`:
+
+```ini
+[stream]
+source = pipe:///tmp/mpdfifo?name=MPD&devicename=SnapMPD
+```
+
+### Spotify stream (Librespot)
+
+Install [Librespot](https://github.com/librespot-org/librespot) from source (Debian packages are too old):
+
+```bash
+sudo apt install build-essential libasound2-dev
+curl https://sh.rustup.rs -sSf | sh
+cargo install librespot
+sudo mv .cargo/bin/librespot /usr/local/bin
+```
+
+Add the stream source in `/etc/snapserver.conf`:
+
+```ini
+[stream]
+source = librespot:///usr/local/bin/librespot?name=Spotify&devicename=SnapSpot&bitrate=320&volume=100&normalize=false
+```
+
+### AirPlay stream (shairport-sync)
+
+Install shairport-sync on the NAS and disable the standalone service (Snapserver will manage it):
+
+```bash
+sudo apt install shairport-sync
+sudo systemctl disable --now shairport-sync
+```
+
+Shairport-sync is started by the `_snapserver` user, so you need to allow it to own the D-Bus services. Add the following to the shairport-sync D-Bus policy files:
+
+**Debian 12:** `/etc/dbus-1/system.d/`  
+**Debian 13:** `/usr/share/dbus-1/system.d/`
+
+In `shairport-sync-dbus-policy.conf`:
+```xml
+<policy user="_snapserver">
+    <allow own="org.gnome.ShairportSync"/>
+</policy>
+```
+
+In `shairport-sync-mpris-policy.conf`:
+```xml
+<policy user="_snapserver">
+    <allow own="org.mpris.MediaPlayer2.ShairportSync"/>
+</policy>
+```
+
+Restart D-Bus and add the stream source:
+
+```bash
+sudo systemctl restart dbus.service
+```
+
+```ini
+[stream]
+source = airplay:///usr/bin/shairport-sync?name=Airplay&devicename=SnapAir&port=5000
+```
+
+Restart Snapserver after adding all stream sources:
+
+```bash
+sudo systemctl restart snapserver
+```
+
+## Controlling rooms
+
+- **Snapweb** — web UI at `http://<server>:1780` showing all clients and streams.
+- **Snapcast app** (Android) — assign streams to rooms, control per-room volume.
+
+Each client can be assigned to a different stream: living room on Spotify, bedroom on MPD, office on AirPlay.
+
+## Integration
+
+Snapclient runs as a systemd user service on each odio node. It can be started/stopped from the embedded UI, the application, or Home Assistant via the service controls.
+
+Snapcast also has its own [Home Assistant integration](https://www.home-assistant.io/integrations/snapcast/) for controlling clients and streams.
+
+## Desktop integration (PipeWire)
+
+PipeWire can automatically detect Snapcast servers on your network. With the `libpipewire-module-snapcast-discover` module, any audio played on a desktop or laptop (browser, media player, games, system sounds) automatically appears as a Snapcast stream — zero configuration needed.
+
+Create `~/.config/pipewire/pipewire.conf.d/my-snapcast-discover.conf`:
+
+```
+context.modules = [
+{   name = libpipewire-module-snapcast-discover
+    args = {
+        stream.rules = [
+            {   matches = [
+                    { snapcast.ip = "~.*" }
+                ]
+                actions = {
+                    create-stream = {
+                      node.name = "Snapcast"
+                      node.description = "Snapcast Server"
+                    }
+                }
+            }
+        ]
+    }
+}
+]
+```
+
+Restart PipeWire:
+
+```bash
+systemctl --user restart pipewire-pulse.service pipewire.service wireplumber.service
+```
+
+The Snapserver appears as "Snapcast Server" in your audio outputs. Select it, and all your desktop audio is distributed to every room.
