@@ -1,0 +1,82 @@
+---
+title: disc-cuer
+description: CUE file generator with GnuDB and MusicBrainz metadata.
+---
+
+[go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) is a Go library and CLI tool that generates CUE files from audio CDs, with metadata enrichment from [GnuDB](https://gnudb.org/) and [MusicBrainz](https://musicbrainz.org/). It uses `libdiscid` for disc ID calculation.
+
+go-mpd-discplayer uses go-disc-cuer as a library for automatic CUE generation during CD playback. The CLI can also be used standalone to generate or fix CUE files manually.
+
+## Features
+
+- **Disc ID calculation** — uses `libdiscid` to compute MusicBrainz and GnuDB compatible disc IDs.
+- **Metadata integration** — fetches track and album metadata from GnuDB or MusicBrainz.
+- **Fix incorrect CUE files** — force a specific MusicBrainz release to correct or regenerate CUE files.
+- **Caching** — generated CUE files are cached locally to avoid repeated lookups.
+
+## Installation
+
+The library is bundled into the `mpd-discplayer` binary — no separate installation needed for CD playback. The CLI is not included in the deb package. To use it standalone:
+
+```bash
+git clone https://github.com/b0bbywan/go-disc-cuer.git
+cd go-disc-cuer
+```
+
+Install dependencies:
+
+```bash
+# Debian
+sudo apt install libdiscid0 libdiscid-dev
+
+# Fedora
+sudo dnf install libdiscid libdiscid-devel
+```
+
+Build:
+
+```bash
+go build -o disc-cuer .
+```
+
+## Usage
+
+```bash
+# Generate CUE for the current disc
+disc-cuer
+
+# Force a specific MusicBrainz release
+disc-cuer --musicbrainz <release_id> --overwrite
+
+# Custom disc ID + MusicBrainz release
+disc-cuer --disc-id <disc_id> --musicbrainz <release_id> --overwrite
+
+# Specify a different drive
+disc-cuer --device /dev/sr1
+```
+
+| Flag | Description |
+|---|---|
+| `--overwrite` | Regenerate the CUE file even if it already exists |
+| `--musicbrainz <id>` | Use a specific MusicBrainz release ID for metadata |
+| `--disc-id <id>` | Provide a custom disc ID (requires `--musicbrainz`) |
+| `--device <path>` | Disc drive device to read from (overrides config) |
+
+## Configuration
+
+Configuration file locations (in order of precedence):
+- Command-line flags (highest priority)
+- Environment variables prefixed with `DISC_CUER_`
+- `~/.config/disc-cuer/config.yaml` (user-specific)
+- `/etc/disc-cuer/config.yaml` (system-wide)
+
+```yaml
+gnuHelloEmail: "your-email@example.com"  # required for GnuDB lookups
+gnuDbUrl: "https://gnudb.gnudb.org"      # default
+cacheLocation: "~/.cache/disc-cuer"      # CUE file cache
+device: "/dev/sr0"                       # default drive
+```
+
+> **Note:** `gnuHelloEmail` is mandatory to enable GnuDB lookups. Leave empty to use MusicBrainz only.
+
+When used inside go-mpd-discplayer, metadata settings (`gnuHelloEmail`, `gnuDbUrl`) are shared from the [mpd-discplayer config](/disc-player/configuration/).

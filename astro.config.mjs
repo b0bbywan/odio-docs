@@ -61,6 +61,15 @@ export default defineConfig({
 						{ label: 'SSE Events', slug: 'api/events' },
 					],
 				},
+				{
+					label: 'MPD Disc Player',
+					items: [
+						{ label: 'Overview', slug: 'disc-player/overview' },
+						{ label: 'Installation', slug: 'disc-player/installation' },
+						{ label: 'Configuration', slug: 'disc-player/configuration' },
+						{ label: 'disc-cuer', slug: 'disc-player/disc-cuer' },
+					],
+				},
 			],
 		}),
 	],
