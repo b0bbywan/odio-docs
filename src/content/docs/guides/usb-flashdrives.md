@@ -7,7 +7,7 @@ Plug a USB flash drive with audio files into your Pi. After a few seconds, playb
 
 ## How it works
 
-[go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) monitors udev for USB block device events. When a stick is inserted, it mounts the filesystem via udisks2, triggers an MPD database update, and starts playback. The previous queue is replaced with the stick's content.
+[go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) monitors udev for USB block device events. When a stick is inserted, it mounts the filesystem via udisks2, triggers an MPD database update, and starts playback. The previous queue is replaced with the stick's content. See [MPD Disc Player](/disc-player/overview/) for installation, configuration, and standalone usage.
 
 Video files (.mkv, .mp4, etc.) are ignored automatically.
 

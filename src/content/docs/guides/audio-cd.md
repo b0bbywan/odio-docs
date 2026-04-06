@@ -5,7 +5,7 @@ description: Insert a CD, get full metadata and cover art, control playback.
 
 Plug a USB optical drive into your Pi. Insert a CD. Playback starts automatically with full track metadata and cover art via [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer).
 
-go-mpd-discplayer is part of the [odio project](https://beta.odio.love) but is a standalone daemon — it works with any MPD setup. Cross-compiled binaries and deb packages are available on [GitHub releases](https://github.com/b0bbywan/go-mpd-discplayer/releases), and via the [odio apt repository](https://github.com/b0bbywan/odio-apt-repo).
+go-mpd-discplayer is part of the [odio project](https://odio.love) but is a standalone daemon — it works with any MPD setup. See [MPD Disc Player](/disc-player/overview/) for installation, configuration, and standalone usage.
 
 ## How it works
 
