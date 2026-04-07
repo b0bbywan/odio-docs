@@ -3,6 +3,8 @@ title: Multi-room (Snapcast)
 description: Synchronized audio across multiple rooms with Snapcast.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 [Snapcast](https://github.com/snapcast/snapcast) provides perfectly synchronized audio playback across multiple rooms. odio nodes run as Snapcast clients — you need a Snapserver running elsewhere (typically a NAS).
 
 ## How it works
@@ -22,7 +24,7 @@ Install Snapserver on your NAS. Debian 13 ships Snapcast 0.31+ natively:
 sudo apt install snapserver
 ```
 
-> **Note:** Snapserver >= 0.31 is required for AddStream/RemoveStream support. On Debian 12, install from [GitHub releases](https://github.com/snapcast/snapcast/releases).
+<Aside type="caution">Snapserver >= 0.31 is required for AddStream/RemoveStream support. On Debian 12, install from [GitHub releases](https://github.com/snapcast/snapcast/releases).</Aside>
 
 ### Running as a user service
 

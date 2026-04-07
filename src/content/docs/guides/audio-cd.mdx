@@ -3,6 +3,8 @@ title: Audio CD
 description: Insert a CD, get full metadata and cover art, control playback.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 Plug a USB optical drive into your Pi. Insert a CD. Playback starts automatically with full track metadata and cover art via [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer).
 
 go-mpd-discplayer is part of the [odio project](https://odio.love) but is a standalone daemon — it works with any MPD setup. See [MPD Disc Player](/disc-player/overview/) for installation, configuration, and standalone usage.
@@ -23,7 +25,7 @@ CD playback is controlled like any other MPD source — from the odio applicatio
 
 ![Embedded UI playing an audio CD via MPD — track metadata displayed without cover art](../../../assets/audio-cd-playback.png)
 
-> Cover art is displayed in the embedded UI and the odio application thanks to the [mpDris2 fork](https://github.com/b0bbywan/mpDris2), which retrieves it from MPD via the CUE virtual directory. See [MPD — Playback controls](/guides/mpd/#playback-controls) for details.
+<Aside type="caution">Cover art is not yet displayed in the embedded UI for CD playback. Support requires the [mpDris2 fork](https://github.com/b0bbywan/mpDris2) and is planned for odios 2026.4.0rc6.</Aside>
 
 From an MPD client like MALP, cover art and full track metadata are available:
 

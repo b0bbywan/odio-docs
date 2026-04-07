@@ -3,6 +3,8 @@ title: USB flash drives
 description: Plug in a USB stick and music starts playing automatically.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 Plug a USB flash drive with audio files into your Pi. After a few seconds, playback starts automatically via [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer).
 
 ## How it works
@@ -45,7 +47,7 @@ Same as any other MPD source — controllable from the odio application, Home As
 
 ![Embedded UI playing a USB flash drive via MPD — track metadata displayed without cover art](../../../assets/usb-playback.png)
 
-> **Note:** Cover art is not yet displayed in the embedded UI for USB playback. mpDris2 does not currently forward cover art via MPRIS — this is a work in progress.
+<Aside type="caution">Cover art is not yet displayed in the embedded UI for USB playback. odio-api does not currently serve local cover art — support is planned for v0.11.0.</Aside>
 
 From an MPD client like MALP, cover art and full track metadata are available — as long as the USB drive contains a `cover.jpg`, `cover.png`, `cover.tiff`, or `cover.bmp` in the same folder as the audio files (or embedded art in the file tags).
 
