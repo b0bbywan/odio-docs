@@ -44,6 +44,7 @@ export default defineConfig({
 						{ label: 'Multi-room (Snapcast)', slug: 'guides/snapcast' },
 						{ label: 'Spotify Connect', slug: 'guides/spotify' },
 						{ label: 'Tidal & Qobuz', slug: 'guides/tidal-qobuz' },
+						{ label: 'Audio notifications', slug: 'guides/audio-notifications' },
 					],
 				},
 				{
@@ -68,6 +69,12 @@ export default defineConfig({
 						{ label: 'Installation', slug: 'disc-player/installation' },
 						{ label: 'Configuration', slug: 'disc-player/configuration' },
 						{ label: 'disc-cuer', slug: 'disc-player/disc-cuer' },
+					],
+				},
+				{
+					label: 'Audio Notifications',
+					items: [
+						{ label: 'Overview', slug: 'notify/overview' },
 					],
 				},
 			],

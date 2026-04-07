@@ -1,0 +1,57 @@
+---
+title: Audio Notifications
+description: Event sounds for the odio ecosystem — CD insert, Bluetooth connect, errors, and more.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">This component is under active development. Integration into the odio stack is not yet complete.</Aside>
+
+[go-odio-notify](https://github.com/b0bbywan/go-odio-notify) is a pure Go audio notification library that plays short event sounds through PulseAudio. No CGO dependency — it uses [jfreymuth/pulse](https://github.com/jfreymuth/pulse) directly.
+
+It provides audio feedback for system events: disc insertion, device connection, errors, and more. The only requirement is a running PulseAudio (or PipeWire with `pipewire-pulse`) server.
+
+## How it works
+
+Sounds are played as PulseAudio event streams (`media.role=event`), so they don't interfere with music playback and follow system event volume rules. The connection to PulseAudio is lazy — the library starts without blocking even if PulseAudio isn't ready yet, and reconnects automatically.
+
+## Events
+
+| Event | Description |
+|---|---|
+| `start` | Application startup |
+| `stop` | Application shutdown |
+| `connect` | Device connected (CD, USB, Bluetooth, etc.) |
+| `disconnect` | Device disconnected |
+| `error` | Error notification |
+
+## Sound format
+
+PCM raw, signed 16-bit LE, stereo, 44100 Hz. Target duration: 0.5–1.5s.
+
+Default sounds are embedded in the binary. You can override them by placing custom `.pcm` files in a directory and pointing `SoundsDir` to it.
+
+## Integration
+
+go-odio-notify is used as a library by [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) and [go-odio-api](https://github.com/b0bbywan/go-odio-api) to provide audio feedback for disc/USB events and API state changes.
+
+## CLI
+
+A standalone CLI is available for testing and scripting:
+
+```bash
+# Play a sound
+odio-notify play start
+odio-notify play connect disconnect
+
+# List available events
+odio-notify list
+
+# Custom sounds directory
+odio-notify --sounds-dir /path/to/custom play error
+
+# Remote PulseAudio server
+odio-notify --pulse-server tcp:192.168.1.10 play start
+```
+
+Pre-built binaries (amd64, arm64, armv7, armv6) are available on each [release](https://github.com/b0bbywan/go-odio-notify/releases).
