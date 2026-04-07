@@ -57,6 +57,7 @@ The binary ships with an [embedded web UI](/guides/embedded-ui/). The API and th
 | [odio-ha](https://github.com/b0bbywan/odio-ha) | Python | Home Assistant integration |
 | [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) | Go | CD and USB auto-play daemon |
 | [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) | Go | CUE sheet library (GnuDB, MusicBrainz) |
+| [mpDris2](https://github.com/b0bbywan/mpDris2) (fork) | Python | MPRIS bridge for MPD with CD cover art support |
 | [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo) | CI | apt repository, CI-managed |
 
 For the full architecture deep-dive, see [How odio works](https://beta.odio.love/how-it-works).

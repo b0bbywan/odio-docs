@@ -23,7 +23,7 @@ CD playback is controlled like any other MPD source — from the odio applicatio
 
 ![Embedded UI playing an audio CD via MPD — track metadata displayed without cover art](../../../assets/audio-cd-playback.png)
 
-> **Note:** Cover art is not yet displayed in the embedded UI for CD playback. mpDris2 does not currently forward cover art via MPRIS — this is a work in progress.
+> Cover art is displayed in the embedded UI and the odio application thanks to the [mpDris2 fork](https://github.com/b0bbywan/mpDris2), which retrieves it from MPD via the CUE virtual directory. See [MPD — Playback controls](/guides/mpd/#playback-controls) for details.
 
 From an MPD client like MALP, cover art and full track metadata are available:
 

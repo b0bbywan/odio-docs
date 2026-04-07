@@ -46,9 +46,6 @@ audio_output {
     server  "192.168.1.6"
 }
 ```
-
-> **Note:** Use the IP address, not `hostname.local` — MPD resolves `localhost` to IPv6 `::1` which can cause connection issues.
-
 Restart MPD on the NAS:
 
 ```bash
@@ -63,7 +60,11 @@ The NAS MPD instance appears as a PulseAudio client on the odio node, with per-c
 
 ## Playback controls
 
-MPD exposes itself as an MPRIS player via [mpDris2](https://github.com/eonpatapon/mpDris2). This is what allows the odio API to discover and control MPD playback alongside all other sources. Playback is controllable from the embedded UI, the odio application, Home Assistant, or any MPD client.
+MPD exposes itself as an MPRIS player via [mpDris2](https://github.com/b0bbywan/mpDris2). This is what allows the odio API to discover and control MPD playback alongside all other sources. Playback is controllable from the embedded UI, the odio application, Home Assistant, or any MPD client.
+
+odio uses a [fork of mpDris2](https://github.com/b0bbywan/mpDris2) that adds cover art retrieval from MPD via the `readpicture` and `albumart` commands. The upstream version only looks for cover art on the local filesystem, which doesn't work for CD playback where the current song is a `cdda://` URI.
+
+For CDs, MPD's CUE playlist plugin is configured with `as_directory "true"`, which exposes the CUE sheet as a virtual directory. The fork resolves this virtual path and finds the `cover.jpg` fetched by [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) in the parent directory. The upstream mpDris2 crashed with this configuration.
 
 ## MPD clients
 

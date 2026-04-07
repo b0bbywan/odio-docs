@@ -117,12 +117,17 @@ input {
     plugin "cdio_paranoia"
 }
 
-# CUE sheet support (enables cover art in MPD clients)
+# CUE sheet support
 playlist_plugin {
     name "cue"
     enabled "true"
-    as_folder "true"
+    as_directory "true"
 }
+```
+
+The `as_directory "true"` option is critical — it makes MPD expose the CUE sheet as a virtual directory instead of a flat playlist. This is what allows the [mpDris2 fork](https://github.com/b0bbywan/mpDris2) to find the `cover.jpg` fetched by go-disc-cuer alongside the virtual tracks, and forward it over MPRIS to the embedded UI and the odio application. See [MPD — Playback controls](/guides/mpd/#playback-controls) for more details.
+
+```
 ```
 
 For USB support with `MountConfig: "mpd"`, also add:
