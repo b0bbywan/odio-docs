@@ -25,9 +25,15 @@ sudo apt install mpd-discplayer
 
 ## Packages (deb)
 
-Pre-built packages for all architectures are available as artifacts on each [build workflow run](https://github.com/b0bbywan/go-mpd-discplayer/actions/workflows/build.yml).
+Pre-built deb packages for all architectures are available on the [releases page](https://github.com/b0bbywan/go-mpd-discplayer/releases).
 
-Download the binary for your architecture from the [releases page](https://github.com/b0bbywan/go-mpd-discplayer/releases) and install the required runtime libraries:
+```bash
+sudo dpkg -i mpd-discplayer_<version>_<arch>.deb
+```
+
+## Binary
+
+Download the standalone binary from the [releases page](https://github.com/b0bbywan/go-mpd-discplayer/releases) and install the required runtime libraries:
 
 ```bash
 # Debian Bookworm

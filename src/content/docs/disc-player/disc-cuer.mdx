@@ -3,6 +3,8 @@ title: disc-cuer
 description: CUE file generator with GnuDB and MusicBrainz metadata.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) is a Go library and CLI tool that generates CUE files from audio CDs, with metadata enrichment from [GnuDB](https://gnudb.org/) and [MusicBrainz](https://musicbrainz.org/). It uses `libdiscid` for disc ID calculation.
 
 go-mpd-discplayer uses go-disc-cuer as a library for automatic CUE generation during CD playback. The CLI can also be used standalone to generate or fix CUE files manually.
@@ -77,6 +79,10 @@ cacheLocation: "~/.cache/disc-cuer"      # CUE file cache
 device: "/dev/sr0"                       # default drive
 ```
 
-> **Note:** `gnuHelloEmail` is mandatory to enable GnuDB lookups. Leave empty to use MusicBrainz only.
+<Aside type="note">
+`gnuHelloEmail` is mandatory to enable GnuDB lookups. Leave empty to use MusicBrainz only.
 
-When used inside go-mpd-discplayer, metadata settings (`gnuHelloEmail`, `gnuDbUrl`) are shared from the [mpd-discplayer config](/disc-player/configuration/).
+[GnuDB](https://gnudb.org/) requires [registration](https://gnudb.org/info.php) to use their API. The odio project has a license graciously provided by GnuDB — if you find it useful, consider [supporting their work](https://gnudb.org/donate.php).
+</Aside>
+
+When used inside go-mpd-discplayer, all disc-cuer settings are shared from the [mpd-discplayer config](/disc-player/configuration/).

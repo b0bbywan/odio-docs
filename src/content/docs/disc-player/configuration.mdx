@@ -3,12 +3,13 @@ title: Configuration
 description: Configuration reference for go-mpd-discplayer and go-disc-cuer.
 ---
 
-The odio installer generates `~/.config/mpd-discplayer/config.yaml`. You can also create it manually.
+import { Aside } from '@astrojs/starlight/components';
 
-Configuration file locations (in order of precedence):
-- Environment variables (highest priority)
-- `~/.config/mpd-discplayer/config.yaml` (user-specific)
-- `/etc/mpd-discplayer/config.yaml` (system-wide)
+The odio installer generates `~/.config/mpd-discplayer/config.yaml` automatically. The configuration shown below documents all available options — you only need to edit the file if you want to customize the defaults.
+
+<Aside type="caution">On installer-managed systems, changes to `config.yaml` may be overwritten on update. For persistent customization, use `/etc/mpd-discplayer/config.yaml` (system-wide) or environment variables instead — both take precedence over the user config but are not managed by the installer.</Aside>
+
+For standalone installations, the config file can also be created manually at `~/.config/mpd-discplayer/config.yaml`.
 
 ## Full config example
 
@@ -58,7 +59,11 @@ gnuHelloEmail: "your-email@example.com"  # required for GnuDB lookups
 gnuDbUrl: "https://gnudb.gnudb.org"      # default
 ```
 
-> **Note:** `gnuHelloEmail` is mandatory to enable GnuDB lookups. Leave empty to use MusicBrainz only.
+<Aside type="note">
+`gnuHelloEmail` is mandatory to enable GnuDB lookups. Leave empty to use MusicBrainz only.
+
+[GnuDB](https://gnudb.org/) requires [registration](https://gnudb.org/info.php) to use their API. The odio project has a license graciously provided by GnuDB — if you find it useful, consider [supporting their work](https://gnudb.org/donate.php).
+</Aside>
 
 ### Disc speed
 
@@ -148,6 +153,10 @@ database {
 
 ## Scheduled playback
 
+<Aside type="note">
+The odio installer does not configure scheduled playback — this is a standalone feature of go-mpd-discplayer. On an odio system, scheduled automations are better handled via [Home Assistant](/guides/home-assistant/).
+</Aside>
+
 Automate playback of any MPD-compatible URI on a cron schedule:
 
 ```yaml
@@ -163,6 +172,10 @@ Schedule:
 Invalid cron expressions are discarded and logged on startup. A notification is triggered before starting scheduled playback.
 
 ## Audio notifications
+
+<Aside type="note">
+The odio installer does not configure audio notifications yet. This feature is being migrated to [go-odio-notify](/notify/overview/), which will provide unified audio feedback across the entire odio stack.
+</Aside>
 
 ```yaml
 AudioBackend: "pulse"       # "pulse" (default), "alsa", or "none"
