@@ -40,24 +40,6 @@ power:
     reboot: true
 ```
 
-## Polkit rule
+## System setup
 
-On headless systems, the odio installer deploys a polkit rule to allow the odio user to reboot and power off without a graphical session:
-
-```
-/etc/polkit-1/rules.d/10-allow-shutdown.rules
-```
-
-```javascript
-polkit.addRule(function(action, subject) {
-    if ((action.id == "org.freedesktop.login1.power-off" ||
-         action.id == "org.freedesktop.login1.power-off-multiple-sessions" ||
-         action.id == "org.freedesktop.login1.reboot" ||
-         action.id == "org.freedesktop.login1.reboot-multiple-sessions") &&
-        subject.user == "odio") {
-        return polkit.Result.YES;
-    }
-});
-```
-
-On desktop systems with a graphical session, this rule is not needed — logind already grants these permissions.
+On headless systems, a polkit rule is required to allow the odio user to reboot and power off. The odio installer handles this automatically. For standalone installations, see [Configuration — Power management](/api/configuration/#power-management).

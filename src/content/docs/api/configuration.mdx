@@ -1,0 +1,178 @@
+---
+title: Configuration
+description: Configuration reference for go-odio-api.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The odio installer generates `~/.config/odio-api/config.yaml` automatically. The configuration shown below documents all available options — you only need to edit the file if you want to customize the defaults.
+
+<Aside type="caution">On installer-managed systems, changes to `config.yaml` may be overwritten on update. For persistent customization, use `/etc/odio-api/config.yaml` (system-wide) instead — it takes precedence over the user config but is not managed by the installer.</Aside>
+
+For standalone installations, the config file can also be specified with `--config <path>`.
+
+## Minimal config
+
+```yaml
+bind: lo
+logLevel: info
+
+api:
+  enabled: true
+  port: 8018
+  ui:
+    enabled: true
+  cors:
+    origins: ["https://odio-pwa.vercel.app"]
+```
+
+## Network binding
+
+`bind` controls which network interfaces the API listens on.
+
+```yaml
+bind: lo                      # loopback only (default)
+# bind: enp2s0                # single LAN interface
+# bind: [lo, enp2s0]          # loopback + LAN
+# bind: [lo, enp2s0, wlan0]   # loopback + ethernet + wifi
+# bind: all                   # all interfaces (Docker, remote access)
+```
+
+<Aside type="note">**Docker:** `bind` must be set to `all` for remote access through the bridge network.</Aside>
+
+## Backend configuration
+
+Each backend can be enabled or disabled independently. Disabling a backend removes all its routes from the API.
+
+### Systemd (opt-in, whitelist required)
+
+See [Systemd](/api/systemd/) for endpoint details.
+
+```yaml
+systemd:
+  enabled: true
+  timeout: 90s
+  system:
+    - bluetooth.service
+  user:
+    - mpd.service
+    - shairport-sync.service
+    - snapclient.service
+    - spotifyd.service
+    - upmpdcli.service
+```
+
+### Bluetooth
+
+See [Bluetooth](/api/bluetooth/) for endpoint details.
+
+```yaml
+bluetooth:
+  enabled: true
+  timeout: 5s
+  pairingTimeout: 60s
+  idleTimeout: 30m
+```
+
+#### System setup
+
+<Aside type="tip">The [odio installer](https://github.com/b0bbywan/odios) handles all of this automatically. These steps are only needed when installing go-odio-api standalone.</Aside>
+
+Since odio doesn't run as root, a few system configuration steps are required.
+
+The user running odio must belong to the `bluetooth` group:
+
+```bash
+sudo usermod -a -G bluetooth <username>
+```
+
+PulseAudio or PipeWire must be configured to handle Bluetooth audio:
+
+```bash
+# PulseAudio
+sudo apt install pulseaudio-module-bluetooth
+
+# PipeWire
+sudo apt install libspa-0.2-bluetooth
+```
+
+#### BlueZ configuration
+
+Edit `/etc/bluetooth/main.conf` to identify the node as an audio receiver:
+
+```ini
+[General]
+Name = odio
+Class = 0x240428
+
+[Policy]
+AutoEnable=false
+```
+
+Class of Device (`0x240428`) breakdown:
+- `0x24` — Major Device Class: Audio/Video
+- `0x0428` — Minor + services: Audio Sink, Loudspeaker, Rendering device
+
+This makes the node appear as a standard Bluetooth speaker. Phones and computers will show a headphone icon and route media audio to it.
+
+`AutoEnable=false` keeps the adapter off at boot — power is managed by the API (or Home Assistant).
+
+After modifying the configuration, restart the Bluetooth service:
+
+```bash
+sudo systemctl restart bluetooth
+```
+
+#### mpris-proxy
+
+BlueZ provides `mpris-proxy`, a systemd user service that creates an MPRIS player for each connected Bluetooth device. This is what allows the odio API to discover and control Bluetooth playback alongside all other sources.
+
+```bash
+systemctl --user status mpris-proxy.service
+```
+
+### Power management
+
+See [Power](/api/power/) for endpoint details.
+
+```yaml
+power:
+  enabled: true
+  capabilities:
+    poweroff: true
+    reboot: true
+```
+
+#### Polkit rule
+
+<Aside type="tip">The [odio installer](https://github.com/b0bbywan/odios) deploys this rule automatically.</Aside>
+
+On headless systems, logind requires a polkit rule to allow the odio user to reboot and power off without a graphical session:
+
+```
+/etc/polkit-1/rules.d/10-allow-shutdown.rules
+```
+
+```javascript
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.power-off" ||
+         action.id == "org.freedesktop.login1.power-off-multiple-sessions" ||
+         action.id == "org.freedesktop.login1.reboot" ||
+         action.id == "org.freedesktop.login1.reboot-multiple-sessions") &&
+        subject.user == "odio") {
+        return polkit.Result.YES;
+    }
+});
+```
+
+On desktop systems with a graphical session, this rule is not needed — logind already grants these permissions.
+
+### Zeroconf / mDNS
+
+See [Zeroconf](/api/zeroconf/) for details. Requires `bind` to be set to a real network interface.
+
+```yaml
+bind: enp2s0
+zeroconf:
+  enabled: true
+```

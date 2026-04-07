@@ -3,6 +3,8 @@ title: Installation
 description: Install go-odio-api from APT, packages, Docker, or source.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 go-odio-api runs on any Linux system with a D-Bus user session. Written in Go, no dependencies beyond D-Bus. Cross-compiled binaries, deb/rpm packages, and multi-arch Docker images are available.
 
 ## Platform support
@@ -43,7 +45,7 @@ A pre-built multi-arch image is available on GHCR (amd64, arm64, arm/v7):
 ghcr.io/b0bbywan/go-odio-api:latest
 ```
 
-> **Note:** Docker support is available but has not been tested in production. `bind` must be set to `all` in `config.yaml` for remote access through the bridge network. See [Configuration](/api/configuration/) for details.
+<Aside type="caution">Docker support is available but has not been tested in production. `bind` must be set to `all` in `config.yaml` for remote access through the bridge network. See [Configuration](/api/configuration/) for details.</Aside>
 
 ## From source
 
@@ -89,3 +91,5 @@ systemctl --user enable --now odio-api.service
 ```bash
 sudo loginctl enable-linger <username>
 ```
+
+Some backends (Bluetooth, Power) require additional system configuration. See [Configuration](/api/configuration/) for details.

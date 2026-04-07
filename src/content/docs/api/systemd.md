@@ -3,9 +3,7 @@ title: Systemd
 description: Manage whitelisted systemd services from the API.
 ---
 
-The systemd backend lets you monitor and control systemd services. User services can be started, stopped, restarted, enabled, and disabled. System services (e.g. `bluetooth.service`) are strictly read-only — status monitoring only.
-
-Enabled by default. Only whitelisted services are exposed — configure the list in `~/.config/odio-api/config.yaml`.
+The systemd backend lets you monitor and control systemd services. User services can be started, stopped, restarted, enabled, and disabled. System services (e.g. `bluetooth.service`) are strictly read-only, for status monitoring only.
 
 ## Endpoints
 
@@ -20,14 +18,14 @@ Returns the state of all whitelisted services.
 ### Control a service
 
 ```
-POST /services/{scope}/{unit}/start
-POST /services/{scope}/{unit}/stop
-POST /services/{scope}/{unit}/restart
-POST /services/{scope}/{unit}/enable
-POST /services/{scope}/{unit}/disable
+POST /services/user/{unit}/start
+POST /services/user/{unit}/stop
+POST /services/user/{unit}/restart
+POST /services/user/{unit}/enable
+POST /services/user/{unit}/disable
 ```
 
-`scope` is `user` or `system`. Mutations are only allowed on `user`-scope services.
+Only `user`-scope services can be controlled. System services are read-only — control attempts return `403 Forbidden`.
 
 ## Events
 
@@ -36,6 +34,9 @@ POST /services/{scope}/{unit}/disable
 | `service.updated` | Unit state change |
 
 ## Configuration
+
+Disabled by default in [go-odio-api](https://github.com/b0bbywan/go-odio-api). Only whitelisted services are exposed, configure the list in `~/.config/odio-api/config.yaml`.
+
 
 ```yaml
 systemd:

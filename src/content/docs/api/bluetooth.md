@@ -3,7 +3,7 @@ title: Bluetooth (API)
 description: Control the Bluetooth A2DP sink from the API.
 ---
 
-The Bluetooth backend turns the node into an A2DP audio receiver. Power the adapter on/off, enter pairing mode, and manage connections — all from the API.
+The Bluetooth backend turns the node into an A2DP audio receiver. Power the adapter on/off, enter pairing mode, and manage connections, all from the API.
 
 Enabled when Bluetooth is installed on the node.
 
@@ -44,6 +44,10 @@ bluetooth:
 ```
 
 `idle_timeout` auto-powers down the adapter when no device is connected.
+
+## System setup
+
+The backend requires BlueZ configured as an A2DP audio receiver. The odio installer handles this automatically. For standalone installations, see [Configuration — Bluetooth](/api/configuration/#bluetooth).
 
 ## How it works
 

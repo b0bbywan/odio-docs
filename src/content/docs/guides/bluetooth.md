@@ -50,4 +50,4 @@ Bluetooth can be powered on and off from the API, the application, or Home Assis
 
 ## Configuration
 
-The node's Bluetooth name and device class are set in `/etc/bluetooth/main.conf`. The installer configures this automatically — you only need to change it if you want a custom name.
+The Bluetooth device name shown during pairing and the full BlueZ setup (device class, group membership, mpris-proxy) are documented in [API Configuration — Bluetooth](/api/configuration/#bluetooth). The installer configures this automatically — edit `/etc/bluetooth/main.conf` if you want to change the advertised name.
