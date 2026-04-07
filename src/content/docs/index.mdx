@@ -5,7 +5,11 @@ description: Documentation for the odio audio streamer and its ecosystem.
 
 odio turns a Raspberry Pi (or any Debian-based system) into a complete audio streamer: Bluetooth speaker, AirPlay 2, Spotify Connect, UPnP/DLNA, multi-room, CD player, USB playback — all running in your user session.
 
-This documentation covers the odio streamer and its ecosystem — including standalone components like [go-odio-api](/api/overview/) (REST API) and [go-mpd-discplayer](/disc-player/overview/) (CD/USB playback), which can be used independently on any Linux system.
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="note">
+**odio** is the streamer — the complete, ready-to-install audio system. The **ecosystem** is the set of standalone components it's built from ([go-odio-api](/api/overview/), [go-mpd-discplayer](/disc-player/overview/), [go-odio-notify](/notify/overview/), etc.), each usable independently on any Linux system. This documentation covers both.
+</Aside>
 
 ## How you control it
 

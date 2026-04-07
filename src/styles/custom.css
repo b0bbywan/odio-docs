@@ -12,4 +12,24 @@
 	--sl-color-gray-5: #111a0e;
 	--sl-color-gray-6: #0d130d;
 	--sl-color-black: #0a100a;
+
+	/* Aside: tip */
+	--sl-color-purple-low: #142010;
+	--sl-color-purple: #d97706;
+	--sl-color-purple-high: #fbbf24;
+
+	/* Aside: note */
+	--sl-color-blue-low: #142010;
+	--sl-color-blue: #5ab81e;
+	--sl-color-blue-high: #8fd46a;
+
+	/* Aside: caution */
+	--sl-color-orange-low: #142010;
+	--sl-color-orange: #d97706;
+	--sl-color-orange-high: #fbbf24;
+
+	/* Aside: danger */
+	--sl-color-red-low: #201410;
+	--sl-color-red: #dc2626;
+	--sl-color-red-high: #f87171;
 }
