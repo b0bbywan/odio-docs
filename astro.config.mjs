@@ -14,6 +14,9 @@ export default defineConfig({
 				},
 				favicon: '/favicon.svg',
 				customCss: ['./src/styles/custom.css'],
+				components: {
+					SocialIcons: './src/components/SocialIcons.astro',
+				},
 			social: [
 					{ icon: 'heart', label: 'odio.love', href: 'https://odio.love' },
 					{ icon: 'comment', label: 'Forum', href: 'https://github.com/b0bbywan/odios/discussions' },
