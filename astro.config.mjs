@@ -14,7 +14,11 @@ export default defineConfig({
 				},
 				favicon: '/favicon.svg',
 				customCss: ['./src/styles/custom.css'],
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/b0bbywan/odios' }],
+			social: [
+					{ icon: 'heart', label: 'odio.love', href: 'https://odio.love' },
+					{ icon: 'comment', label: 'Forum', href: 'https://github.com/b0bbywan/odios/discussions' },
+					{ icon: 'github', label: 'GitHub', href: 'https://github.com/b0bbywan/odios' },
+				],
 			sidebar: [
 				{
 					label: 'Getting Started',
