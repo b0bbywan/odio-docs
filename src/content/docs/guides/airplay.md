@@ -19,6 +19,52 @@ AirPlay sessions appear as MPRIS players in the odio application and Home Assist
 
 In Snapcast mode, AirPlay audio is distributed to all rooms via Snapserver — see [Snapcast setup](/guides/snapcast/).
 
+## Desktop integration (PulseAudio / PipeWire)
+
+On a Linux desktop, PulseAudio natively discovers AirPlay receivers on the network via its RAOP module. The odio node appears as a remote audio output in your sound settings, no extra software needed.
+
+### On PipeWire desktops
+
+PipeWire's PulseAudio compatibility layer handles RAOP discovery automatically. Install the RAOP discover module:
+
+```bash
+# Fedora
+sudo dnf install pipewire-module-raop-discover
+
+# Debian / Ubuntu
+sudo apt install pipewire-pulse
+```
+
+Add to your PipeWire-pulse config (`~/.config/pipewire/pipewire-pulse.conf.d/raop.conf`):
+
+```
+context.modules = [
+    { name = libpipewire-module-raop-discover }
+]
+```
+
+Restart PipeWire:
+
+```bash
+systemctl --user restart pipewire-pulse
+```
+
+### On PulseAudio desktops
+
+Load the RAOP discover module:
+
+```
+load-module module-raop-discover
+```
+
+Restart PulseAudio:
+
+```bash
+systemctl --user restart pulseaudio
+```
+
+The odio node appears as an AirPlay sink in your sound settings or `pavucontrol`.
+
 ## How it works
 
 shairport-sync runs as a systemd user service, outputting audio to PulseAudio. It registers itself on D-Bus as an MPRIS player, which is how the odio API picks it up and exposes playback controls. The installer handles all of this — D-Bus policies, PulseAudio backend configuration, and service setup.

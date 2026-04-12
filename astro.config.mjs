@@ -55,6 +55,18 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Use Cases',
+					items: [
+						{ label: 'Overview', slug: 'guides/use-cases' },
+						{ label: 'Desktop & Laptop', slug: 'guides/use-case-desktop' },
+						{ label: 'HTPC', slug: 'guides/use-case-htpc' },
+						{ label: 'NAS', slug: 'guides/use-case-nas' },
+						{ label: 'Phone & Tablet', slug: 'guides/use-case-phone' },
+						{ label: 'Navidrome', slug: 'guides/navidrome' },
+						{ label: 'Music Assistant', slug: 'guides/music-assistant' },
+					],
+				},
+				{
 					label: 'API',
 					items: [
 						{ label: 'Overview', slug: 'api/overview' },
