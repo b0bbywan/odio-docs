@@ -23,7 +23,7 @@ Open Spotify, tap the device icon, and select the odio node. Music streams direc
 
 ### odio application
 
-Install the [PWA](https://pwa.odio.love) on your phone, add your nodes by hostname or IP and get the full interface for each: playback, volume, audio routing, Bluetooth, services, power. Manage all your nodes from one place.
+Install the [odio App](https://pwa.odio.love) on your phone, add your nodes by hostname or IP and get the full interface for each: playback, volume, audio routing, Bluetooth, services, power. Manage all your nodes from one place.
 
 ### BubbleUPnP
 
