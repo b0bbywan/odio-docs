@@ -25,7 +25,7 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --root-dir ./dist --exclude 'https://docs.odio.love/*' --exclude 'https://pipewire.org/*' --exclude-path ./dist/404.html --accept 200,403 --insecure ./dist
+          args: --root-dir ./dist --exclude 'https://docs.odio.love/*' --exclude 'https://pipewire.org/*' --exclude 'https://gnudb.org/*' --exclude-path ./dist/404.html --accept 200,403 --insecure ./dist
           fail: true
 
   spelling:

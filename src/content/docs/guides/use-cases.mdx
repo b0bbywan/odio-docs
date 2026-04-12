@@ -1,0 +1,24 @@
+---
+title: Use Cases
+description: odio is a streamer — it fits into your existing setup.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="note">
+odio is a streamer. It doesn't replace your apps, your library, or your workflow, it connects to them.
+</Aside>
+
+You keep using your usual applications on your phone, your HTPC, your NAS, or your laptop. odio receives audio from any source, mixes everything through [PulseAudio](/guides/how-it-works/#why-pulseaudio-not-alsa), and gives you unified control over playback, from the [embedded web UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/).
+
+There's no source switching, no exclusive lock, no "one thing at a time." A Bluetooth phone, a Spotify Connect stream, and AirPlay from a laptop can all play simultaneously.
+
+The pages below show how your existing devices work with an odio instance.
+
+- [**Desktop & Laptop**](/guides/use-case-desktop/) — Send audio to odio over PulseAudio TCP, AirPlay, or Snapcast. Control playback from your browser.
+
+- [**HTPC**](/guides/use-case-htpc/) — Run Kodi or a browser for streaming alongside odio. Configure go-odio-api to control everything from your phone or Home Assistant.
+
+- [**NAS**](/guides/use-case-nas/) — Host your music library, run a DLNA server, serve as Snapserver for multi-room. The NAS stores and serves, odio plays.
+
+- [**Phone & Tablet**](/guides/use-case-phone/) — Stream via Bluetooth, AirPlay, DLNA, or Spotify Connect. Control playback from the odio application, BubbleUPnP, Home Assistant, or M.A.L.P.

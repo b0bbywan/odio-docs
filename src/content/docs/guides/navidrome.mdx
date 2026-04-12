@@ -1,0 +1,67 @@
+---
+title: Navidrome
+description: Self-hosted music streaming with Navidrome and jukebox mode.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution">This documentation is a work in progress.</Aside>
+
+[Navidrome](https://www.navidrome.org/) is a self-hosted music server and streamer. It provides a web-based interface for browsing and playing your music library from any browser or Subsonic-compatible app.
+
+## Jukebox mode
+
+Navidrome's [jukebox mode](https://www.navidrome.org/docs/usage/features/jukebox/) plays audio through a local `mpv` process on the Navidrome host instead of streaming to the browser. Pointed at an odio node via PulseAudio TCP, Navidrome becomes a full-fledged music server that drives the node's DAC directly, remote-controlled from any Subsonic-compatible client.
+
+### How it connects to odio
+
+odio exposes a network [PulseAudio sink](/guides/network-audio/). Setting `PULSE_SERVER` on the Navidrome process (or container) to the odio node's IP is enough for mpv to route audio there. No odio-side configuration needed beyond having the PulseAudio TCP sink enabled.
+
+### Finding the right mpv device name
+
+mpv enumerates PulseAudio sinks by their PulseAudio name. With `PULSE_SERVER` pointing at your odio node, run:
+
+```bash
+PULSE_SERVER=192.168.x.x mpv --audio-device=help
+```
+
+See [mpv's audio output documentation](https://mpv.io/manual/stable/#audio) for the device naming convention. Pick the entry that matches your node's DAC, it will look something like `pulse/alsa_output.platform-soc_sound.stereo-fallback`.
+
+### Navidrome configuration
+
+In `navidrome.toml` (or `config.toml`, depending on your setup), declare the jukebox devices and pick a default:
+
+```toml
+Jukebox.Enabled = true
+Jukebox.Devices = [
+    [ "auto",  "auto" ],
+    [ "pulse", "pulse/alsa_output.platform-soc_sound.stereo-fallback" ],
+]
+Jukebox.Default = "pulse"
+```
+
+### Docker example
+
+Running Navidrome in Docker works the same way, `PULSE_SERVER` is passed as an environment variable. Example `docker-compose.yml`:
+
+```yaml
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    user: 1000:29 # should own the config/data volumes
+    restart: unless-stopped
+    environment:
+      ND_CONFIGFILE: "/config/config.toml"
+      PULSE_SERVER: "192.168.1.6"
+    volumes:
+      - "./config:/config"
+      - "./data:/data"
+      - "/path/to/Music:/music:ro"
+    networks:
+      - web
+```
+
+With `PULSE_SERVER` set, the mpv process inside the container streams straight to the odio node, no extra networking plumbing required.
+
+<Aside type="note">Jukebox mode has to be driven by a Subsonic client that actually exposes the jukebox controls, and we don't currently know which clients do. If you use one that works, [let us know](https://github.com/b0bbywan/odios/discussions).</Aside>

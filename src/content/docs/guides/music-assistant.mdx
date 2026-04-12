@@ -1,0 +1,64 @@
+---
+title: Music Assistant
+description: Music Assistant integration with odio.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+[Music Assistant](https://music-assistant.io/) is a music library manager for Home Assistant that connects to multiple music providers (Spotify, Tidal, Qobuz, local files, and more) and plays to any supported player.
+
+Integration with odio should not require any custom development, Music Assistant can in principle drive odio nodes through existing protocols. Not all paths look equally promising though.
+
+<Aside type="caution">This page is theoretical, based on Music Assistant's documented capabilities. None of it has been tested against odio yet. Feedback from users welcome.</Aside>
+
+## What Music Assistant supports natively
+
+AirPlay, Chromecast, DLNA, and Sonos providers are added automatically when Music Assistant is installed. Snapcast has its own dedicated provider that must be added manually, and its built-in Snapserver is locked to Music Assistant's own browser client, so driving external Snapclients requires extra setup (see below).
+
+## Protocol by protocol
+
+### AirPlay, most promising path
+
+Music Assistant auto-discovers AirPlay endpoints on the network. odio exposes [shairport-sync](/guides/airplay/), which should appear like any other AirPlay speaker with no configuration on the Music Assistant side. AirPlay is also Music Assistant's own recommended protocol for multi-room synchronization.
+
+### DLNA / UPnP, should work
+
+Music Assistant [auto-detects DLNA renderers](https://www.music-assistant.io/player-support/dlna/) on the network. odio exposes [upmpdcli](/guides/dlna/), which Music Assistant should pick up on its own. The provider is known to be inconsistent across manufacturers (queue flow mode and codec tweaks may be needed), but upmpdcli is a solid renderer, so this should work in practice.
+
+### Snapcast, needs an external Snapserver
+
+Music Assistant's [Snapcast provider](https://music-assistant.io/player-support/snapcast/) ships its own Snapserver, but it's meant to be consumed through a browser tab and won't serve external Snapclients like odio's. Running a standalone Snapserver and pointing Music Assistant at it via the provider's advanced settings should work, odio's Snapclient picks up the server via Zeroconf on its own.
+
+### MPD, indirect via Home Assistant
+
+Music Assistant has no direct MPD provider. The documented workaround is to use Home Assistant's [MPD integration](https://www.home-assistant.io/integrations/mpd/) and expose it to Music Assistant via the [HA player provider](https://www.music-assistant.io/player-support/ha/). Indirect, but no custom development needed.
+
+### Bluetooth, indirect via Home Assistant
+
+Music Assistant has no Bluetooth provider either. Same approach as MPD, via the [ha-bluetooth-audio-manager](https://github.com/scyto/ha-bluetooth-audio-manager) Home Assistant addon, then exposed to Music Assistant through the HA player provider.
+
+### Or just Odio Remote
+
+Instead of wiring each source to Home Assistant individually, [Odio Remote](https://my.home-assistant.io/redirect/hacs_repository/?owner=b0bbywan&repository=odio-ha&category=integration) (installable in one click via HACS) exposes the entire odio stack as HA media_player entities, which Music Assistant's HA player provider should in theory be able to drive. See the [Home Assistant guide](/guides/home-assistant/) for what's actually exposed. Not tested against Music Assistant yet, feedback welcome.
+
+### Sendspin, PoC planned
+
+[Sendspin](https://www.sendspin-audio.com/) is a new open standard from the Open Home Foundation (the folks behind Home Assistant and Music Assistant), positioned as an open alternative to AirPlay, Cast, and Snapcast for synchronized multi-room audio, with Music Assistant as its first implementation. It's currently in public preview. Given that it's open by design and that Music Assistant already speaks it natively, it's the most interesting long-term integration path for odio, a proof of concept is planned to validate how a Sendspin receiver would fit next to the existing protocols on an odio node.
+
+## Summary
+
+| Protocol         | Native in MA       | Verdict                         |
+|------------------|--------------------|---------------------------------|
+| AirPlay          | Yes, autodiscovery | Most promising path             |
+| DLNA / UPnP      | Yes, autodiscovery | Should work                     |
+| Snapcast         | Yes (built-in MA only) | Needs external Snapserver   |
+| MPD              | No (via HA)        | Indirect, no custom dev         |
+| Bluetooth        | No (via HA)        | Indirect, no custom dev         |
+| Odio Remote (HACS) | No (via HA)      | Single bridge, every source     |
+| Sendspin         | MA-native (preview) | PoC planned on odio side        |
+
+## Where to start
+
+AirPlay looks like the most promising starting point, it's the only path that should combine autodiscovery, a mature odio-side receiver (shairport-sync), and Music Assistant's own multi-room recommendation, with no extra wiring. Actual results will depend on someone trying it.
+
+<Aside type="note">If you're using Music Assistant with odio and want to share your setup, tips, or a deeper integration idea, [join the discussion](https://github.com/b0bbywan/odios/discussions).</Aside>
