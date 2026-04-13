@@ -51,6 +51,7 @@ export default defineConfig({
 						{ label: 'Multi-room (Snapcast)', slug: 'guides/snapcast' },
 						{ label: 'Spotify Connect', slug: 'guides/spotify' },
 						{ label: 'Tidal & Qobuz', slug: 'guides/tidal-qobuz' },
+						{ label: 'Webradios', slug: 'guides/webradios' },
 						{ label: 'Extensions', slug: 'guides/extensions' },
 						{ label: 'Audio notifications', slug: 'guides/audio-notifications' },
 					],
