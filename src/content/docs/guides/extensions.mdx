@@ -1,0 +1,56 @@
+---
+title: Extensions
+description: Run additional audio software on your odio node alongside the built-in features.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+odio doesn't lock you into its built-in sources. You're free to install and run any additional software on your Pi, as long as it outputs audio through **PulseAudio**. For a better integration, you should run it with the same user running odio, within a user systemd unit.
+
+<Aside type="tip">This page is a work in progress. If you've successfully run other software on odio, please [contribute to the docs](https://github.com/b0bbywan/odio-docs) or [open a discussion](https://github.com/b0bbywan/odios/discussions) to share your setup!</Aside>
+
+## The PulseAudio rule
+
+odio manages audio routing, volume, and multi-room distribution through PulseAudio. Any application that talks directly to ALSA will bypass this stack, which means:
+
+- No volume control from the odio UI
+- Potential conflicts with other audio streams
+
+So when installing and configuring third-party software, always make sure it uses **PulseAudio** as its audio output, **not ALSA**.
+
+## MPRIS integration
+
+odio detects and exposes media sources through [MPRIS](/api/mpris/). For third-party software to appear in the odio UI and Home Assistant, it needs to register as an MPRIS player on the session D-Bus. Whether that works depends on the software itself, some support it natively, others need a plugin (like Kodi or MPD), and some may require specific build flags or configuration.
+
+<Aside type="note">There is no guarantee that a given application will expose an MPRIS interface. This is community territory — if you get it working, please share your setup!</Aside>
+
+## Example: Plexamp
+
+[Plexamp](https://www.plex.tv/plexamp/) can run in headless mode on a Raspberry Pi, turning your odio node into a Plexamp endpoint you can cast to from any Plex client.
+
+<Aside type="caution">This is a theoretical example — it has not been tested on odio. Plexamp uses PulseAudio by default on Linux so it should work in theory, but there may be unexpected issues.</Aside>
+
+**Requirements:**
+- A Plex Media Server on your network
+- An active Plex Pass subscription
+
+**Installation:**
+
+A community script automates the setup — see [this gist](https://gist.github.com/tgp-2/fc34c5389bc3e4ef332e28d9430b0ebf) for full instructions. The short version:
+
+1. SSH into your odio node.
+2. Download and run the installer script with the `--user` flag so Plexamp runs as a user service and can access PulseAudio:
+   ```bash
+   bash plexamp.sh --user
+   ```
+3. Enter your Plex claim code and choose a player name.
+4. Reboot.
+
+Plexamp will be available at `http://<your-node>:32500`. Use the Cast feature from Plexamp on another device to select your Pi as the playback target.
+
+## Other ideas
+
+Anything that can run on a Pi in user session and output to PulseAudio is fair game. Some possibilities:
+
+- **Jellyfin** — self-hosted media server with [MPV Shim](https://github.com/jellyfin/jellyfin-mpv-shim) for headless audio playback
+- **[Squeezelite](https://github.com/ralph-irving/squeezelite)** — Logitech Media Server endpoint
