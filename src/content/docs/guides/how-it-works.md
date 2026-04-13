@@ -43,6 +43,8 @@ The architecture is event-driven. No polling, no busy loops. go-odio-api listens
 
 Every audio source (Spotify, Bluetooth, AirPlay, MPD, ...) exposes itself as an [MPRIS](https://specifications.freedesktop.org/mpris/latest/) player on D-Bus. go-odio-api discovers them all automatically and provides a unified control surface — regardless of the source.
 
+go-odio-api never talks to any media player directly, it only speaks MPRIS over D-Bus. That's what keeps the backend source-agnostic, any MPRIS-compliant player shows up with zero integration work. The flip side is that odio's control surface for a given player is only as good as that player's MPRIS implementation, transport controls, metadata, cover art, and position reporting all depend on what the player actually exposes. Spotify Connect and shairport-sync are solid, MPD needs a [forked mpDris2](/guides/mpd/#playback-controls) to report cover art correctly, some players expose barely anything. When controls look patchy for a given source, it's almost always the player's MPRIS layer, not odio.
+
 ![odio architecture diagram](https://beta.odio.love/architecture.svg)
 
 The binary ships with an [embedded web UI](/guides/embedded-ui/). The API and the interface are the same process. But the API is the product. The embedded UI is one client among many. See the full [API documentation](/api/overview/).

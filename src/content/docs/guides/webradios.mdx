@@ -30,6 +30,14 @@ Any MPD client (M.A.L.P., myMPD, ncmpcpp, ...) can store stations as playlists o
 
 The same [remote MPD setup described in the MPD guide](/guides/mpd/#using-a-remote-mpd-on-your-nas) also applies here. If you run MPD on a NAS with its library and station list, and output audio to the odio node over PulseAudio TCP, your webradio favorites live alongside the rest of your library and playback still goes through odio.
 
+If you already run a [myMPD](https://jcorporation.github.io/myMPD/) instance somewhere on your network pointed at the MPD on the odio node, the webradio experience is much better than the raw-playlist approach below, myMPD integrates [webradiodb](https://jcorporation.github.io/webradiodb/) natively for browsing, searching, and adding stations to favorites, with playback handled by the odio node's MPD.
+
+![myMPD browsing WebradioDB, station list with country metadata, playback controls visible](../../../assets/mympd-webradiodb.png)
+
+If mympd is installed along odio-api, the stream just shows up as the active MPD media player in the embedded UI, same as any other MPD playback, with transport controls and the current stream title.
+
+![odio embedded UI with MPD active as the media player, playing a webradio stream](../../../assets/embedded-ui-webradio.png)
+
 <details>
 <summary>Example: drop an M3U station list in MPD's playlist folder</summary>
 
@@ -59,8 +67,8 @@ Honest caveat, this works but the UX is pretty rough, MPD clients weren't design
 
 ## Why it's not a first-class source yet
 
-A proper webradio experience is wanted, it's not a philosophical no. The reason it hasn't shipped yet is just priorities, the workarounds above (Home Assistant, remote MPD, an M3U dropped in the playlist folder) covered the immediate need in the maintainer's own setup, so it never climbed to the top of the list. It's an open gap, not a rejected idea.
+A proper webradio experience is wanted, it's not a philosophical no. The reason it hasn't shipped yet is just priorities, the workarounds above (Home Assistant, remote MPD, mympd, an M3U dropped in the playlist folder) covered the immediate need in the maintainer's own setup, so it never climbed to the top of the list. It's an open gap, not a rejected idea.
 
 The other reason is the UX bar. Whatever ships has to feel as integrated as the rest of odio, browsing a curated index, adding stations to favorites with proper metadata (favicon, genre, location), reliable playback. That's more work than a CRUD over an M3U file, and shipping a half-version was worse than waiting.
 
-[Discussion #33](https://github.com/b0bbywan/odios/discussions/33) is where this is being scoped, it already sketches a possible approach, a small web frontend over [radio-browser.info](https://www.radio-browser.info/) or [webradiodb](https://jcorporation.github.io/webradiodb/) that writes to an MPD playlist. The issue is labeled `help wanted` and `good first issue`, contributions and design input are genuinely welcome.
+This is being scoped in [discussion #33](https://github.com/b0bbywan/odios/discussions/33), alongside the related [myMPD integration issue (#6)](https://github.com/b0bbywan/odios/issues/6). Design and contributions welcome there, we won't recap every turn of the conversation here.
