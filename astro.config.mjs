@@ -97,6 +97,12 @@ export default defineConfig({
 						{ label: 'Overview', slug: 'notify/overview' },
 					],
 				},
+				{
+					label: 'Community',
+					items: [
+						{ label: 'Get involved', slug: 'guides/community' },
+					],
+				},
 			],
 		}),
 	],
