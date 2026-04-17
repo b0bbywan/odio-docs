@@ -1,0 +1,47 @@
+---
+title: Feature requests
+description: How to propose a new feature for odio in a way that actually moves it forward.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+odio is built by one maintainer, with contributions from a small community. Every shipped feature went through the same loop: someone described a real use case, proposed how it could work, and iterated on the UX until it felt integrated.
+
+## odio is all about UX
+
+The bar for shipping a feature isn't "it technically works", it's "it feels like part of odio". That means consistent controls, sensible defaults, discoverable UI, and playback that just lands in the right place.
+
+So when proposing something, the question isn't only "what does it do" but "how should it feel to use".
+
+## Where to post
+
+- **[Discussions](https://github.com/b0bbywan/odios/discussions)** first, always. Feature ideas live here while the scope, use case, and UX are being shaped. This is where the maintainer and the community can push back, refine, and agree.
+- **[Issues](https://github.com/b0bbywan/odios/issues)** once the feature is scoped and ready to be tracked.
+
+If you're not sure which one applies, default to a discussion.
+
+## What a good request looks like
+
+A feature request that gets traction usually covers:
+
+- **The use case.** What are you actually trying to do? A concrete scenario beats an abstract demand.
+- **What you tried.** Existing workarounds, other tools, why they don't fit. This saves everyone the loop of rediscovering the obvious, and meaningful info ends up in the docs.
+- **A UX sketch.** Not a mockup, just a description. Where does it live in the app? How is it triggered? What does it replace or extend? Propose an answer, even if rough, it's far easier to iterate on a bad proposal than on nothing.
+- **Your setup.** Hardware, OS, what you control odio with. Features often make sense in one context and not another.
+
+## What helps a request move forward
+
+- **A grounded use case.** A concrete scenario, even a small one, gives the discussion something to pull on. "Would be cool if" is fine as a starting point, but it moves faster once it's tied to a real setup.
+- **A narrowed scope.** Requests that could mean five different things benefit from being split or framed around one clear outcome. It's totally fine to arrive with a broad idea, expect the discussion to help narrow it.
+- **Honest acknowledgement of workarounds.** If a documented path already exists, saying why it doesn't fit your case is more useful than ignoring it. That's what tells the maintainer there's a real gap.
+- **Patience with priorities.** odio is built by one maintainer with community help. What ships next depends on what blocks the maintainer's own setup, what the community actively helps with, and what's achievable without half-shipping. This isn't arbitrary, it's the constraint that keeps the project alive and coherent.
+
+## A worked example
+
+[Discussion #33](https://github.com/b0bbywan/odios/discussions/33) on webradios is a good template. It started as a real need (playable stations without routing through Home Assistant), walked through existing workarounds (MPD M3U, HA Radio Browser), sketched possible approaches (a frontend over radio-browser.info, an MPD playlist editor), and the discussion stayed open long enough for the community, notably [@pbattino](https://github.com/pbattino), to shape the direction. The [current integration](/guides/webradios/) came out of that, not out of a one-liner issue.
+
+<Aside type="tip">You don't have to know the answer. You just have to start the conversation with enough context that others can actually help shape it.</Aside>
+
+## Then what?
+
+Once a feature is shaped and accepted, the next step is usually a tracked issue and, if you're up for it, a PR. See [Contribute](/guides/community/#contribute) for how that side of things works.

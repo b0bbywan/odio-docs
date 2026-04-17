@@ -102,6 +102,7 @@ export default defineConfig({
 					label: 'Community',
 					items: [
 						{ label: 'Get involved', slug: 'guides/community' },
+						{ label: 'Feature requests', slug: 'guides/feature-requests' },
 					],
 				},
 			],
