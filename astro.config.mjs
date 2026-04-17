@@ -13,6 +13,7 @@ export default defineConfig({
 					alt: 'odio',
 				},
 				favicon: '/favicon.svg',
+				lastUpdated: true,
 				customCss: ['./src/styles/custom.css'],
 				components: {
 					SocialIcons: './src/components/SocialIcons.astro',
