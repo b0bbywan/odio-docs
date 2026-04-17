@@ -15,9 +15,9 @@ odio installs in one command, updates in one command, and works out of the box. 
 
 It's DevOps thinking ported to multimedia. Your streamer isn't a precious appliance you tiptoe around, it's a reproducible host: cheap to rebuild, safe to poke at, boring to restore. Same philosophy that runs production infrastructure, applied to the box that plays your music.
 
-The odio user's home directory is tiny, a handful of kilobytes. Two folders hold your customizations, `~/.config` and `~/.local`, plus `/boot/config.txt` for DAC overlays and overclocking. Back those up, and you can wipe the whole system, reflash, and be back where you were in minutes.
+The odio user's home directory is tiny, a handful of kilobytes. Two folders hold your customizations, `~/.config` and `~/.cache`, plus `/boot/config.txt` for DAC overlays and overclocking. Back those up, and you can wipe the whole system, reflash, and be back where you were in minutes.
 
-Which means you can actually try things. Swap your DAC overlay. Enable an [extension](/guides/extensions/). Poke at a systemd unit. Tweak an MPD config. If you break it, you reflash and move on, a little sharper than before.
+Which means you can actually try things. Install an [extension](/guides/extensions/), listed or not. Poke at a systemd unit. Tweak a software config file. Most of them should hold basic documentation and unused config options to explore. If you break it and can't fix it, you reflash and move on, a little sharper than before.
 
 ## A platform, not a product
 
@@ -37,21 +37,23 @@ Running free software on your own hardware is one of the few moves left that isn
 
 That's worth something on its own. It's also why odio exists. Not out of blanket hostility to the industry, but because the multimedia one has disappointed too many times: streamers abandoned after a firmware pivot, features locked behind accounts that outlive the device, working hardware pushed toward the drawer once the vendor moves on.
 
-## A note from the maintainer
-
-Sharing knowledge has always been a passion of mine. The free software philosophy, the idea that you could open anything, read it, change it, share it back, is what made me fall in love with computing in the first place. That stands in direct opposition to what the software industry has largely become: surveillance, ads, planned obsolescence. I'd been forgetting that a bit in recent years.
-
-I came up as a sysadmin, not a coder, and free software is one of the tool that's let me learn, change direction, and keep growing across every role I've had. Working on odio reminded me of all of it. It pushed me to build something I actually want to stand behind, and honestly it made me a better engineer than I was before I started.
-
-One honest thing, though: I can come across as blunt at times, no hostility meant. I'm genuinely trying to help people grow, and I'll lose patience fast with anyone who looks down on others or tries to make them feel smaller.
-
-If odio is useful to you, that's already great. If it also pushes you to open a config file you didn't understand yesterday and understand it by tonight, that's the real win.
-
 ## Docs are how knowledge travels
 
 "Knowledge is a weapon" doesn't mean much if the knowledge stays in the maintainer's head. The docs you're reading are what turn one working setup into something anyone else can run, and they're where most of the real teaching happens.
 
+Some guides move fast and assume you're at ease with a shell, a config file, a systemd unit. That's deliberate for now. Until odio's setup, upgrade, and admin UX are where I want them, a bit of technical comfort should be enough to avoid frustration, still within reach for any enthusiast. It isn't meant to stay that way. How fast it changes depends on both the baseline UX improving and on [open doc issues](https://github.com/b0bbywan/odio-docs/issues) getting worked through.
+
 They're also the easiest place to contribute. Find a page that confused you, open the [docs repo](https://github.com/b0bbywan/odio-docs), edit the markdown, open a PR. No build pipeline to learn, no architecture to absorb, just clearer words than were there before. If a sentence tripped you up, it'll trip the next person too, and fixing it is a real contribution.
+
+## A note from the maintainer
+
+Sharing knowledge has always been a passion of mine. The free software philosophy, the idea that you could open anything, read it, change it, share it back, is what made me fall in love with computing in the first place. That stands in direct opposition to what the software industry has largely become: surveillance, ads, planned obsolescence. I'd been forgetting that a bit in recent years.
+
+I came up as a sysadmin, not a coder, and free software is one of the tool that's let me learn, change direction, and keep growing across every role I've had. odio itself came out of that path: six years of tinkering, largely for myself, before it felt worth publishing. Working on it reminded me of all of it, and pushed me to build something I actually want to stand behind. Honestly, it made me a better engineer than I was before I started.
+
+One honest thing, though: I can come across as blunt at times, no hostility meant. I'm genuinely trying to help people grow, and I'll lose patience fast with anyone who looks down on others or tries to make them feel smaller.
+
+If odio is useful to you, that's already great. If it also pushes you to open a config file you didn't understand yesterday and understand it by tonight, that's the real win.
 
 ## Contributions are credited
 
@@ -63,6 +65,6 @@ Free software without attribution is just free labor. Your name stays on what yo
 
 - Start with [installation](/guides/installation/) and [how it works](/guides/how-it-works/) to get the lay of the land.
 - Browse [extensions](/guides/extensions/) to see what plugs in where.
-- Head to [contribute](/guides/community/#contribute) when you want to share what you learned, or what you broke.
+- Head to [contribute](/community/get-involved/#contribute) when you want to share what you learned, or what you broke.
 
 <Aside type="tip">You don't have to know what you're doing before you start. That's kind of the point.</Aside>
