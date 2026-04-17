@@ -59,7 +59,7 @@ Enable with the service name matching the URL, e.g. `systemctl --user start fire
 
 ### Plex
 
-[Plex](https://www.plex.tv/) users can stream directly to an odio node via AirPlay, no extra setup beyond Plex's native AirPlay support. Confirmed by a community user.
+[Plex](https://www.plex.tv/) users can stream directly to an odio node via AirPlay, no extra setup beyond Plex's native AirPlay support. Confirmed by /u/Sterkenzz.
 
 ## Unified control with go-odio-api
 
@@ -67,10 +67,12 @@ Install [go-odio-api](/api/overview/) on the HTPC and it discovers every MPRIS p
 
 With the [systemd backend](/api/systemd/) configured, you can start and stop Kodi, Firefox kiosk, or any other whitelisted service directly from the [embedded web UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/).
 
+![Embedded UI on an HTPC node — PipeWire audio server, Kodi playing with cover art, and Bluetooth, Netflix, YouTube, tv.orange.fr, Kodi, PipeWire PulseAudio managed as services](../../../assets/htpc-embedded-ui.png)
+
 ## Remote control
 
 Control the HTPC from anywhere:
 
 - The [odio application](/guides/pwa/) from your phone
 - [Home Assistant](/guides/home-assistant/) with auto-discovery
-- A [UPnP control point](/guides/dlna/) like BubbleUPnP to browse a DLNA server and direct playback to the HTPC
+- A [UPnP control point](/guides/dlna/) like BubbleDS Next or BubbleUPnP to browse a DLNA server and direct playback to the HTPC
