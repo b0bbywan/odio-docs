@@ -49,6 +49,16 @@ go-odio-api never talks to any media player directly, it only speaks MPRIS over 
 
 The binary ships with an [embedded web UI](/guides/embedded-ui/). The API and the interface are the same process. But the API is the product. The embedded UI is one client among many. See the full [API documentation](/api/overview/).
 
+## Configuration philosophy
+
+Two worlds bracket this space. Commercial streamers are closed appliances: nothing to configure, nothing you can configure, and nothing you can swap out once the vendor moves on. On the Raspberry Pi side, distributions like Volumio and Moode go the other way, exposing a lot of the stack through a UI, useful or not, but making anything beyond that UI awkward to reach over SSH.
+
+odio picks a different middle: a minimal base, tuned to run well on a Pi B+, with software and defaults chosen to cover the common cases without a settings screen. The things that genuinely need tweaking, DAC overlays and overclocking first, will land in [odios](https://github.com/b0bbywan/odios) as first-class actions over time. Everything else is left to you over SSH, where the standard Linux tools already work the way you'd expect.
+
+Whether that balance is right for every user isn't something I'd claim as settled. What gets pulled into odios versus left on the command line will shift with what the community actually wants automated.
+
+If you disagree with a software choice or configuration default, or think there's a better option, bring it to [discussions](https://github.com/b0bbywan/odios/discussions) and argue the case. That's how these calls get revisited.
+
 ## The ecosystem
 
 | Repository | Language | What it does |
