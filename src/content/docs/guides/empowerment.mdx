@@ -1,0 +1,68 @@
+---
+title: 🏴 Empowerment
+description: Free software as a way to take back control of your machine, learn something real, and stop being afraid to break things.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+If a page titled "empowerment" on a software docs site sounds overblown to you, I get it. Hear me out before you dismiss it.
+
+"Knowledge is a weapon." It's on the cover of [odio.love](https://odio.love), and it's not a slogan. odio is built on the belief that free software is a path to emancipation, a way to take back control of the hardware you already own, and sometimes just a way to learn something real along the way.
+
+## odio is simple so you can break it
+
+odio installs in one command, updates in one command, and works out of the box. That isn't so you never have to open the hood. It's the opposite. It's so that opening the hood carries no real risk.
+
+It's DevOps thinking ported to multimedia. Your streamer isn't a precious appliance you tiptoe around, it's a reproducible host: cheap to rebuild, safe to poke at, boring to restore. Same philosophy that runs production infrastructure, applied to the box that plays your music.
+
+The odio user's home directory is tiny, a handful of kilobytes. Two folders hold your customizations, `~/.config` and `~/.local`, plus `/boot/config.txt` for DAC overlays and overclocking. Back those up, and you can wipe the whole system, reflash, and be back where you were in minutes.
+
+Which means you can actually try things. Swap your DAC overlay. Enable an [extension](/guides/extensions/). Poke at a systemd unit. Tweak an MPD config. If you break it, you reflash and move on, a little sharper than before.
+
+## A platform, not a product
+
+odio isn't one monolithic app, it's independent components talking standard protocols: MPD, DLNA, MPRIS, D-Bus, [SSE events](/api/events/). You're not configuring a product, you're composing a system. The [Home Assistant](/guides/home-assistant/), [Music Assistant](/guides/music-assistant/), and [HTPC](/guides/use-case-htpc/) setups are all just other pieces plugged onto the same surface.
+
+The same doors are open to you. Write a script against the [API](/api/overview/). Build an [extension](/guides/extensions/). Pipe another source into the [TCP sink](/guides/network-audio/). Create something that didn't exist before, because nothing in odio was designed to stop you.
+
+## Easy to start, open to dig into
+
+DX matters almost as much as UX. Two audiences usually pull in opposite directions: enthusiasts who want it to just work, and devs and makers who want to crack everything open. odio tries to serve both, one-command install and sensible defaults on one side, standard protocols and clean APIs on the other, ideally with a path from the first to the second as curiosity grows.
+
+It's an honest challenge, and not one I'd claim to have fully solved. Keeping the first experience smooth without flattening the underlying system into a black box takes constant attention. Both camps matter, and losing either one would be losing the point.
+
+## Free software isn't just free
+
+Running free software on your own hardware is one of the few moves left that isn't mediated by a vendor deciding what your device is allowed to do. No account to log into. No feature locked behind a firmware tier. No silent telemetry. No end of service when the company pivots. The Pi on your shelf stays yours, and the software on it stays auditable and replaceable.
+
+That's worth something on its own. It's also why odio exists. Not out of blanket hostility to the industry, but because the multimedia one has disappointed too many times: streamers abandoned after a firmware pivot, features locked behind accounts that outlive the device, working hardware pushed toward the drawer once the vendor moves on.
+
+## A note from the maintainer
+
+Sharing knowledge has always been a passion of mine. The free software philosophy, the idea that you could open anything, read it, change it, share it back, is what made me fall in love with computing in the first place. That stands in direct opposition to what the software industry has largely become: surveillance, ads, planned obsolescence. I'd been forgetting that a bit in recent years.
+
+I came up as a sysadmin, not a coder, and free software is one of the tool that's let me learn, change direction, and keep growing across every role I've had. Working on odio reminded me of all of it. It pushed me to build something I actually want to stand behind, and honestly it made me a better engineer than I was before I started.
+
+One honest thing, though: I'm deep into all this, and I don't have much patience for people who aren't in it for the same reasons. Fair warning.
+
+If odio is useful to you, that's already great. If it also pushes you to open a config file you didn't understand yesterday and understand it by tonight, that's the real win.
+
+## Docs are how knowledge travels
+
+"Knowledge is a weapon" doesn't mean much if the knowledge stays in the maintainer's head. The docs you're reading are what turn one working setup into something anyone else can run, and they're where most of the real teaching happens.
+
+They're also the easiest place to contribute. Find a page that confused you, open the [docs repo](https://github.com/b0bbywan/odio-docs), edit the markdown, open a PR. No build pipeline to learn, no architecture to absorb, just clearer words than were there before. If a sentence tripped you up, it'll trip the next person too, and fixing it is a real contribution.
+
+## Contributions are credited
+
+Every feature that came from someone other than the maintainer keeps their name on it. The [webradios integration](/guides/webradios/) wouldn't look the way it does without [@pbattino](https://github.com/pbattino). PRs keep their author, discussions credit whoever shaped the direction, [extensions](/guides/extensions/) link back to the people running them.
+
+Free software without attribution is just free labor. Your name stays on what you built, and contributing to something real, something that keeps working for other people long after you stopped touching it, is worth being proud of.
+
+## Go on, break something
+
+- Start with [installation](/guides/installation/) and [how it works](/guides/how-it-works/) to get the lay of the land.
+- Browse [extensions](/guides/extensions/) to see what plugs in where.
+- Head to [contribute](/guides/community/#contribute) when you want to share what you learned, or what you broke.
+
+<Aside type="tip">You don't have to know what you're doing before you start. That's kind of the point.</Aside>
