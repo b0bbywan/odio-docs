@@ -33,3 +33,39 @@
 	--sl-color-red: #dc2626;
 	--sl-color-red-high: #f87171;
 }
+
+/* Horizontal screenshot carousel (scroll-snap, no JS) */
+.screenshot-carousel {
+	display: flex;
+	gap: 1rem;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	padding: 0.5rem 0 1rem;
+	margin: 1rem 0 2rem;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: thin;
+	scrollbar-color: var(--sl-color-gray-3) transparent;
+}
+
+.screenshot-carousel > figure {
+	flex: 0 0 auto;
+	scroll-snap-align: start;
+	margin: 0;
+	width: min(260px, 70vw);
+}
+
+.screenshot-carousel img {
+	width: 100%;
+	height: auto;
+	border-radius: 8px;
+	border: 1px solid var(--sl-color-gray-4);
+	display: block;
+}
+
+.screenshot-carousel figcaption {
+	font-size: var(--sl-text-xs);
+	color: var(--sl-color-gray-2);
+	text-align: center;
+	margin-top: 0.5rem;
+	line-height: 1.3;
+}
