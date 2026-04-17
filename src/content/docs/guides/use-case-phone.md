@@ -25,9 +25,9 @@ Open Spotify, tap the device icon, and select the odio node. Music streams direc
 
 Install the [odio App](https://pwa.odio.love) on your phone, add your nodes by hostname or IP and get the full interface for each: playback, volume, audio routing, Bluetooth, services, power. Manage all your nodes from one place.
 
-### BubbleUPnP
+### BubbleDS Next / BubbleUPnP
 
-Use [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp) to browse a DLNA server on your network, your NAS for example, and direct playback to the odio node as a [DLNA renderer](/guides/dlna/). With [Tidal or Qobuz](/guides/tidal-qobuz/) configured, you can also browse and stream cloud libraries. If you know a good open-source alternative, [let us know](https://github.com/b0bbywan/odios/discussions).
+Use [BubbleDS Next](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleds2) (free, works with odio via OpenHome) or [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp) (some features paid) to browse a DLNA server on your network, your NAS for example, and direct playback to the odio node as a [DLNA renderer](/guides/dlna/). With [Tidal or Qobuz](/guides/tidal-qobuz/) configured, you can also browse and stream cloud libraries. If you know a good open-source alternative, [let us know](https://github.com/b0bbywan/odios/discussions).
 
 ### Home Assistant
 
