@@ -5,6 +5,8 @@ description: Native Home Assistant integration — your full odio stack as HA en
 
 [odio-ha](https://github.com/b0bbywan/odio-ha) is a native Home Assistant integration, installable via [HACS](https://hacs.xyz/). Each odio node appears as a single HA device with the entire stack exposed as entities.
 
+![Home Assistant device view of an odio node — device info, full list of controls (Bluetooth, MPD, MPD services, Odio Remote media player with transport, pairing, remote audio clients), and activity log](../../../assets/home-assistant-odio-remote.png)
+
 ## Installation
 
 1. Open HACS in Home Assistant.
@@ -41,6 +43,10 @@ Whitelisted systemd user services exposed as start/stop switches. System units a
 ## Entity mapping
 
 odio-ha doesn't replace existing HA integrations. MPD, Snapcast, spotifyd, and upmpdcli all have their own dedicated HA integrations for rich playback control.
+
+![Home Assistant MPD integration picking up the odio node as a Music Player Daemon device in the Salon area](../../../assets/home-assistant-mpd.png)
+
+![Home Assistant Snapcast client view for the raspodio node in the Salon, with a source selector listing MPD, SpotifyHD, Airplay, and PipeWire streams from bobby-laptop, rasponkyold, and bobby-desktop](../../../assets/home-assistant-snapcast.png)
 
 In the odio-ha configuration, any managed entity (service, MPRIS player, or remote audio client) can be mapped to an existing HA media player so Home Assistant treats them as one.
 
