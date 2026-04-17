@@ -14,6 +14,7 @@ odio is a multi-source audio system supporting Bluetooth, AirPlay, Spotify Conne
 npm run dev       # Dev server at localhost:4321
 npm run build     # Production build to ./dist/
 npm run preview   # Preview production build locally
+npm run stats     # Regenerate GitHub activity stats (reads src/data/ecosystem.js, needs gh CLI)
 ```
 
 ## Architecture
@@ -28,3 +29,9 @@ npm run preview   # Preview production build locally
 
 1. Create a `.md` or `.mdx` file in `src/content/docs/guides/`.
 2. Add a corresponding sidebar entry in `astro.config.mjs` under the appropriate section.
+
+## Activity / stats pipeline
+
+`scripts/fetch-github-stats.mjs` uses the local `gh` CLI to collect PR / commit / release / issue / star / fork / discussion data for the repos in `src/data/ecosystem.js`. Outputs minified `src/data/stats.json` (consumed by `src/components/Activity.astro` at build time). The same JSON is served at `https://docs.odio.love/stats.json` through `src/pages/stats.json.ts` (endpoint, no duplication). The page lives at `src/content/docs/guides/activity.mdx`.
+
+The sister site `odio.love` also ships a compact KPI strip linking here; its copy of `stats.json` is regenerated with the same script on that side.

@@ -1,0 +1,565 @@
+---
+import stats from '../data/stats.json';
+
+const fmt = new Intl.NumberFormat('en-US');
+const { totals, commitsByWeek, starsByWeek = [], repos, since, generatedAt } = stats;
+
+const sinceLabel = new Date(since).toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+const updatedLabel = new Date(generatedAt).toLocaleString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone: 'UTC',
+}) + ' UTC';
+
+const stableReleaseCount = repos.reduce(
+  (a, r) => a + r.releases.filter((rel) => !rel.prerelease).length,
+  0,
+);
+
+const mergeRatioPct = totals.pr.mergeRatio != null
+  ? Math.round(totals.pr.mergeRatio * 100)
+  : null;
+
+const cards = [
+  {
+    value: fmt.format(totals.pr.merged),
+    label: 'merged',
+    sub:
+      mergeRatioPct != null
+        ? [`${mergeRatioPct}%`, `${totals.pr.closedUnmerged} closed`, `${totals.pr.open} open`]
+        : null,
+  },
+  {
+    value: fmt.format(totals.commits),
+    label: 'commits',
+    sub: null,
+  },
+  {
+    value: fmt.format(totals.releases),
+    label: 'releases',
+    sub:
+      stableReleaseCount !== totals.releases
+        ? [`${fmt.format(stableReleaseCount)} stable`]
+        : null,
+  },
+  {
+    value: `+${fmt.format(totals.locNet)}`,
+    label: 'net LoC',
+    sub: [`+${fmt.format(totals.locAdded)} / −${fmt.format(totals.locRemoved)}`],
+  },
+  {
+    value: fmt.format(totals.issuesOpened),
+    label: 'issues',
+    sub: totals.issuesClosed > 0 ? [`${totals.issuesClosed} closed`] : null,
+  },
+  {
+    value: fmt.format(totals.discussionsSince || 0),
+    label: 'discussions',
+    sub:
+      (totals.discussionsAnswered || 0) > 0
+        ? [`${totals.discussionsAnswered} answered`]
+        : null,
+  },
+  {
+    value: `${fmt.format(totals.stars)} ★`,
+    label: 'stars',
+    sub: null,
+  },
+  {
+    value: `${fmt.format(totals.forks)} ⑂`,
+    label: 'forks',
+    sub: null,
+  },
+];
+
+// Chart geometry
+const chartW = 960;
+const chartH = 240;
+const padL = 40;
+const padR = 44;
+const padT = 20;
+const padB = 32;
+const innerW = chartW - padL - padR;
+const innerH = chartH - padT - padB;
+
+const starsSeries = starsByWeek.filter((s) =>
+  commitsByWeek.some((c) => c.w === s.w),
+);
+const byWeekMap = new Map(starsSeries.map((s) => [s.w, s.cumul]));
+
+const repoColors = {
+  'go-odio-api': '#5ab81e',
+  'odios': '#c8943a',
+  'odio-ha': '#7ab8ff',
+  'odio-pwa': '#ff6a3d',
+  'go-mpd-discplayer': '#9ed65e',
+  'go-disc-cuer': '#4fc9a8',
+  'go-odio-notify': '#b090ff',
+  'odio-apt-repo': '#d9c758',
+  'odio-docs': '#e38dd6',
+  'odio.love': '#a09080',
+};
+const colorOf = (name) => repoColors[name] || '#3a7020';
+
+const activeRepos = repos
+  .filter((r) => r.commits.total > 0)
+  .slice()
+  .sort((a, b) => b.commits.total - a.commits.total);
+const repoWeekMap = new Map(
+  activeRepos.map((r) => [r.name, new Map(r.commits.byWeek.map((d) => [d.w, d.c]))]),
+);
+
+const maxC = Math.max(1, ...commitsByWeek.map((d) => d.c));
+const maxS = Math.max(1, ...starsSeries.map((d) => d.cumul));
+const barGap = 3;
+const barW = commitsByWeek.length
+  ? Math.max(2, (innerW - (commitsByWeek.length - 1) * barGap) / commitsByWeek.length)
+  : 0;
+
+const yCommit = (v) => padT + innerH - (v / maxC) * innerH;
+const yStar = (v) => padT + innerH - (v / maxS) * innerH;
+
+const commitTicks = [0, Math.ceil(maxC / 2), maxC];
+const starTicks = [0, Math.ceil(maxS / 2), maxS];
+
+const starPath = commitsByWeek
+  .map((d, i) => {
+    const cx = padL + i * (barW + barGap) + barW / 2;
+    const cy = yStar(byWeekMap.get(d.w) ?? 0);
+    return `${i === 0 ? 'M' : 'L'}${cx.toFixed(1)},${cy.toFixed(1)}`;
+  })
+  .join(' ');
+
+const sortedRepos = [...repos].sort((a, b) => b.commits.total - a.commits.total);
+const AMBER = '#c8943a';
+---
+
+<div class="activity">
+  <p class="activity-sub">
+    Activity across the ecosystem since {sinceLabel}.
+  </p>
+
+  <div class="kpi-grid">
+    {cards.map((card) => (
+      <div class="kpi">
+        <div class="kpi-value">{card.value}</div>
+        <div class="kpi-label">{card.label}</div>
+        {card.sub && (
+          <div class="kpi-sub">
+            {card.sub.map((line) => <div>{line}</div>)}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+
+  {commitsByWeek.length > 0 && (
+    <div class="chart-block">
+      <h3>Commits per week</h3>
+      <div class="chart-box" id="activity-chart">
+        <div id="activity-tooltip" class="activity-tooltip"></div>
+        <svg
+          viewBox={`0 0 ${chartW} ${chartH}`}
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="Commits per week chart with cumulative stars overlay"
+        >
+          {commitTicks.map((t) => (
+            <g>
+              <line
+                x1={padL}
+                x2={chartW - padR}
+                y1={yCommit(t)}
+                y2={yCommit(t)}
+                stroke="var(--sl-color-gray-4)"
+                stroke-dasharray="2,3"
+              />
+              <text
+                x={padL - 8}
+                y={yCommit(t)}
+                text-anchor="end"
+                dominant-baseline="middle"
+                class="axis-label"
+              >
+                {t}
+              </text>
+            </g>
+          ))}
+          {starTicks.map((t) => (
+            <text
+              x={chartW - padR + 8}
+              y={yStar(t)}
+              text-anchor="start"
+              dominant-baseline="middle"
+              class="axis-label axis-label-amber"
+            >
+              {t}★
+            </text>
+          ))}
+          {commitsByWeek.map((d, i) => {
+            const x = padL + i * (barW + barGap);
+            let cumul = 0;
+            return (
+              <g>
+                {activeRepos.map((r) => {
+                  const c = repoWeekMap.get(r.name).get(d.w) || 0;
+                  if (c === 0) return null;
+                  const h = (c / maxC) * innerH;
+                  const y = padT + innerH - ((cumul + c) / maxC) * innerH;
+                  cumul += c;
+                  return (
+                    <rect
+                      x={x}
+                      y={y}
+                      width={barW}
+                      height={h}
+                      fill={colorOf(r.name)}
+                      opacity="0.9"
+                      class="activity-bar"
+                      data-repo={r.name}
+                      data-week={d.w}
+                      data-count={c}
+                      data-color={colorOf(r.name)}
+                    >
+                      <title>{`${r.name} — ${d.w}: ${c} commits`}</title>
+                    </rect>
+                  );
+                })}
+              </g>
+            );
+          })}
+          <path
+            d={starPath}
+            fill="none"
+            stroke={AMBER}
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+          {commitsByWeek.map((d, i) => {
+            const cx = padL + i * (barW + barGap) + barW / 2;
+            const cy = yStar(byWeekMap.get(d.w) ?? 0);
+            return (
+              <circle cx={cx} cy={cy} r={2.5} fill={AMBER}>
+                <title>{`${d.w}: ${byWeekMap.get(d.w) ?? 0} total stars`}</title>
+              </circle>
+            );
+          })}
+          {commitsByWeek.map((d, i) =>
+            i % 4 === 0 || i === commitsByWeek.length - 1 ? (
+              <text
+                x={padL + i * (barW + barGap) + barW / 2}
+                y={chartH - padB + 14}
+                text-anchor="middle"
+                class="axis-label"
+              >
+                {d.w.slice(5)}
+              </text>
+            ) : null,
+          )}
+        </svg>
+        <div class="legend">
+          {activeRepos.map((r) => (
+            <span class="legend-item">
+              <span
+                class="legend-swatch"
+                style={`background-color: ${colorOf(r.name)};`}
+              ></span>
+              {r.name}
+            </span>
+          ))}
+          <span class="legend-item">
+            <span class="legend-line"></span>
+            cumulative stars
+          </span>
+        </div>
+      </div>
+    </div>
+  )}
+
+  <h3>By repository</h3>
+  <div class="table-wrap">
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>repo</th>
+          <th class="num">★</th>
+          <th class="num">⑂</th>
+          <th class="num">PRs</th>
+          <th>merge</th>
+          <th class="num">commits</th>
+          <th class="num">LoC +/−</th>
+          <th>latest release</th>
+        </tr>
+      </thead>
+      <tbody>
+        {sortedRepos.map((r) => {
+          const ratio = r.pr.mergeRatio;
+          const pct = ratio != null ? Math.round(ratio * 100) : null;
+          return (
+            <tr>
+              <td class="repo-cell">
+                <a href={`https://github.com/${stats.owner}/${r.name}`} target="_blank" rel="noopener noreferrer">
+                  {r.name}
+                </a>
+              </td>
+              <td class="num">{r.stars}</td>
+              <td class="num">{r.forks}</td>
+              <td class="num">{r.pr.merged}/{r.pr.total}</td>
+              <td>
+                {pct != null ? (
+                  <div class="bar-wrap">
+                    <div class="bar-track">
+                      <div class="bar-fill" style={`width: ${pct}%`}></div>
+                    </div>
+                    <span class="bar-pct">{pct}%</span>
+                  </div>
+                ) : (
+                  <span class="muted">—</span>
+                )}
+              </td>
+              <td class="num">{r.commits.total}</td>
+              <td class="num loc">
+                <div class="loc-added">+{fmt.format(r.loc.added)}</div>
+                <div class="loc-removed">−{fmt.format(r.loc.removed)}</div>
+              </td>
+              <td>
+                {r.latestRelease ? (
+                  <span>
+                    <span class="release-tag">{r.latestRelease.tag}</span>
+                    <span class="release-date">{r.latestRelease.date}</span>
+                  </span>
+                ) : (
+                  '—'
+                )}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="activity-footer">
+    Updated {updatedLabel}. Raw data: <a href="/stats.json"><code>/stats.json</code></a>.
+    Regenerate with <code>npm run stats</code>.
+  </p>
+</div>
+
+<script is:inline>
+  {
+    const chart = document.getElementById('activity-chart');
+    const tip = document.getElementById('activity-tooltip');
+    if (chart && tip) {
+      const show = (e) => {
+        const r = e.currentTarget;
+        const repo = r.getAttribute('data-repo');
+        const week = r.getAttribute('data-week');
+        const count = r.getAttribute('data-count');
+        const color = r.getAttribute('data-color');
+        tip.innerHTML =
+          '<span style="display:inline-block;width:8px;height:8px;background:' +
+          color +
+          ';border-radius:2px;margin-right:6px;vertical-align:middle;"></span>' +
+          '<strong>' + repo + '</strong>' +
+          '<span style="opacity:0.7;"> · ' + week + '</span><br>' +
+          '<span style="color:#5ab81e;">' + count + ' commits</span>';
+        const rect = r.getBoundingClientRect();
+        const box = chart.getBoundingClientRect();
+        tip.style.left = (rect.left + rect.width / 2 - box.left) + 'px';
+        tip.style.top = (rect.top - box.top) + 'px';
+        tip.style.opacity = '1';
+        r.setAttribute('data-prev-opacity', r.getAttribute('opacity') || '0.9');
+        r.setAttribute('opacity', '1');
+      };
+      const hide = (e) => {
+        tip.style.opacity = '0';
+        const prev = e.currentTarget.getAttribute('data-prev-opacity') || '0.9';
+        e.currentTarget.setAttribute('opacity', prev);
+      };
+      chart.querySelectorAll('.activity-bar').forEach((r) => {
+        r.addEventListener('mouseenter', show);
+        r.addEventListener('mouseleave', hide);
+      });
+    }
+  }
+</script>
+
+<style>
+  .activity {
+    --amber: #c8943a;
+  }
+  .activity-sub {
+    color: var(--sl-color-gray-2);
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
+  }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 3rem;
+    align-items: stretch;
+  }
+  @media (min-width: 640px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+  .kpi {
+    background: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.75rem;
+    padding: 0.85rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .kpi-value {
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 1.65rem;
+    line-height: 1.1;
+    color: var(--sl-color-accent-high);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.35rem;
+  }
+  .kpi-label { color: var(--sl-color-white); font-size: 0.85rem; line-height: 1.2; }
+  .kpi-sub {
+    color: var(--sl-color-gray-3);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+  .kpi-sub > div { margin: 0; }
+
+  .chart-block { margin-bottom: 3rem; }
+  .chart-block h3 { margin-bottom: 0.8rem; }
+  .chart-box {
+    background: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.75rem;
+    padding: 1.2rem;
+    position: relative;
+    overflow-x: auto;
+  }
+  .chart-box svg { width: 100%; height: auto; display: block; }
+  .axis-label {
+    fill: var(--sl-color-gray-3);
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 10px;
+  }
+  .axis-label-amber { fill: #c8943a; opacity: 0.75; }
+  .activity-tooltip {
+    pointer-events: none;
+    position: absolute;
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-accent);
+    color: var(--sl-color-white);
+    font-family: var(--sl-font-mono, monospace);
+    z-index: 10;
+    transform: translate(-50%, -130%);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-top: 1rem;
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-2);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .legend-line {
+    display: inline-block;
+    width: 14px;
+    height: 2px;
+    background: #c8943a;
+  }
+
+  .table-wrap {
+    background: var(--sl-color-gray-5);
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .activity-table {
+    width: 100%;
+    font-family: var(--sl-font-mono, monospace);
+    font-size: 0.85rem;
+    border-collapse: collapse;
+    margin: 0;
+  }
+  .activity-table th {
+    text-align: left;
+    font-weight: 400;
+    color: var(--sl-color-gray-2);
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid var(--sl-color-gray-4);
+  }
+  .activity-table th.num { text-align: right; }
+  .activity-table td {
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--sl-color-gray-4);
+    color: var(--sl-color-gray-2);
+    vertical-align: middle;
+  }
+  .activity-table tr:last-child td { border-bottom: none; }
+  .activity-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .activity-table .repo-cell a {
+    color: var(--sl-color-white);
+    text-decoration: none;
+  }
+  .activity-table .repo-cell a:hover { text-decoration: underline; }
+  .loc-added { color: var(--sl-color-accent-high); }
+  .loc-removed { color: #c8943a; opacity: 0.85; font-size: 0.75rem; }
+
+  .bar-wrap { display: flex; align-items: center; gap: 0.5rem; min-width: 90px; }
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--sl-color-gray-4);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--sl-color-accent-high);
+  }
+  .bar-pct {
+    font-size: 0.7rem;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .release-tag { color: var(--sl-color-gray-2); }
+  .release-date { margin-left: 0.5rem; font-size: 0.75rem; color: var(--sl-color-gray-3); }
+  .muted { color: var(--sl-color-gray-3); font-size: 0.75rem; }
+
+  .activity-footer {
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+  }
+</style>
