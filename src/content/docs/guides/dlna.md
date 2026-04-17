@@ -7,7 +7,7 @@ Your odio node acts as a UPnP/DLNA renderer via [upmpdcli](https://www.lesbonsco
 
 ## Usage
 
-1. Use a DLNA control point app — [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp) on Android, or any UPnP app.
+1. Use a DLNA control point app — [BubbleDS Next](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleds2) (free, OpenHome) or [BubbleUPnP](https://play.google.com/store/apps/details?id=com.bubblesoft.android.bubbleupnp) (paid features) on Android, or any UPnP app.
 2. Browse your DLNA server (NAS, phone, any media server on your network).
 3. Select your odio node as the renderer.
 4. Play.
