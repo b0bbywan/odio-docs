@@ -266,7 +266,7 @@ async function fetchRepo(name) {
     },
     loc: { added: locAdded, removed: locRemoved, net: locAdded - locRemoved },
     releases,
-    latestRelease: releases[0] || null,
+    latestRelease: releases.find((r) => !r.prerelease) || null,
     issues: { opened: issuesOpened, closed: issuesClosed },
     discussions,
   };

@@ -333,10 +333,15 @@ const AMBER = '#c8943a';
               </td>
               <td>
                 {r.latestRelease ? (
-                  <span>
+                  <a
+                    href={`https://github.com/${stats.owner}/${r.name}/releases/tag/${r.latestRelease.tag}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="release-link"
+                  >
                     <span class="release-tag">{r.latestRelease.tag}</span>
                     <span class="release-date">{r.latestRelease.date}</span>
-                  </span>
+                  </a>
                 ) : (
                   '—'
                 )}
@@ -554,8 +559,10 @@ const AMBER = '#c8943a';
     font-variant-numeric: tabular-nums;
   }
 
+  .release-link { text-decoration: none; }
+  .release-link:hover .release-tag { color: var(--sl-color-accent-high); }
   .release-tag { color: var(--sl-color-gray-2); }
-  .release-date { margin-left: 0.5rem; font-size: 0.75rem; color: var(--sl-color-gray-3); }
+  .release-date { display: block; font-size: 0.75rem; color: var(--sl-color-gray-3); }
   .muted { color: var(--sl-color-gray-3); font-size: 0.75rem; }
 
   .activity-footer {
