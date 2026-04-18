@@ -3,25 +3,44 @@ title: Bluetooth
 description: Use your Pi as a Bluetooth speaker — pair, play, and control from your phone.
 ---
 
+import { Image } from 'astro:assets';
+import pairing from '../../../assets/bt-pairing-countdown.png';
+import discover from '../../../assets/bt-phone-discover.png';
+import confirm from '../../../assets/bt-phone-confirm.png';
+import connected from '../../../assets/bt-phone-connected.png';
+import playing from '../../../assets/bt-playing.png';
+
 Your odio node works like a commercial Bluetooth speaker via [BlueZ](https://www.bluez.org/). Pair your phone, play music, control everything from the odio UI or Home Assistant.
+
+<div class="screenshot-carousel">
+	<figure>
+		<Image src={pairing} alt="odio embedded UI in pairing mode with countdown timer" />
+		<figcaption>Pairing mode with countdown on the odio node</figcaption>
+	</figure>
+	<figure>
+		<Image src={discover} alt="Android Bluetooth settings showing the odio node as an available device" />
+		<figcaption>The node appears in your phone's Bluetooth settings</figcaption>
+	</figure>
+	<figure>
+		<Image src={confirm} alt="Android pairing confirmation dialog for the odio node" />
+		<figcaption>Pairing confirmation, no PIN needed</figcaption>
+	</figure>
+	<figure>
+		<Image src={connected} alt="Android showing the odio node as a connected active media device" />
+		<figcaption>Connected and trusted for future sessions</figcaption>
+	</figure>
+	<figure>
+		<Image src={playing} alt="Embedded UI showing a Bluetooth device streaming music — phone appears as a media player and audio client" />
+		<figcaption>Streaming from the phone, controlled from the odio UI</figcaption>
+	</figure>
+</div>
 
 ## First pairing
 
 1. Tap **Pairing** from the embedded UI, the application, or Home Assistant — this powers on Bluetooth automatically if needed and makes the node discoverable until a device connects or the timeout expires (60 seconds by default).
-
-![odio embedded UI in pairing mode with countdown timer](../../../assets/bt-pairing-countdown.png)
-
 2. On your phone, go to Bluetooth settings — your odio node appears with a headphone icon.
-
-![Android Bluetooth settings showing the odio node as an available device](../../../assets/bt-phone-discover.png)
-
 3. Tap the odio node. Your phone asks to confirm the pairing — accept it.
-
-![Android pairing confirmation dialog for the odio node](../../../assets/bt-phone-confirm.png)
-
 4. That's it. The device is automatically trusted for future connections. No PIN, no confirmation on the Pi.
-
-![Android showing the odio node as a connected active media device](../../../assets/bt-phone-connected.png)
 
 ## Reconnecting
 
@@ -41,8 +60,6 @@ Once connected, your phone streams audio to the Pi over A2DP. The connected devi
 - Bidirectional volume sync — change volume on your phone or in the UI
 
 This works with any app on your phone: Spotify, YouTube, Apple Music, podcasts, anything.
-
-![Embedded UI showing a Bluetooth device streaming music — phone appears as a media player and audio client](../../../assets/bt-playing.png)
 
 ## Power management
 
