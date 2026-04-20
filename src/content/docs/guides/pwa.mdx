@@ -19,6 +19,33 @@ The [odio application](https://pwa.odio.love) is a web app that lets you manage 
 
 The application loads each node's [embedded web UI](/guides/embedded-ui/) in an iframe. You get the full interface of each node — playback, audio routing, Bluetooth, services, power — all accessible from a single app.
 
+## Self-hosting
+
+Since [v0.3.4](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.3.4), the app can be self-hosted on your own network, either from a Docker image or a static zip.
+
+<Aside>Thanks to [@pbattino](https://github.com/pbattino) ([odios#47](https://github.com/b0bbywan/odios/issues/47)) for the nudge to make self-hosting a first-class, documented path.</Aside>
+
+- **Docker** (multi-arch, amd64 + arm64):
+
+  ```bash
+  docker run -d -p 8080:80 --restart unless-stopped \
+    --name odio-pwa ghcr.io/b0bbywan/odio-pwa:latest
+  ```
+
+  The image is based on `nginx:alpine` with SPA fallback and PWA-aware cache headers already configured.
+
+- **Static zip** — download `odio-pwa-<version>.zip` from the [releases page](https://github.com/b0bbywan/odio-pwa/releases) and serve the extracted files from any web server. Make sure unrecognized paths fall back to `/index.html`, and set `Cache-Control: no-cache` on `/index.html`, `/sw.js`, and `/registerSW.js`.
+
+<Aside type="caution">Serving the PWA over HTTPS while talking to HTTP odio nodes on your LAN triggers mixed-content restrictions. Chrome 142+ prompts for Local Network Access and allows the bypass once granted. Safari blocks mixed content with no exemption. Firefox only exempts `localhost`. Serving the PWA over plain HTTP on your LAN avoids these restrictions entirely.</Aside>
+
+## Updates
+
+An arrow indicator appears next to the app version when a newer GitHub release is available, click it to open the release notes. To include prereleases (for testing RCs), run in the browser devtools console:
+
+```js
+localStorage.setItem('odio-include-prereleases', 'true')
+```
+
 ## Why manual configuration?
 
 A web app cannot perform mDNS/Zeroconf discovery — browsers don't have access to UDP multicast. That's why you need to add your nodes manually by hostname or IP.
