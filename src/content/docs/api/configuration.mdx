@@ -23,8 +23,10 @@ api:
   ui:
     enabled: true
   cors:
-    origins: ["https://odio-pwa.vercel.app"]
+    origins: ["https://pwa.odio.love", "https://odio-pwa.vercel.app"]
 ```
+
+`api.cors.origins` lists the origins allowed to call the API from a browser. The defaults cover the hosted [odio application](https://pwa.odio.love); add your own origin here if you [self-host it](/guides/pwa/#other-setups) on a different address.
 
 ## Network binding
 
