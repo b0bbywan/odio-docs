@@ -3,9 +3,29 @@ title: Home Assistant
 description: Native Home Assistant integration — your full odio stack as HA entities.
 ---
 
-[odio-ha](https://github.com/b0bbywan/odio-ha) is a native Home Assistant integration, installable via [HACS](https://hacs.xyz/). Each odio node appears as a single HA device with the entire stack exposed as entities.
+import { Image } from 'astro:assets';
+import { Aside } from '@astrojs/starlight/components';
+import haRaspodio from '../../../assets/home-assistant-odio-remote.png';
+import haDesktop from '../../../assets/home-assistant-odio-desktop.png';
 
-![Home Assistant device view of an odio node — device info, full list of controls (Bluetooth, MPD, MPD services, Odio Remote media player with transport, pairing, remote audio clients), and activity log](../../../assets/home-assistant-odio-remote.png)
+[odio-ha](https://github.com/b0bbywan/odio-ha) is a native Home Assistant integration, installable via [HACS](https://hacs.xyz/). Each odio node appears as a single HA device with its stack exposed as entities.
+
+A node can be a full [odio streamer](/guides/installation/) on a Raspberry Pi, or just [go-odio-api](/api/installation/) running on any Linux machine with a D-Bus user session (desktop, NAS, laptop). Same integration either way, HA exposes whichever capabilities the node actually has.
+
+<div class="screenshot-carousel">
+	<figure>
+		<Image src={haRaspodio} alt="Home Assistant device view of a Raspberry Pi odio node, showing device info, Bluetooth controls, MPD service switches, Odio Remote media player with transport, pairing, remote audio clients, and activity log" />
+		<figcaption>Raspberry Pi audio streamer, full stack exposed</figcaption>
+	</figure>
+	<figure>
+		<Image src={haDesktop} alt="Home Assistant device view of a desktop odio node on Fedora Linux 43, showing firmware version, MPRIS media players (Chrome, Firefox, MPD, Spotify, VLC), pipewire-pulse switch, restart and power-off buttons, and activity feed" />
+		<figcaption>Desktop install on Fedora, MPRIS players, service switches, power controls</figcaption>
+	</figure>
+</div>
+
+<Aside type="tip">
+Running odio-ha in a setup worth showing? Post a screenshot on [GitHub Discussions](https://github.com/b0bbywan/odios/discussions) or open a PR on [odio-docs](https://github.com/b0bbywan/odio-docs), we'll add it to the gallery.
+</Aside>
 
 ## Installation
 
