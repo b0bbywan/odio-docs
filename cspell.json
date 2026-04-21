@@ -103,6 +103,7 @@
     "pactl",
     "paprefs",
     "pavucontrol",
+    "passwordless",
     "PipeWire",
     "Plexamp",
     "plexamp",
@@ -130,6 +131,7 @@
     "Snapclients",
     "Selecta",
     "Snapserver",
+    "Sonoff",
     "Sonos",
     "Snapweb",
     "SOUNDSLOCATION",
@@ -152,7 +154,8 @@
     "wireplumber",
     "wlan",
     "wpctl",
-    "Zeroconf"
+    "Zeroconf",
+    "Zwave"
   ],
   "ignorePaths": [
     "node_modules",
