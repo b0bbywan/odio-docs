@@ -1,0 +1,71 @@
+---
+title: Power management
+description: Shut down an odio node safely, and exploratory patterns for single-switch setups.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+An odio node powers off like any Debian headless box: via the [Power API](/api/power/), via [Home Assistant](/guides/home-assistant/), or from the command line. For most setups, that's enough. This page collects patterns for readers who want something more integrated, a single physical switch, or a fully-off state with no standby draw.
+
+<Aside type="note">The software shutdown path is well-trodden. The single-switch patterns further down are exploratory, status is stated per section. Feedback is welcome on [odios#46](https://github.com/b0bbywan/odios/discussions/46).</Aside>
+
+## Is a sudden power cut safe?
+
+Probably yes on recent Raspberry Pi OS images, for two reasons specific to odio:
+
+- **Swap is disabled** on the odio image install, removing one of the classic corruption paths on sudden power loss.
+- **Logging is minimal** on Raspberry Pi OS Trixie, journald has almost nothing to write, which means very little is in flight at any moment.
+
+That doesn't license cutting power at random every day, but a one-off brownout should usually leave the SD card intact.
+
+## Clean shutdown from software
+
+Trigger a proper shutdown before cutting power:
+
+- From the [embedded web UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/) — use the Power controls.
+- From the API directly, `POST /power/power_off` (see [Power API](/api/power/)).
+- From SSH, `poweroff` or `systemctl poweroff`, either works. The odio installer deploys a polkit rule so the `odio` user can reboot and power off without sudo.
+
+Once the node is fully off, it is safe to cut the physical power.
+
+## Single-switch setups (exploratory)
+
+Some setups want one physical switch for both the Pi and the amplifier (kitchen-radio style). The switch has to translate to a clean software shutdown first, then cut the power, transparently.
+
+Two directions are discussed on [odios#46](https://github.com/b0bbywan/odios/discussions/46). Neither is fully validated. Feedback very welcome.
+
+### Smart plug with power monitoring (Home Assistant)
+
+Use a ZigBee or Zwave smart plug that reports live current consumption:
+
+1. Trigger a software shutdown via [odio-ha](https://github.com/b0bbywan/odio-ha) or the [Power API](/api/power/).
+2. A Home Assistant automation watches the plug's current reading.
+3. When current drops to roughly zero (Pi fully off), the automation switches the plug off.
+4. To power back on, turn the plug on from Home Assistant.
+
+**Status:** tested on a Pi B+ with a Sonoff ZigBee plug, **did not work**. The B+ draws too little current to be reliably distinguished from zero, and boot time is long enough to defeat the ergonomics. Expected to work on ARM64 Pis (3B+, 4, 5, Zero 2 W) with higher idle current and faster boot, but not yet confirmed. If you try this on an ARM64 board, please share results on [odios#46](https://github.com/b0bbywan/odios/discussions/46).
+
+### Hardware: relay plus GPIO
+
+Proposed by [@pbattino](https://github.com/pbattino) in the same discussion. A small relay module with a timer delay, where the physical switch triggers both:
+
+1. A delayed power cut to the Pi and the amplifier (the delay on the relay must cover the full shutdown time).
+2. A GPIO signal sensed by the Pi, which runs `systemctl poweroff` as the `odio` user. This triggers the same clean logind shutdown as the API and the UI, via the polkit rule mentioned above, no sudo needed.
+
+Trade-offs: one extra hardware component (around €10 reported), GPIO wiring, and a small script to react to the input. In exchange, a fully off state with no standby draw.
+
+**Status:** discussed, not tested. Contributions welcome, particularly from the electronics-savvy corner of the community, a wiring diagram, part list, and the reactive GPIO script would turn this into a concrete recipe.
+
+## Is it worth it at all?
+
+Concrete numbers are [documented on odios#35](https://github.com/b0bbywan/odios/discussions/35) for a Raspberry Pi B+ setup:
+
+- Idle draw: 1-3W.
+- At €0.25/kWh: roughly €2-7/year.
+- Carbon: up to ~1.5 kg CO2/year on the French grid (57 gCO2/kWh).
+
+The same post explains the author runs his node continuously, reasoning that booting a Pi B+ is slow and stresses the SD card more than sitting idle. His original R&D SD lasted six years without failure under that regime.
+
+Another point, from [@pbattino on odios#46](https://github.com/b0bbywan/odios/discussions/46): a ZigBee smart plug has its own idle draw, so any savings from powering the Pi off may be eaten by the plug itself.
+
+Open question for your own setup. If you've measured idle and standby numbers, please share them on the discussions.
