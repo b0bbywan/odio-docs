@@ -125,25 +125,7 @@ Both paths produce the same stack: same packages, same services, same configurat
 
 ## Upgrade
 
-Upgrading an existing odio installation means re-running the installer. It is fully idempotent, it can be run on a fresh system or an existing one, and re-run safely at any time to update or repair the installation.
-
-```bash
-curl -fsSL https://beta.odio.love/install | bash
-```
-
-When a configuration file has been modified, the installer automatically creates a `<config>.bak` backup before applying changes. If the file ends up identical, no backup is kept. This applies to `/etc/bluetooth/main.conf`, `~/.config/mpd/mpd.conf`, `~/.config/pipewire/pipewire-pulse.conf`, `~/.config/shairport-sync/shairport-sync.conf`, and `~/.config/upmpdcli/upmpdcli.conf`.
-
-To install a specific version or pre-release, set the `ODIOS_VERSION` variable:
-
-```bash
-# Stable version
-curl -fsSL https://github.com/b0bbywan/odios/releases/download/2026.3.0/install.sh | ODIOS_VERSION=2026.3.0 bash
-
-# Release candidate
-curl -fsSL https://github.com/b0bbywan/odios/releases/download/2026.3.0rc1/install.sh | ODIOS_VERSION=2026.3.0rc1 bash
-```
-
-<Aside type="note">A more user-friendly upgrade system with automatic detection and targeted role upgrades, driven from the [odio App](/guides/pwa/), is being designed. See [RFC: Targeted upgrade system for odio](https://github.com/b0bbywan/odios/discussions/34) and join the discussion.</Aside>
+The installer is idempotent, re-run it to upgrade an existing installation. Since [2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1), each node also shows available updates in its SSH MOTD. See [Upgrade](/guides/upgrade/) for details and the upcoming targeted-upgrade flow.
 
 ## DAC and overclocking
 
