@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 660" font-family="system-ui, -apple-system, sans-serif" role="img" aria-label="odio repo graph: clients at top (odio-pwa, odio-ha, odio-docs), server daemons, shared Go modules (go-disc-cuer, go-odio-notify), odio-apt-repo distribution hub, odios installer and odio.love stable redirects, plus a hosting row showing GitHub Pages and Vercel.">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#5ab81e"/>
+    </marker>
+    <marker id="arrow-runtime" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#8a9190"/>
+    </marker>
+    <style>
+      .repo { fill: #142010; stroke: #3a7020; stroke-width: 1.3; }
+      .repo-accent { fill: #1e3a18; stroke: #5ab81e; stroke-width: 1.6; }
+      .repo-lib { fill: #0d130d; stroke: #486040; stroke-width: 1.3; }
+      .repo-host { fill: #0d130d; stroke: #72797a; stroke-width: 1.2; stroke-dasharray: 4,3; }
+      .name { fill: #e8e4dc; font-size: 13.5px; font-weight: 600; text-anchor: middle; }
+      .tag { fill: #c8c4bc; font-size: 10.5px; text-anchor: middle; font-style: italic; }
+      .host-tag { fill: #a4adac; font-size: 10.5px; text-anchor: middle; }
+      .edge-label { fill: #8fd46a; font-size: 10.5px; font-style: italic; text-anchor: middle; }
+      .edge-label-runtime { fill: #a4adac; font-size: 10.5px; font-style: italic; text-anchor: middle; }
+      .edge { stroke: #5ab81e; stroke-width: 1.4; fill: none; }
+      .edge-runtime { stroke: #8a9190; stroke-width: 1.3; fill: none; stroke-dasharray: 4,3; }
+      .divider { stroke: #3a7020; stroke-width: 1; fill: none; stroke-dasharray: 2,4; opacity: 0.5; }
+    </style>
+  </defs>
+
+  <!-- ROW 1: Clients (top) -->
+  <rect x="260" y="30" width="160" height="50" rx="6" class="repo"/>
+  <text x="340" y="52" class="name">odio-pwa</text>
+  <text x="340" y="68" class="tag">Svelte client app</text>
+
+  <rect x="460" y="30" width="160" height="50" rx="6" class="repo"/>
+  <text x="540" y="52" class="name">odio-ha</text>
+  <text x="540" y="68" class="tag">HA custom component</text>
+
+  <rect x="660" y="30" width="150" height="50" rx="6" class="repo"/>
+  <text x="735" y="52" class="name">odio-docs</text>
+  <text x="735" y="68" class="tag">this site</text>
+
+  <!-- Runtime HTTP arrows from clients down to go-odio-api -->
+  <path d="M 340 80 L 340 130" class="edge-runtime" marker-end="url(#arrow-runtime)"/>
+  <path d="M 540 80 L 540 110 L 380 110 L 380 130" class="edge-runtime" marker-end="url(#arrow-runtime)"/>
+  <text x="435" y="103" class="edge-label-runtime">HTTP at runtime</text>
+
+  <!-- ROW 2: Server daemons -->
+  <rect x="60" y="130" width="180" height="50" rx="6" class="repo-accent"/>
+  <text x="150" y="152" class="name">go-mpd-discplayer</text>
+  <text x="150" y="168" class="tag">CD / USB daemon (Go)</text>
+
+  <rect x="280" y="130" width="160" height="50" rx="6" class="repo-accent"/>
+  <text x="360" y="152" class="name">go-odio-api</text>
+  <text x="360" y="168" class="tag">core REST API (Go)</text>
+
+  <rect x="480" y="130" width="180" height="50" rx="6" class="repo"/>
+  <text x="570" y="152" class="name">b0bbywan/spotifyd</text>
+  <text x="570" y="168" class="tag">Spotify daemon (fork)</text>
+
+  <rect x="700" y="130" width="180" height="50" rx="6" class="repo"/>
+  <text x="790" y="152" class="name">mpDris2</text>
+  <text x="790" y="168" class="tag">MPRIS for MPD (fork)</text>
+
+  <!-- ROW 3: Shared Go modules -->
+  <rect x="60" y="220" width="140" height="44" rx="6" class="repo-lib"/>
+  <text x="130" y="240" class="name">go-disc-cuer</text>
+  <text x="130" y="256" class="tag">Go modules</text>
+
+  <rect x="290" y="220" width="160" height="44" rx="6" class="repo-lib"/>
+  <text x="370" y="240" class="name">go-odio-notify</text>
+  <text x="370" y="256" class="tag">audio notify lib (planned)</text>
+
+  <!-- Library edges -->
+  <path d="M 130 220 L 130 180" class="edge" marker-end="url(#arrow)"/>
+  <text x="105" y="204" class="edge-label" text-anchor="end">Go mod</text>
+
+  <path d="M 370 220 L 370 180" class="edge" marker-end="url(#arrow)"/>
+  <text x="345" y="204" class="edge-label" text-anchor="end">Go mod</text>
+
+  <!-- go-odio-notify → go-mpd-discplayer (curves up-left, avoids go-disc-cuer) -->
+  <path d="M 290 240 L 240 240 L 240 200 L 220 200 L 220 180" class="edge" marker-end="url(#arrow)"/>
+  <text x="272" y="232" class="edge-label" text-anchor="end">Go mod</text>
+
+  <!-- .deb arrows from daemons down to apt-repo (routed to avoid library boxes) -->
+  <path d="M 225 180 L 225 370" class="edge" marker-end="url(#arrow)"/>
+  <text x="240" y="300" class="edge-label" text-anchor="start">.deb</text>
+
+  <path d="M 430 180 L 430 370" class="edge" marker-end="url(#arrow)"/>
+  <text x="445" y="300" class="edge-label" text-anchor="start">.deb</text>
+
+  <path d="M 570 180 L 570 370" class="edge" marker-end="url(#arrow)"/>
+  <text x="585" y="300" class="edge-label" text-anchor="start">.deb (polled)</text>
+
+  <!-- mpDris2 → odios: routes right around apt-repo, then down to odios -->
+  <path d="M 880 155 L 920 155 L 920 450 L 520 450 L 520 470" class="edge" marker-end="url(#arrow)"/>
+  <text x="720" y="442" class="edge-label">GitHub release tarball</text>
+
+  <!-- ROW 4: odio-apt-repo hub -->
+  <rect x="100" y="370" width="780" height="60" rx="8" class="repo-accent"/>
+  <text x="490" y="393" class="name">odio-apt-repo</text>
+  <text x="490" y="412" class="tag">reprepro · GPG-signed · weekly cron · apt.odio.love</text>
+
+  <!-- apt-repo → odios -->
+  <path d="M 490 430 L 490 470" class="edge" marker-end="url(#arrow)"/>
+  <text x="498" y="455" class="edge-label" text-anchor="start">apt install odio-*</text>
+
+  <!-- ROW 5: odios + odio.love -->
+  <rect x="360" y="470" width="320" height="70" rx="8" class="repo-accent"/>
+  <text x="520" y="495" class="name">odios</text>
+  <text x="520" y="513" class="tag">Ansible installer / orchestrator</text>
+  <text x="520" y="528" class="tag">runs on your node</text>
+
+  <rect x="700" y="470" width="260" height="70" rx="8" class="repo"/>
+  <text x="830" y="495" class="name">odio.love</text>
+  <text x="830" y="513" class="tag">307 redirects to latest odios release</text>
+  <text x="830" y="528" class="tag">/install · /manifest.json</text>
+
+  <!-- odios → odio.love -->
+  <path d="M 680 505 L 700 505" class="edge" marker-end="url(#arrow)"/>
+  <text x="690" y="497" class="edge-label">GH Release</text>
+
+  <!-- Divider between flow and hosting -->
+  <line x1="40" y1="565" x2="960" y2="565" class="divider"/>
+
+  <!-- ROW 6: Hosting -->
+  <rect x="50" y="580" width="300" height="60" rx="8" class="repo-host"/>
+  <text x="200" y="602" class="name">GitHub Pages</text>
+  <text x="200" y="622" class="host-tag">hosts apt.odio.love (odio-apt-repo)</text>
+
+  <rect x="400" y="580" width="550" height="60" rx="8" class="repo-host"/>
+  <text x="675" y="602" class="name">Vercel</text>
+  <text x="675" y="622" class="host-tag">hosts odio.love · docs.odio.love (odio-docs) · pwa.odio.love (odio-pwa)</text>
+</svg>
