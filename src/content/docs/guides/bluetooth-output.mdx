@@ -1,0 +1,68 @@
+---
+title: Bluetooth output
+description: Route odio's audio to a Bluetooth speaker or headphones.
+---
+
+import { Image } from 'astro:assets';
+import jblSink from '../../../assets/bt-output-jbl.png';
+
+odio can act as a Bluetooth **source**, routing whatever it's playing (Spotify Connect, MPD, AirPlay, CDs, ...) to a Bluetooth speaker or headphones. Once paired, the remote device shows up as a PulseAudio sink in the embedded UI's **Default Sink** dropdown, selectable like any other output.
+
+:::caution[Manual setup for now]
+There is no UI flow for pairing an output device yet, and [go-odio-api](https://github.com/b0bbywan/go-odio-api) doesn't manage outgoing Bluetooth connections. Pairing is a one-time CLI step with `bluetoothctl`, after which the speaker behaves like a regular audio sink. A UI may come later if there's demand, let us know on [odios discussions](https://github.com/b0bbywan/odios/discussions).
+:::
+
+## Pairing a speaker
+
+1. Put your Bluetooth speaker in pairing mode (usually a long-press on the Bluetooth button).
+2. SSH into the odio node and open an interactive `bluetoothctl` session:
+
+   ```bash
+   bluetoothctl
+   ```
+
+3. Power the adapter, scan for the speaker, connect, and trust it:
+
+   ```text
+   power on
+   scan on
+   ```
+
+   Wait for your speaker to appear in the scan output, for example:
+
+   ```text
+   [NEW] Device 40:C1:F6:D4:67:88 JBL Go 3
+   ```
+
+   Then stop the scan, connect, and trust the device for future reconnections:
+
+   ```text
+   scan off
+   connect 40:C1:F6:D4:67:88
+   trust 40:C1:F6:D4:67:88
+   exit
+   ```
+
+   Replace the MAC with yours. Because the speaker is in pairing mode, `connect` auto-pairs and bonds, no PIN needed. `trust` lets the node reconnect the speaker without manual confirmation after a reboot.
+
+## Selecting the sink
+
+Open the embedded UI. The paired speaker appears in **Audio Server → Default Sink**. Pick it, and every odio source now plays through it.
+
+<Image src={jblSink} alt="odio embedded UI with a JBL Go 3 selected as the Default Sink, Spotifyd streaming through it" />
+
+Volume sync works the same way as for a built-in DAC: moving the UI slider changes the speaker's volume over AVRCP, and physical buttons on the speaker update the UI.
+
+## Reconnecting
+
+Once trusted, BlueZ reconnects the speaker automatically when both sides are powered and in range, including after a reboot of the node. This usually just works, but auto-reconnect isn't 100% reliable across every speaker and firmware. If the sink doesn't show up, reconnect manually:
+
+```bash
+bluetoothctl connect 40:C1:F6:D4:67:88
+```
+
+You can wrap this in a systemd user unit and add it to the `systemd.user` whitelist in [go-odio-api's config](/api/configuration/#systemd-opt-in-whitelist-required), which makes it manageable from the Services panel in the embedded UI.
+
+## See also
+
+- [Bluetooth](/guides/bluetooth/) for the opposite direction, using the odio node as an A2DP speaker that your phone streams to.

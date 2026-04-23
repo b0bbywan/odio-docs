@@ -72,6 +72,7 @@ export default defineConfig({
 						{ label: 'HTPC', slug: 'guides/use-case-htpc' },
 						{ label: 'NAS', slug: 'guides/use-case-nas' },
 						{ label: 'Phone & Tablet', slug: 'guides/use-case-phone' },
+						{ label: 'Bluetooth output', slug: 'guides/bluetooth-output' },
 						{ label: 'Navidrome', slug: 'guides/navidrome' },
 						{ label: 'Music Assistant', slug: 'guides/music-assistant' },
 					],
