@@ -41,7 +41,7 @@ Two paths, same result:
 
   > Ethernet is recommended over WiFi for reliable audio streaming.
 
-  The odio stack always runs under the `odio` user. In Imager settings, you can configure any user you want for SSH access, or simply use the `odio` user for both.
+  The odio stack always runs under the `odio` user. In Imager settings, **pick `odio` as the user** so the upcoming [UI-driven upgrade](/guides/upgrade/#whats-next) is wired in by default, the `odio-upgrade.service` is a user systemd unit tied to that user. A different user is fine for SSH, the CLI upgrade keeps working, and the workaround for the UI path is documented on the [Upgrade page](/guides/upgrade/#whats-next).
 
   Your Pi boots ready.
 
