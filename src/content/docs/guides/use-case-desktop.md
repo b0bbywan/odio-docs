@@ -21,6 +21,12 @@ On macOS, use Control Center or the AirPlay menu. On Linux with PulseAudio, the 
 
 With PipeWire, your desktop audio can be sent to a [Snapserver](/guides/snapcast/) via `libpipewire-module-snapcast-discover`. The Snapserver distributes it to every odio node running Snapclient, synchronized across all rooms.
 
+## Unified control with go-odio-api
+
+Install [go-odio-api](/api/overview/) on the desktop itself and it discovers every MPRIS player in the session: browser tabs, Spotify, native media apps. The [network sink](/guides/network-audio/) of a remote odio node stays selectable as the default output, so audio plays on the Pi while control and metadata aggregate on the desktop.
+
+![Embedded UI on a desktop node — PipeWire audio server with the default sink set to a remote raspodio built-in output, Chromium and Spotify aggregated as MPRIS media players](../../../assets/desktop-embedded-ui.png)
+
 ## Control
 
 Open the [embedded web UI](/guides/embedded-ui/) in your browser at `http://<node>.local:8018/ui` to control playback, volume, Bluetooth, and services.

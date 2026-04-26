@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 660" font-family="system-ui, -apple-system, sans-serif" role="img" aria-label="odio CI/CD pipeline: source repos, CI on pull request, build on tag, GitHub Release, dispatch to odio-apt-repo, and odio.love stable redirects feeding the installer.">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#5ab81e"/>
+    </marker>
+    <style>
+      .label { fill: #e8e4dc; font-size: 14px; font-weight: 600; text-anchor: middle; }
+      .sub { fill: #c8c4bc; font-size: 11.5px; text-anchor: middle; }
+      .flow { fill: #8fd46a; font-size: 11.5px; font-style: italic; text-anchor: middle; }
+      .line { stroke: #5ab81e; stroke-width: 1.5; fill: none; }
+      .line-dashed { stroke: #5ab81e; stroke-width: 1.5; fill: none; stroke-dasharray: 5,4; }
+    </style>
+  </defs>
+
+  <!-- Row 1: Source repos -->
+  <rect x="250" y="20" width="420" height="98" rx="8" fill="#1e3a18" stroke="#5ab81e" stroke-width="1.8"/>
+  <text x="460" y="45" class="label">Source repos</text>
+  <text x="460" y="68" class="sub">go-odio-api · go-mpd-discplayer · go-odio-notify</text>
+  <text x="460" y="85" class="sub">odios · odio-pwa · odio-ha</text>
+  <text x="460" y="102" class="sub">mpDris2 · odio-docs</text>
+
+  <!-- Arrows from source down to CI and Build -->
+  <path d="M 360 118 L 360 155 L 180 155 L 180 205" class="line" marker-end="url(#arrow)"/>
+  <text x="265" y="147" class="flow">pull request</text>
+
+  <path d="M 560 118 L 560 155 L 720 155 L 720 205" class="line" marker-end="url(#arrow)"/>
+  <text x="650" y="147" class="flow">git tag v*</text>
+
+  <!-- Row 2: CI checks (left) and Build & package (right) -->
+  <rect x="40" y="210" width="280" height="120" rx="8" fill="#142010" stroke="#3a7020" stroke-width="1.5"/>
+  <text x="180" y="238" class="label">CI checks</text>
+  <text x="180" y="262" class="sub">Go matrix · golangci-lint · gofmt</text>
+  <text x="180" y="279" class="sub">pytest · mypy · flake8</text>
+  <text x="180" y="296" class="sub">npm test · ansible-lint · shellcheck</text>
+  <text x="180" y="313" class="sub">lychee · cspell · Astro build</text>
+
+  <rect x="580" y="210" width="280" height="120" rx="8" fill="#142010" stroke="#3a7020" stroke-width="1.5"/>
+  <text x="720" y="238" class="label">Build &amp; package</text>
+  <text x="720" y="262" class="sub">cross-arch binaries (amd64, arm64,</text>
+  <text x="720" y="279" class="sub">armv7, armv6)</text>
+  <text x="720" y="296" class="sub">.deb (nfpm) · tarball · .img.xz</text>
+  <text x="720" y="313" class="sub">Docker images · Pi Imager manifest</text>
+
+  <!-- Arrow from Build to GitHub Release -->
+  <path d="M 720 330 L 720 378" class="line" marker-end="url(#arrow)"/>
+
+  <!-- Row 3: GitHub Release -->
+  <rect x="580" y="383" width="280" height="58" rx="8" fill="#1e3a18" stroke="#5ab81e" stroke-width="1.8"/>
+  <text x="720" y="410" class="label">GitHub Release</text>
+  <text x="720" y="428" class="sub">.deb assets · tarball · .img.xz · manifest</text>
+
+  <!-- Dispatch arrow: Release left-side to apt-repo, routed high to avoid odio.love box below -->
+  <path d="M 580 412 L 180 412 L 180 545" class="line" marker-end="url(#arrow)"/>
+  <text x="380" y="404" class="flow">repository_dispatch: release-published</text>
+
+  <!-- Arrow from Release down to odio.love -->
+  <path d="M 720 441 L 720 475" class="line" marker-end="url(#arrow)"/>
+
+  <!-- Row 4 (right only): odio.love redirect layer -->
+  <rect x="580" y="480" width="280" height="60" rx="8" fill="#142010" stroke="#3a7020" stroke-width="1.5"/>
+  <text x="720" y="502" class="label">odio.love (Vercel)</text>
+  <text x="720" y="520" class="sub">307 redirects, stable across releases</text>
+  <text x="720" y="534" class="sub">/install · /manifest.json · /rpi-imager-manifest</text>
+
+  <!-- Arrow from odio.love to Installer -->
+  <path d="M 720 540 L 720 545" class="line" marker-end="url(#arrow)"/>
+  <text x="780" y="555" class="flow" text-anchor="start">curl | bash</text>
+
+  <!-- Row 5: apt-repo and Installer -->
+  <rect x="40" y="550" width="280" height="100" rx="8" fill="#1e3a18" stroke="#5ab81e" stroke-width="1.8"/>
+  <text x="180" y="575" class="label">odio-apt-repo</text>
+  <text x="180" y="597" class="sub">reprepro: stable + testing suites</text>
+  <text x="180" y="614" class="sub">GPG-signed · GitHub Pages</text>
+  <text x="180" y="631" class="sub">apt.odio.love · weekly cron (Mon 04:00)</text>
+
+  <rect x="580" y="550" width="280" height="100" rx="8" fill="#142010" stroke="#3a7020" stroke-width="1.5"/>
+  <text x="720" y="575" class="label">Installer (odios)</text>
+  <text x="720" y="597" class="sub">runs the Ansible playbook</text>
+  <text x="720" y="614" class="sub">adds apt.odio.love as a source</text>
+  <text x="720" y="631" class="sub">apt install odio-api, ...</text>
+
+  <!-- Dashed arrow: apt repo serves packages that the installer pulls -->
+  <path d="M 320 600 L 580 600" class="line-dashed" marker-end="url(#arrow)"/>
+  <text x="450" y="591" class="flow">apt install odio-*</text>
+</svg>
