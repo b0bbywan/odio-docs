@@ -1,5 +1,10 @@
 ---
 import stats from '../data/stats.json';
+import { ecosystemProjects } from '../data/ecosystem.js';
+
+const externalSet = new Set(
+  ecosystemProjects.filter((p) => p.kind === 'apt-external').map((p) => p.name)
+);
 
 const fmt = new Intl.NumberFormat('en-US');
 const { totals, commitsByWeek, starsByWeek = [], repos, since, generatedAt } = stats;
@@ -110,7 +115,7 @@ const repoColors = {
 const colorOf = (name) => repoColors[name] || '#3a7020';
 
 const activeRepos = repos
-  .filter((r) => r.commits.total > 0)
+  .filter((r) => r.commits.total > 0 && !externalSet.has(r.name))
   .slice()
   .sort((a, b) => b.commits.total - a.commits.total);
 const repoWeekMap = new Map(
@@ -139,6 +144,8 @@ const starPath = commitsByWeek
   .join(' ');
 
 const sortedRepos = [...repos].sort((a, b) => b.commits.total - a.commits.total);
+const coreRepos = sortedRepos.filter((r) => !externalSet.has(r.name));
+const externalRepos = sortedRepos.filter((r) => externalSet.has(r.name));
 const AMBER = '#c8943a';
 ---
 
@@ -301,7 +308,7 @@ const AMBER = '#c8943a';
         </tr>
       </thead>
       <tbody>
-        {sortedRepos.map((r) => {
+        {coreRepos.map((r) => {
           const ratio = r.pr.mergeRatio;
           const pct = ratio != null ? Math.round(ratio * 100) : null;
           return (
@@ -352,6 +359,81 @@ const AMBER = '#c8943a';
       </tbody>
     </table>
   </div>
+
+  {externalRepos.length > 0 && (
+    <>
+      <h3>External, packaged for apt.odio.love</h3>
+      <p class="activity-sub external-note">
+        Forks and build pipelines we host on apt only. Source lives upstream; activity here is mostly tag bumps and packaging changes.
+      </p>
+      <div class="table-wrap">
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th>repo</th>
+              <th class="num">★</th>
+              <th class="num">⑂</th>
+              <th class="num">PRs</th>
+              <th>merge</th>
+              <th class="num">commits</th>
+              <th class="num">LoC +/−</th>
+              <th>latest release</th>
+            </tr>
+          </thead>
+          <tbody>
+            {externalRepos.map((r) => {
+              const ratio = r.pr.mergeRatio;
+              const pct = ratio != null ? Math.round(ratio * 100) : null;
+              return (
+                <tr>
+                  <td class="repo-cell">
+                    <a href={`https://github.com/${stats.owner}/${r.name}`} target="_blank" rel="noopener noreferrer">
+                      {r.name}
+                    </a>
+                  </td>
+                  <td class="num">{r.stars}</td>
+                  <td class="num">{r.forks}</td>
+                  <td class="num">{r.pr.merged}/{r.pr.total}</td>
+                  <td>
+                    {pct != null ? (
+                      <div class="bar-wrap">
+                        <div class="bar-track">
+                          <div class="bar-fill" style={`width: ${pct}%`}></div>
+                        </div>
+                        <span class="bar-pct">{pct}%</span>
+                      </div>
+                    ) : (
+                      <span class="muted">—</span>
+                    )}
+                  </td>
+                  <td class="num">{r.commits.total}</td>
+                  <td class="num loc">
+                    <div class="loc-added">+{fmt.format(r.loc.added)}</div>
+                    <div class="loc-removed">−{fmt.format(r.loc.removed)}</div>
+                  </td>
+                  <td>
+                    {r.latestRelease ? (
+                      <a
+                        href={`https://github.com/${stats.owner}/${r.name}/releases/tag/${r.latestRelease.tag}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="release-link"
+                      >
+                        <span class="release-tag">{r.latestRelease.tag}</span>
+                        <span class="release-date">{r.latestRelease.date}</span>
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )}
 
   <p class="activity-footer">
     Updated {updatedLabel}. Raw data: <a href="/stats.json"><code>/stats.json</code></a>.
