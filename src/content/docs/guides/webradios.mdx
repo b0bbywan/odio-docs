@@ -1,6 +1,6 @@
 ---
 title: Webradios
-description: Browse and play internet radio on odio, integrated directly into the upmpdcli library.
+description: Browse and play internet radio on odio, via myMPD, the upmpdcli DLNA library, Home Assistant, or any MPD client.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -12,10 +12,63 @@ import france from '../../../assets/webradios-france.png';
 import tags from '../../../assets/webradios-tags.png';
 import stations from '../../../assets/webradios-stations.png';
 import playing from '../../../assets/webradios-playing.png';
+import mympdSource from '../../../assets/mympd-webradios-source.webp';
+import mympdSearch from '../../../assets/mympd-webradios-search.webp';
+import mympdFavorites from '../../../assets/mympd-webradios-favorites.webp';
+import mympdQueue from '../../../assets/mympd-webradios-queue.webp';
+import mympdEmbeddedRoots from '../../../assets/mympd-webradios-embedded-roots.webp';
+import mympdEmbeddedGrosse from '../../../assets/mympd-webradios-embedded-grosse.webp';
+import mympdCustom from '../../../assets/mympd-webradios-custom.webp';
 
-Webradios are now integrated directly on odio, a first version that sits alongside your music library. The [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/) backend exposes a set of built-in station sources in the [UPnP/DLNA](/guides/dlna/) library, browsable from any control point. A more polished experience (in-UI favorites, station picker) will come later.
+odio plays internet radio out of the box. The most polished entry point is [myMPD](https://jcorporation.github.io/myMPD/)'s built-in WebradioDB browser on the odio node itself; the [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/) backend also exposes a few built-in station sources in the [UPnP/DLNA](/guides/dlna/) library for any control point, and Home Assistant or a remote MPD work too.
 
-<Aside>Available since odio [2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1). Huge thanks to [@pbattino](https://github.com/pbattino), first external contributor on odio, whose exploratory work on web radios made it possible to ship this first iteration ahead of the original roadmap.</Aside>
+<Aside>Webradio support landed in two iterations: the upmpdcli built-in sources [since 2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1), then the myMPD WebradioDB integration [since 2026.4.2b2](https://github.com/b0bbywan/odios/releases/tag/2026.4.2b2). Huge thanks to [@pbattino](https://github.com/pbattino), first external contributor on odio, whose exploratory work on web radios made both iterations possible.</Aside>
+
+## Via myMPD on the odio node
+
+[myMPD](https://jcorporation.github.io/myMPD/) is the web UI bundled with odio [since 2026.4.2b2](https://github.com/b0bbywan/odios/releases/tag/2026.4.2b2), reachable at `http://<ip>:8080` on the odio node and pointed at the local MPD. See [MPD → myMPD web UI](/guides/mpd/#mympd-web-ui) for install details and the rest of its use cases.
+
+myMPD integrates [webradiodb](https://jcorporation.github.io/webradiodb/) natively for browsing, searching, and adding stations to favorites — a much better webradio experience than the raw-playlist approach below. Stations not in WebradioDB can be added by URL directly from the favorites editor, with name, genre, country, codec and the rest of the metadata fields. `mympd.service` is wired into [odio-api](https://github.com/b0bbywan/go-odio-api)'s systemd watch list, so the stream shows up as the active MPD media player in the embedded UI like any other MPD playback, with transport controls and the current stream title.
+
+<div class="screenshot-carousel wide">
+	<figure>
+		<Image src={mympdSource} alt="myMPD source switcher dropdown with Webradios selected, alongside Database, Filesystem, and Playlists" />
+		<figcaption>Source switcher, Webradios as one of the navigation roots</figcaption>
+	</figure>
+	<figure>
+		<Image src={mympdSearch} alt="WebradioDB search in myMPD filtered for reggae: Alpha Boys School Radio (Jamaica), Dr. Dick's Dub Shack (Bermuda), FluxFM stations (Germany), La Grosse Radio Reggae (France), NTS Island Time and Sweat (UK), Roots Legacy Radio (France), Soma FM Heavyweight Reggae (USA), n10.as (Canada)" />
+		<figcaption>WebradioDB search, filtered for reggae</figcaption>
+	</figure>
+	<figure>
+		<Image src={mympdCustom} alt="myMPD favorites editor dialog for adding a custom webradio: name, URI, genre, web page, country, region, language, image, codec, bitrate, description fields, plus a button to cross-check the entry against WebradioDB" />
+		<figcaption>Custom webradio editor, add any URL with metadata of your choice</figcaption>
+	</figure>
+	<figure>
+		<Image src={mympdFavorites} alt="myMPD Webradio favorites view, with La Grosse Radio Reggae saved as a favorite, station logo as backdrop, Bijo - Bastos playing in the bottom transport" />
+		<figcaption>Favorites view, saved stations across WebradioDB and custom entries</figcaption>
+	</figure>
+	<figure>
+		<Image src={mympdQueue} alt="myMPD playback queue with La Grosse Radio Reggae - Dub Dancehall Roots queued, Youssou Ndour - Diarr Diarr playing, station artwork as backdrop" />
+		<figcaption>Queue view, station artwork behind the playing track</figcaption>
+	</figure>
+	<figure>
+		<Image src={mympdEmbeddedRoots} alt="odio embedded UI with mpd as the active media player, playing Barry Issac - Jump Up on Roots Legacy Radio, services panel showing myMPD server daemon among the running services" />
+		<figcaption>Embedded UI, mpd as active media player on Roots Legacy Radio</figcaption>
+	</figure>
+	<figure>
+		<Image src={mympdEmbeddedGrosse} alt="odio embedded UI with mpd active, Youssou Ndour - Diarr Diarr playing on La Grosse Radio Reggae - Dub Dancehall Roots" />
+		<figcaption>Same flow, La Grosse Radio Reggae</figcaption>
+	</figure>
+</div>
+
+## Built-in upmpdcli sources
+
+Browsing an odio node from any UPnP/DLNA control point ([BubbleDS Next](/guides/dlna/), BubbleUPnP, Home Assistant's media browser) exposes these radio sources as top-level folders in the library:
+
+- **Radio Browser**, the [radio-browser.info](https://www.radio-browser.info/) community catalog, navigable by country, language, or tag.
+- **[Radio Paradise](https://radioparadise.com/home)**, direct access to Radio Paradise's streams.
+- **[Mother Earth Radio](https://motherearthradio.de/en/)**, high-quality streams from Mother Earth Radio.
+- **Upmpdcli Radio List**, a server-side curated station list configured in upmpdcli.
 
 <div class="screenshot-carousel">
 	<figure>
@@ -48,15 +101,6 @@ Webradios are now integrated directly on odio, a first version that sits alongsi
 	</figure>
 </div>
 
-## Built-in sources
-
-Browsing an odio node from any UPnP/DLNA control point ([BubbleDS Next](/guides/dlna/), BubbleUPnP, Home Assistant's media browser) exposes these radio sources as top-level folders in the library:
-
-- **Radio Browser**, the [radio-browser.info](https://www.radio-browser.info/) community catalog, navigable by country, language, or tag.
-- **[Radio Paradise](https://radioparadise.com/home)**, direct access to Radio Paradise's streams.
-- **[Mother Earth Radio](https://motherearthradio.de/en/)**, high-quality streams from Mother Earth Radio.
-- **Upmpdcli Radio List**, a server-side curated station list configured in upmpdcli.
-
 Pick a station, it plays through the odio node like any other source. Playback is visible in the odio API as an MPD session, controllable from the [embedded UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/).
 
 ![Embedded UI on raspodio3bwifi showing MPD playing Dub Incorporation - Dario's Dub from La Grosse Radio Reggae, with transport controls and the Built-in Audio Stereo output active](../../../assets/webradios-embedded-ui.png)
@@ -79,14 +123,6 @@ mpc play
 ```
 
 Any MPD client (M.A.L.P., myMPD, ncmpcpp) can store stations as playlists or favorites. The [remote MPD setup in the MPD guide](/guides/mpd/#using-a-remote-mpd-on-your-nas) also applies here, if you already run MPD on a NAS with its library and station list and output audio to the odio node over PulseAudio TCP, your station favorites sit alongside the rest of your library.
-
-If you already run a [myMPD](https://jcorporation.github.io/myMPD/) instance somewhere on your network pointed at the MPD on the odio node, the webradio experience is much better than the raw-playlist approach below, myMPD integrates [webradiodb](https://jcorporation.github.io/webradiodb/) natively for browsing, searching, and adding stations to favorites, with playback handled by the odio node's MPD.
-
-![myMPD browsing WebradioDB, station list with country metadata, playback controls visible](../../../assets/mympd-webradiodb.png)
-
-If mympd is installed along odio-api, the stream just shows up as the active MPD media player in the embedded UI, same as any other MPD playback, with transport controls and the current stream title.
-
-![odio embedded UI with MPD active as the media player, playing a webradio stream](../../../assets/embedded-ui-webradio.png)
 
 <details>
 <summary>Example: drop an M3U station list in MPD's playlist folder</summary>
