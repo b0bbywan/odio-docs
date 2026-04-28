@@ -15,6 +15,9 @@ export default defineConfig({
 				favicon: '/favicon.svg',
 				lastUpdated: true,
 				customCss: ['./src/styles/custom.css'],
+				head: [
+					{ tag: 'script', attrs: { src: '/screenshot-lightbox.js', defer: true } },
+				],
 				components: {
 					SocialIcons: './src/components/SocialIcons.astro',
 				},
