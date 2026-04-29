@@ -45,6 +45,21 @@ There is no UI flow for pairing an output device yet, and [go-odio-api](https://
 
    Replace the MAC with yours. Because the speaker is in pairing mode, `connect` auto-pairs and bonds, no PIN needed. `trust` lets the node reconnect the speaker without manual confirmation after a reboot.
 
+### After a reflash
+
+If you reflash the node, BlueZ loses its pairing state, but the speaker still has the previous odio in its trusted list. Put the speaker back in pairing mode and run the same `bluetoothctl` flow (`power on`, `scan on`, wait for the speaker to show up, `scan off`), with one difference: `trust` comes before `connect`.
+
+```text
+[bluetoothctl]> trust 40:C1:F6:D4:67:88
+[CHG] Device 40:C1:F6:D4:67:88 Trusted: yes
+Changing 40:C1:F6:D4:67:88 trust succeeded
+[bluetoothctl]> connect 40:C1:F6:D4:67:88
+Attempting to connect to 40:C1:F6:D4:67:88
+[CHG] Device 40:C1:F6:D4:67:88 Connected: yes
+```
+
+The speaker side still has odio trusted from the first pairing, so trusting on the node side first puts both ends back in sync before the connect attempt.
+
 ## Selecting the sink
 
 Open the embedded UI. The paired speaker appears in **Audio Server → Default Sink**. Pick it, and every odio source now plays through it.
