@@ -8,7 +8,7 @@ Tidal Connect and Qobuz streaming are available via [upmpdcli](https://www.lesbo
 - [Tidal streaming parameters](https://www.lesbonscomptes.com/upmpdcli/pages/upmpdcli-manual.html#_tidal_streaming_service_parameters)
 - [Qobuz streaming parameters](https://www.lesbonscomptes.com/upmpdcli/pages/upmpdcli-manual.html#_qobuz_streaming_service_parameters)
 
-Once configured, restart upmpdcli:
+Once configured, restart `upmpdcli.service` from the [embedded UI](/guides/embedded-ui/)'s Services panel (one click on the restart icon next to the service), or from a terminal:
 
 ```bash
 systemctl --user restart upmpdcli.service
