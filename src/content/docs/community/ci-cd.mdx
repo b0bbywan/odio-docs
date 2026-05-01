@@ -109,7 +109,7 @@ The ecosystem is eleven repositories, most connected to each other at build time
 - **The people whose work and thinking have inspired me** through odio's development.
 - **Laurent T.**, for the Pi 3B+ used for per-PR testing, which keeps that loop off my production node.
 - **[@vascoguita](https://github.com/vascoguita)**, for [raspios-docker](https://github.com/vascoguita/raspios-docker), the per-arch Raspberry Pi OS Docker images that every ARM `.deb` and the upgrade test images are built on top of. Specifically:
-  - [go-mpd-discplayer's Dockerfile](https://github.com/b0bbywan/go-mpd-discplayer/blob/main/Dockerfile) cross-builds the CGO `.deb` for arm64/armhf inside `vascoguita/raspios:arm64` and `vascoguita/raspios:armhf` under QEMU.
+  - [go-mpd-discplayer's Dockerfile](https://github.com/b0bbywan/go-mpd-discplayer/blob/master/Dockerfile) cross-builds the CGO `.deb` for arm64/armhf inside `vascoguita/raspios:arm64` and `vascoguita/raspios:armhf` under QEMU.
   - [spotifyd's Dockerfile.builder](https://github.com/b0bbywan/spotifyd/blob/master/.github/Dockerfile.builder) uses the same bases for the `spotifyd-builder` image published to GHCR.
   - [odio-mympd's per-arch builders](https://github.com/b0bbywan/odio-mympd/blob/main/.github/workflows/build-images.yml) are rebuilt monthly on top of the same images.
   - [odios's test image](https://github.com/b0bbywan/odios/blob/main/tests/Dockerfile.test) targets the same bases so the upgrade matrix runs against a Pi-faithful environment, and [`scripts/img-to-docker.sh`](https://github.com/b0bbywan/odios/blob/main/scripts/img-to-docker.sh) derives the upgrade-test baselines following the same approach.
