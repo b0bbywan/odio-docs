@@ -1,0 +1,32 @@
+name: Stats
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    name: Generate stats
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Generate stats
+        env:
+          GH_TOKEN: ${{ secrets.GH_STATS_TOKEN }}
+        run: npm run stats
+
+      - name: Upload stats
+        uses: actions/upload-artifact@v7
+        with:
+          name: stats
+          path: |
+            src/data/stats.json
+            src/data/stats.meta.json
+            src/data/stats.history.json
+          retention-days: 7
