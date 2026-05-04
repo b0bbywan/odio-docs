@@ -42,14 +42,18 @@ Disabled by default in [go-odio-api](https://github.com/b0bbywan/go-odio-api). O
 systemd:
   enabled: true
   system:            # read-only monitoring
-    - bluetooth.service
+    - name: bluetooth.service
   user:              # full control
-    - mpd.service
-    - shairport-sync.service
-    - snapclient.service
-    - spotifyd.service
-    - upmpdcli.service
+    - name: mpd.service
+      url: ":8080"   # optional, surfaced on /services for clients to link
+    - name: shairport-sync.service
+    - name: snapclient.service
+      url: "http://<snapserver>:1780"
+    - name: spotifyd.service
+    - name: upmpdcli.service
 ```
+
+Since odio-api v0.12.0, each entry is a map with a `name` and an optional `url`.
 
 ## How it works
 
