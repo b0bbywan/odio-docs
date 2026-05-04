@@ -90,6 +90,19 @@ bind: lo                      # loopback only (default)
 
 <Aside type="note">**Docker:** `bind` must be set to `all` for remote access through the bridge network.</Aside>
 
+## Drop-in overrides
+
+Since odio-api v0.12.0, `~/.config/odio-api/conf.d/` is loaded automatically: any `*.yml` file in that directory is merged on top of `config.yaml` at startup, so you can layer overrides on top of a base config without editing it. Within the `systemd` block, the `system` and `user` arrays are replaced wholesale by an override, not merged item by item, so the override must list every entry you want exposed.
+
+On odio streamer installs, the [installer](https://github.com/b0bbywan/odios) creates this directory and drops a `10-systemd.yml.default` reference matching the host's installed services, regenerated on every `odio-upgrade` run. The `.default` extension keeps it ignored at runtime. To use it as a starting point, copy it under a `.yml` name and edit:
+
+```bash
+cd ~/.config/odio-api/conf.d
+cp 10-systemd.yml.default 50-my-systemd.yml
+$EDITOR 50-my-systemd.yml
+systemctl --user restart odio-api
+```
+
 ## Backend configuration
 
 Each backend can be enabled or disabled independently. Disabling a backend removes all its routes from the API.
@@ -103,14 +116,18 @@ systemd:
   enabled: true
   timeout: 90s
   system:
-    - bluetooth.service
+    - name: bluetooth.service
   user:
-    - mpd.service
-    - shairport-sync.service
-    - snapclient.service
-    - spotifyd.service
-    - upmpdcli.service
+    - name: mpd.service
+      url: ":8080"
+    - name: shairport-sync.service
+    - name: snapclient.service
+      url: "http://<snapserver>:1780"
+    - name: spotifyd.service
+    - name: upmpdcli.service
 ```
+
+Since odio-api v0.12.0, each whitelist entry is a map with a `name` and an optional `url`. The URL is exposed on the [/services](/api/systemd/) response so clients (the [embedded UI](/guides/embedded-ui/), [PWA](/guides/pwa/), Home Assistant) can render a direct link, which is how myMPD shows up alongside `mpd.service` on installs that ship it.
 
 ### Bluetooth
 
