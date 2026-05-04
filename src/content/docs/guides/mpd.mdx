@@ -57,6 +57,8 @@ Or via Zeroconf (mDNS):
 http://<hostname>.local:8080
 ```
 
+Since [2026.5.0b1](https://github.com/b0bbywan/odios/pull/56), the [odio API](/api/systemd/) also publishes the myMPD URL alongside `mpd.service`, so the [embedded UI](/guides/embedded-ui/) and [odio application](/guides/pwa/) link to it directly from their services list.
+
 It covers the MPD-side use cases the embedded UI doesn't: queue editing, library browsing, tag-aware search.
 
 ![myMPD playback queue showing a USB-loaded album, current track highlighted, transport controls in the footer](../../../assets/mympd-usb.webp)
