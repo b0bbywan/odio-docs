@@ -23,7 +23,7 @@ No installation, no account. If you can reach your node on the network, you can 
 
 ## Features
 
-The embedded UI provides the same controls as the application: playback, volume, Bluetooth, services, and power management. For a multi-node setup or an installable app experience, see the [odio application](/guides/pwa/).
+The embedded UI provides the same controls as the application: playback, volume, Bluetooth, services, and power management. For a multi-node setup or an installable app experience, see the [odio application](/control/pwa/).
 
 ![Embedded web UI showing the Audio Server with volume sliders, Media Players with Spotify playback and cover art, Bluetooth pairing controls, and Services management](../../../assets/embedded-ui.webp)
 

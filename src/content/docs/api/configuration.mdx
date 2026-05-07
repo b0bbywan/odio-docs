@@ -48,19 +48,19 @@ api:
 |---|---|---|
 | `enabled` | `true` | Disable to stop the server entirely. |
 | `port` | `8018` | TCP port. Combined with `bind` to form the listen addresses. |
-| `ui.enabled` | `true` | Serves the [embedded web UI](/guides/embedded-ui/) at `/ui`. Auto-disabled at startup if `bind` does not include `lo` (the UI is loopback-only by design). |
-| `sse.enabled` | `true` | Serves the [SSE event stream](/api/events/) at `/events`. The embedded UI and the [PWA](/guides/pwa/) both rely on it for real-time updates. |
+| `ui.enabled` | `true` | Serves the [embedded web UI](/control/embedded-ui/) at `/ui`. Auto-disabled at startup if `bind` does not include `lo` (the UI is loopback-only by design). |
+| `sse.enabled` | `true` | Serves the [SSE event stream](/api/events/) at `/events`. The embedded UI and the [PWA](/control/pwa/) both rely on it for real-time updates. |
 | `cors.origins` | PWA defaults | Browser origins allowed to call the API, see below. |
 
 ### CORS
 
-The default `cors.origins` covers the two hosted [PWA](/guides/pwa/) addresses:
+The default `cors.origins` covers the two hosted [PWA](/control/pwa/) addresses:
 
 - `https://pwa.odio.love`
 - `https://odio-pwa.vercel.app`
 
 <Aside type="caution">
-Setting `cors.origins` **replaces** the defaults, it is not merged. To keep the hosted PWA reachable while adding your own origin (for example when [self-hosting the PWA](/guides/pwa/#self-hosting)), list everything explicitly:
+Setting `cors.origins` **replaces** the defaults, it is not merged. To keep the hosted PWA reachable while adding your own origin (for example when [self-hosting the PWA](/control/pwa/#self-hosting)), list everything explicitly:
 
 ```yaml
 api:
@@ -127,7 +127,7 @@ systemd:
     - name: upmpdcli.service
 ```
 
-Since odio-api v0.12.0, each whitelist entry is a map with a `name` and an optional `url`. The URL is exposed on the [/services](/api/systemd/) response so clients (the [embedded UI](/guides/embedded-ui/), [PWA](/guides/pwa/), Home Assistant) can render a direct link, which is how myMPD shows up alongside `mpd.service` on installs that ship it.
+Since odio-api v0.12.0, each whitelist entry is a map with a `name` and an optional `url`. The URL is exposed on the [/services](/api/systemd/) response so clients (the [embedded UI](/control/embedded-ui/), [PWA](/control/pwa/), Home Assistant) can render a direct link, which is how myMPD shows up alongside `mpd.service` on installs that ship it.
 
 ### Bluetooth
 

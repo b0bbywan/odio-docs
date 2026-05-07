@@ -41,7 +41,7 @@ Two paths, same result:
 
   > Ethernet is recommended over WiFi for reliable audio streaming.
 
-  The odio stack always runs under the `odio` user. In Imager settings, **pick `odio` as the user** so the upcoming [UI-driven upgrade](/guides/upgrade/#whats-next) is wired in by default, the `odio-upgrade.service` is a user systemd unit tied to that user. A different user is fine for SSH, the CLI upgrade keeps working, and the workaround for the UI path is documented on the [Upgrade page](/guides/upgrade/#whats-next).
+  The odio stack always runs under the `odio` user. In Imager settings, **pick `odio` as the user** so the upcoming UI-driven upgrade is wired in by default. A different user is fine for SSH, and the CLI [upgrade flow](/operations/upgrade/) is independent of the choice.
 
   Your Pi boots ready.
 
@@ -125,7 +125,7 @@ Both paths produce the same stack: same packages, same services, same configurat
 
 ## Upgrade
 
-The installer is idempotent, re-run it to upgrade an existing installation. Since [2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1), each node also shows available updates in its SSH MOTD. See [Upgrade](/guides/upgrade/) for details and the upcoming targeted-upgrade flow.
+The installer is idempotent, re-run it to upgrade an existing installation. Since [2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1), each node also shows available updates in its SSH MOTD. See [Upgrade](/operations/upgrade/) for details and the upcoming targeted-upgrade flow.
 
 ## DAC and overclocking
 
@@ -149,7 +149,7 @@ arm_freq=800
 
 Once installed, your odio node is controllable from:
 
-- **[Embedded web UI](/guides/embedded-ui/)** — built into the API, accessible from any browser on your network.
+- **[Embedded web UI](/control/embedded-ui/)** — built into the API, accessible from any browser on your network.
 - **[odio application](https://pwa.odio.love)** — web app installable from your browser, manage all your nodes from one place.
 - **[Home Assistant](https://github.com/b0bbywan/odio-ha)** — native integration via HACS. Every feature exposed as HA entities.
 - **Any MPD client** — for library browsing and playback control.

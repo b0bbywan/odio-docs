@@ -5,7 +5,7 @@ description: Shut down an odio node safely, and exploratory patterns for single-
 
 import { Aside } from '@astrojs/starlight/components';
 
-An odio node powers off like any Debian headless box: via the [Power API](/api/power/), via [Home Assistant](/guides/home-assistant/), or from the command line. For most setups, that's enough. This page collects patterns for readers who want something more integrated, a single physical switch, or a fully-off state with no standby draw.
+An odio node powers off like any Debian headless box: via the [Power API](/api/power/), via [Home Assistant](/control/home-assistant/), or from the command line. For most setups, that's enough. This page collects patterns for readers who want something more integrated, a single physical switch, or a fully-off state with no standby draw.
 
 <Aside type="note">The software shutdown path is well-trodden. The single-switch patterns further down are exploratory, status is stated per section. Feedback is welcome on [odios#46](https://github.com/b0bbywan/odios/discussions/46).</Aside>
 
@@ -22,7 +22,7 @@ That doesn't license cutting power at random every day, but a one-off brownout s
 
 Trigger a proper shutdown before cutting power:
 
-- From the [embedded web UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/) — use the Power controls.
+- From the [embedded web UI](/control/embedded-ui/), the [odio application](/control/pwa/), or [Home Assistant](/control/home-assistant/) — use the Power controls.
 - From the API directly, `POST /power/power_off` (see [Power API](/api/power/)).
 - From SSH, `poweroff` or `systemctl poweroff`, either works. The odio installer deploys a polkit rule so the `odio` user can reboot and power off without sudo.
 

@@ -23,5 +23,5 @@ Feed it audio sources, MPD, Librespot for Spotify, shairport-sync for AirPlay, a
 
 ## go-odio-api on the NAS
 
-You can also install [go-odio-api](/api/overview/) directly on the NAS. It runs on any Linux system with a D-Bus user session, including OpenMediaVault. The NAS becomes an odio node with its own [embedded web UI](/guides/embedded-ui/), controllable from the [odio application](/guides/pwa/) and [Home Assistant](/guides/home-assistant/).
+You can also install [go-odio-api](/api/overview/) directly on the NAS. It runs on any Linux system with a D-Bus user session, including OpenMediaVault. The NAS becomes an odio node with its own [embedded web UI](/control/embedded-ui/), controllable from the [odio application](/control/pwa/) and [Home Assistant](/control/home-assistant/).
 

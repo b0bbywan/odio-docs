@@ -11,7 +11,7 @@ An odio node advertises itself as a network audio sink via [PulseAudio Zeroconf]
 
 Select it, and everything plays through the odio node: browser tabs, media players, games, system sounds, all of it, transparently. This works with both PipeWire and PulseAudio desktops. The odio node must be on a wired connection. The desktop can connect over WiFi, but it's not reliable.
 
-Connected clients appear in the [odio application](/guides/pwa/) and [Home Assistant](/guides/home-assistant/) with per-client volume and mute control.
+Connected clients appear in the [odio application](/control/pwa/) and [Home Assistant](/control/home-assistant/) with per-client volume and mute control.
 
 ## AirPlay
 
@@ -29,4 +29,4 @@ Install [go-odio-api](/api/overview/) on the desktop itself and it discovers eve
 
 ## Control
 
-Open the [embedded web UI](/guides/embedded-ui/) in your browser at `http://<node>.local:8018/ui` to control playback, volume, Bluetooth, and services.
+Open the [embedded web UI](/control/embedded-ui/) in your browser at `http://<node>.local:8018/ui` to control playback, volume, Bluetooth, and services.

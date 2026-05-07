@@ -9,7 +9,7 @@ Your phone is both an audio source and a remote control for odio. You keep using
 
 ### Bluetooth
 
-Pair your phone with the odio node like any Bluetooth speaker, open pairing mode from the [embedded UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/), and connect. Anything your phone plays, Spotify, YouTube, Apple Music, podcasts, streams to the node. Track info, playback controls, and volume sync work over [Bluetooth](/guides/bluetooth/) via AVRCP.
+Pair your phone with the odio node like any Bluetooth speaker, open pairing mode from the [embedded UI](/control/embedded-ui/), the [odio application](/control/pwa/), or [Home Assistant](/control/home-assistant/), and connect. Anything your phone plays, Spotify, YouTube, Apple Music, podcasts, streams to the node. Track info, playback controls, and volume sync work over [Bluetooth](/guides/bluetooth/) via AVRCP.
 
 ### AirPlay
 
@@ -31,7 +31,7 @@ Use [BubbleDS Next](https://play.google.com/store/apps/details?id=com.bubblesoft
 
 ### Home Assistant
 
-The [Home Assistant companion app](https://companion.home-assistant.io/) gives you full control over every odio node, media players, Bluetooth, services, power, with real-time updates. Nodes are [auto-discovered](/guides/home-assistant/), no manual IP configuration needed.
+The [Home Assistant companion app](https://companion.home-assistant.io/) gives you full control over every odio node, media players, Bluetooth, services, power, with real-time updates. Nodes are [auto-discovered](/control/home-assistant/), no manual IP configuration needed.
 
 ### M.A.L.P.
 

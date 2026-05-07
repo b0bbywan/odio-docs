@@ -65,7 +65,7 @@ Enable with the service name matching the URL, e.g. `systemctl --user start fire
 
 Install [go-odio-api](/api/overview/) on the HTPC and it discovers every MPRIS player running in the session. Kodi requires the [MPRIS D-Bus interface](https://kodi.wiki/view/Add-on:MPRIS_D-Bus_interface) addon to be discovered.
 
-With the [systemd backend](/api/systemd/) configured, you can start and stop Kodi, Firefox kiosk, or any other whitelisted service directly from the [embedded web UI](/guides/embedded-ui/), the [odio application](/guides/pwa/), or [Home Assistant](/guides/home-assistant/).
+With the [systemd backend](/api/systemd/) configured, you can start and stop Kodi, Firefox kiosk, or any other whitelisted service directly from the [embedded web UI](/control/embedded-ui/), the [odio application](/control/pwa/), or [Home Assistant](/control/home-assistant/).
 
 ![Embedded UI on an HTPC node — PipeWire audio server, Kodi playing with cover art, and Bluetooth, Netflix, YouTube, tv.orange.fr, Kodi, PipeWire PulseAudio managed as services](../../../assets/htpc-embedded-ui.png)
 
@@ -73,6 +73,6 @@ With the [systemd backend](/api/systemd/) configured, you can start and stop Kod
 
 Control the HTPC from anywhere:
 
-- The [odio application](/guides/pwa/) from your phone
-- [Home Assistant](/guides/home-assistant/) with auto-discovery
+- The [odio application](/control/pwa/) from your phone
+- [Home Assistant](/control/home-assistant/) with auto-discovery
 - A [UPnP control point](/guides/dlna/) like BubbleDS Next or BubbleUPnP to browse a DLNA server and direct playback to the HTPC
