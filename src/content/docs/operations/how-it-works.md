@@ -47,7 +47,7 @@ go-odio-api never talks to any media player directly, it only speaks MPRIS over 
 
 ![odio architecture diagram](https://beta.odio.love/architecture.svg)
 
-The binary ships with an [embedded web UI](/guides/embedded-ui/). The API and the interface are the same process. But the API is the product. The embedded UI is one client among many. See the full [API documentation](/api/overview/).
+The binary ships with an [embedded web UI](/control/embedded-ui/). The API and the interface are the same process. But the API is the product. The embedded UI is one client among many. See the full [API documentation](/api/overview/).
 
 ## Configuration philosophy
 

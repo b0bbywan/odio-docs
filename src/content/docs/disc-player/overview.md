@@ -5,7 +5,7 @@ description: Automated audio CD and USB flash drive playback for MPD.
 
 [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) is a daemon that automates audio disc and USB flash drive playback with MPD. Insert a CD or plug in a USB stick — playback starts automatically with full metadata and cover art.
 
-go-mpd-discplayer is part of the [odio project](https://odio.love) but is a standalone project — it works with any MPD setup. Installed and configured automatically by the [odio installer](/guides/installation/). For standalone use, see [Installation](/disc-player/installation/).
+go-mpd-discplayer is part of the [odio project](https://odio.love) but is a standalone project — it works with any MPD setup. Installed and configured automatically by the [odio installer](/operations/installation/). For standalone use, see [Installation](/disc-player/installation/).
 
 ## Features
 

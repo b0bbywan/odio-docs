@@ -5,6 +5,17 @@ import starlight from '@astrojs/starlight';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.odio.love',
+	redirects: {
+		'/guides/upgrade': '/operations/upgrade',
+		'/guides/power': '/operations/power',
+		'/guides/extensions': '/operations/extensions',
+		'/guides/audio-notifications': '/operations/audio-notifications',
+		'/guides/installation': '/operations/installation',
+		'/guides/how-it-works': '/operations/how-it-works',
+		'/guides/embedded-ui': '/control/embedded-ui',
+		'/guides/pwa': '/control/pwa',
+		'/guides/home-assistant': '/control/home-assistant',
+	},
 	integrations: [
 		starlight({
 			title: 'odio docs',
@@ -30,16 +41,16 @@ export default defineConfig({
 				{
 					label: 'Getting Started',
 					items: [
-						{ label: 'Installation', slug: 'guides/installation' },
-						{ label: 'How it works', slug: 'guides/how-it-works' },
+						{ label: 'Installation', slug: 'operations/installation' },
+						{ label: 'How it works', slug: 'operations/how-it-works' },
 					],
 				},
 				{
 					label: 'Control',
 					items: [
-						{ label: 'Embedded web UI', slug: 'guides/embedded-ui' },
-						{ label: 'Application', slug: 'guides/pwa' },
-						{ label: 'Home Assistant', slug: 'guides/home-assistant' },
+						{ label: 'Embedded web UI', slug: 'control/embedded-ui' },
+						{ label: 'Application', slug: 'control/pwa' },
+						{ label: 'Home Assistant', slug: 'control/home-assistant' },
 					],
 				},
 				{
@@ -61,10 +72,10 @@ export default defineConfig({
 				{
 					label: 'Operations',
 					items: [
-						{ label: 'Upgrade', slug: 'guides/upgrade' },
-						{ label: 'Power management', slug: 'guides/power' },
-						{ label: 'Extensions', slug: 'guides/extensions' },
-						{ label: 'Audio notifications', slug: 'guides/audio-notifications' },
+						{ label: 'Upgrade', slug: 'operations/upgrade' },
+						{ label: 'Power management', slug: 'operations/power' },
+						{ label: 'Extensions', slug: 'operations/extensions' },
+						{ label: 'Audio notifications', slug: 'operations/audio-notifications' },
 					],
 				},
 				{
