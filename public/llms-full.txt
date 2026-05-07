@@ -1,0 +1,65 @@
+# odio Documentation (full index)
+
+> Complete page-by-page index of docs.odio.love. Use this when you need to locate a specific guide, API endpoint, or use case in the odio documentation.
+
+odio is the open-source audio streaming OS for Raspberry Pi (and any Debian-based system). It bundles MPD, Snapcast multi-room, AirPlay 2, Bluetooth, UPnP/DLNA, Spotify Connect, web radios, and CD/USB auto-play, with native Home Assistant integration via the go-odio-api core.
+
+## Guides
+- [Installation](https://docs.odio.love/guides/installation/): one-line install script, supported hardware, pre-built Pi flash images
+- [How it works](https://docs.odio.love/guides/how-it-works/): MPRIS/D-Bus model, audio routing, service orchestration
+- [Embedded UI](https://docs.odio.love/guides/embedded-ui/): the web UI shipped with go-odio-api at `/ui`
+- [PWA](https://docs.odio.love/guides/pwa/): installable app, multi-node management, self-hosting
+- [Home Assistant](https://docs.odio.love/guides/home-assistant/): odio-ha integration, native HA entities (services, outputs, Bluetooth, power)
+- [Upgrade](https://docs.odio.love/guides/upgrade/): in-place updates with `odio-upgrade`
+- [Extensions](https://docs.odio.love/guides/extensions/): adding software alongside odio (Music Assistant, Navidrome, etc.)
+- [MPD](https://docs.odio.love/guides/mpd/): MPD client setup and configuration
+- [AirPlay](https://docs.odio.love/guides/airplay/): AirPlay 2 via Shairport Sync
+- [Bluetooth](https://docs.odio.love/guides/bluetooth/): Bluetooth audio source (phone to Pi)
+- [Bluetooth output](https://docs.odio.love/guides/bluetooth-output/): Pi to Bluetooth speaker/headphones
+- [Snapcast](https://docs.odio.love/guides/snapcast/): synchronized multi-room audio
+- [DLNA](https://docs.odio.love/guides/dlna/): UPnP renderer/server via upmpdcli
+- [Spotify](https://docs.odio.love/guides/spotify/): Spotify Connect setup
+- [Tidal & Qobuz](https://docs.odio.love/guides/tidal-qobuz/): hi-res streaming services
+- [Web radios](https://docs.odio.love/guides/webradios/): internet radio playback
+- [Audio CD](https://docs.odio.love/guides/audio-cd/): CD auto-play with metadata
+- [USB flash drives](https://docs.odio.love/guides/usb-flashdrives/): USB auto-play
+- [Audio notifications](https://docs.odio.love/guides/audio-notifications/): system event sounds
+- [Network audio](https://docs.odio.love/guides/network-audio/): PulseAudio TCP sink
+- [Power](https://docs.odio.love/guides/power/): power management, reboot/shutdown
+- [Music Assistant](https://docs.odio.love/guides/music-assistant/): integration as MA player
+- [Navidrome](https://docs.odio.love/guides/navidrome/): Navidrome library + odio playback
+
+## Use cases
+- [Use cases overview](https://docs.odio.love/guides/use-cases/)
+- [Desktop](https://docs.odio.love/guides/use-case-desktop/): odio on a Linux desktop
+- [HTPC](https://docs.odio.love/guides/use-case-htpc/): home theater PC setup
+- [NAS](https://docs.odio.love/guides/use-case-nas/): odio on a NAS (OpenMediaVault, etc.)
+- [Phone](https://docs.odio.love/guides/use-case-phone/): controlling odio from a phone
+
+## API (go-odio-api)
+- [Overview](https://docs.odio.love/api/overview/): REST API surface, default port, embedded UI
+- [Installation](https://docs.odio.love/api/installation/): standalone install of go-odio-api
+- [Configuration](https://docs.odio.love/api/configuration/): config file, CORS, ports
+- [Events](https://docs.odio.love/api/events/): SSE `/events` stream
+- [MPRIS](https://docs.odio.love/api/mpris/): MPRIS player discovery and control
+- [PulseAudio](https://docs.odio.love/api/pulseaudio/): output management
+- [Bluetooth](https://docs.odio.love/api/bluetooth/): Bluetooth control endpoints
+- [Power](https://docs.odio.love/api/power/): reboot/poweroff endpoints
+- [systemd](https://docs.odio.love/api/systemd/): service management
+- [Zeroconf](https://docs.odio.love/api/zeroconf/): mDNS discovery
+
+## Disc player (go-mpd-discplayer)
+- [Overview](https://docs.odio.love/disc-player/overview/): CD and USB auto-play daemon
+- [Installation](https://docs.odio.love/disc-player/installation/)
+- [Configuration](https://docs.odio.love/disc-player/configuration/)
+- [disc-cuer](https://docs.odio.love/disc-player/disc-cuer/): CUE sheet library, GnuDB and MusicBrainz metadata
+
+## Notify (go-odio-notify)
+- [Overview](https://docs.odio.love/notify/overview/): audio notification library and CLI for system events
+
+## Community
+- [Get involved](https://docs.odio.love/community/get-involved/): how to contribute
+- [Feature requests](https://docs.odio.love/community/feature-requests/)
+- [Activity](https://docs.odio.love/community/activity/): community/development metrics
+- [CI/CD](https://docs.odio.love/community/ci-cd/): build and release pipeline
+- [Empowerment](https://docs.odio.love/community/empowerment/): why odio is built as an open platform

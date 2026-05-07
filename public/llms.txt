@@ -1,0 +1,19 @@
+# odio Documentation
+
+> Official documentation site for odio, the open-source audio streaming OS for Raspberry Pi. Covers the streamer (installation, guides, use cases) and its standalone ecosystem components (go-odio-api, go-mpd-discplayer, go-odio-notify).
+
+odio is built around an MPRIS/D-Bus model: every audio source (Spotify, Bluetooth, AirPlay, MPD, ...) exposes itself as an MPRIS player, and the odio API discovers them all. The embedded web UI, the PWA, and the Home Assistant integration build on this.
+
+## Sections
+- [Installation guide](https://docs.odio.love/guides/installation/): one-line install, pre-built Pi flash images, supported hardware
+- [Guides](https://docs.odio.love/guides/): AirPlay, Bluetooth, Snapcast multi-room, UPnP/DLNA, MPD, Spotify, Tidal/Qobuz, web radios, CD/USB, Home Assistant, PWA, network audio, upgrade
+- [Use cases](https://docs.odio.love/guides/use-cases/): desktop, HTPC, NAS, phone setups
+- [API reference](https://docs.odio.love/api/overview/): go-odio-api, configuration, events, MPRIS, PulseAudio, systemd, zeroconf, Bluetooth, power
+- [Disc player](https://docs.odio.love/disc-player/overview/): go-mpd-discplayer, disc-cuer, GnuDB/MusicBrainz metadata
+- [Notify](https://docs.odio.love/notify/overview/): go-odio-notify audio feedback library
+- [Community](https://docs.odio.love/community/get-involved/): get involved, feature requests, activity, CI/CD, empowerment manifesto
+
+## Optional
+- [Full index](https://docs.odio.love/llms-full.txt): every guide and API page with a one-line description
+- [odio.love](https://odio.love/): main project site
+- [GitHub odios](https://github.com/b0bbywan/odios): installer, releases, discussions/forum
