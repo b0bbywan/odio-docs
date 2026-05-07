@@ -59,12 +59,24 @@ On first launch, click **+ Add Instance** and enter the host/IP, port (default 8
 		<figcaption>Add Instance form: host, port, optional label</figcaption>
 	</figure>
 	<figure>
-		<Image src={pwaInstances} alt="Five configured odio nodes showing name, architecture, odio-api version, IP address, and connection status" />
-		<figcaption>Five nodes configured, with name, architecture, odio-api version, and status</figcaption>
+		<Image src={pwaInstances} alt="Six configured odio nodes showing name, architecture, odio-api version, IP address, and connection status, with one showing a missing-CORS-headers warning" />
+		<figcaption>Six nodes configured, including one with a missing-CORS-headers warning</figcaption>
 	</figure>
 </div>
 
 A CIDR-based subnet scanner is tracked in [odio-pwa#12](https://github.com/b0bbywan/odio-pwa/issues/12) as a workaround for the missing mDNS. Contributions welcome, a nice entry point for frontend devs who want to try Svelte.
+
+## Open a node by URL
+
+Since [v0.5.0](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.5.0), the active instance lives in the URL, so any node can be opened directly:
+
+```
+https://pwa.odio.love/#/i/<host>[/<port>][?label=<name>]
+```
+
+Port and label are optional. First-time visits stay transient and the app prompts to save on exit. Hash routing also means refresh and the back/forward buttons behave like any other web app.
+
+odio also print the matching link in the SSH MOTD, so SSH'ing to a node gives you a one-click path to its UI in the PWA.
 
 ## In-app diagnostics
 
@@ -99,6 +111,10 @@ The amber messages embed a link to the relevant docs section so you can jump str
 		<figcaption>Missing CORS headers, the message links straight to the configuration docs</figcaption>
 	</figure>
 </div>
+
+### Connection-status screens
+
+Since [v0.5.0](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.5.0), clicking **Connect** on a node that doesn't respond shows a dedicated *Connecting*, *Server unreachable*, or *Browser blocked* view instead of the native broken-iframe error. Deep links to a host you've never reached land on the same screen rather than the *Server is shutting down* overlay.
 
 ## Browser limits and alternatives
 
