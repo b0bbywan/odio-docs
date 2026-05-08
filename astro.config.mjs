@@ -31,6 +31,7 @@ export default defineConfig({
 				],
 				components: {
 					SocialIcons: './src/components/SocialIcons.astro',
+					Head: './src/components/Head.astro',
 				},
 			social: [
 					{ icon: 'heart', label: 'odio.love', href: 'https://odio.love' },

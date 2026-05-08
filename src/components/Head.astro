@@ -1,0 +1,65 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Head.astro';
+
+const { entry } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const isRoot = Astro.url.pathname === '/' || Astro.url.pathname === '';
+const howto = (entry?.data as { howto?: boolean } | undefined)?.howto === true;
+
+const author = {
+	'@type': 'Person',
+	name: 'b0bbywan',
+	url: 'https://github.com/b0bbywan',
+};
+
+const rootJsonLd = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'WebSite',
+			name: 'odio docs',
+			url: 'https://docs.odio.love',
+			description: 'Documentation for odio, the open-source Raspberry Pi audio streamer.',
+			inLanguage: 'en',
+			publisher: author,
+		},
+		{
+			'@type': 'SoftwareApplication',
+			name: 'odio',
+			url: 'https://odio.love',
+			applicationCategory: 'MultimediaApplication',
+			applicationSubCategory: 'Audio Streaming',
+			operatingSystem: 'Raspberry Pi OS, Debian',
+			codeRepository: 'https://github.com/b0bbywan/odios',
+			license: 'https://opensource.org/licenses/BSD-2-Clause',
+			author,
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+		},
+	],
+};
+
+const howToJsonLd = howto
+	? {
+			'@context': 'https://schema.org',
+			'@type': 'HowTo',
+			name: entry?.data?.title ?? 'odio guide',
+			description: entry?.data?.description ?? '',
+			url: canonical,
+			mainEntityOfPage: canonical,
+			inLanguage: 'en',
+			about: { '@type': 'SoftwareApplication', name: 'odio', url: 'https://odio.love' },
+			author,
+		}
+	: null;
+---
+
+<Default {...Astro.props}><slot /></Default>
+
+{isRoot && (
+	<script type="application/ld+json" set:html={JSON.stringify(rootJsonLd)} />
+)}
+
+{howToJsonLd && (
+	<script type="application/ld+json" set:html={JSON.stringify(howToJsonLd)} />
+)}
