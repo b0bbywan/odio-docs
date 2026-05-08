@@ -1,8 +1,7 @@
 ---
-import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/Head.astro';
 
-const { entry } = Astro.props;
+const { entry } = Astro.locals.starlightRoute;
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const isRoot = Astro.url.pathname === '/' || Astro.url.pathname === '';
 const howto = (entry?.data as { howto?: boolean } | undefined)?.howto === true;
