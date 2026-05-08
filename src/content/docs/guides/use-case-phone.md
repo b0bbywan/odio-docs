@@ -1,6 +1,7 @@
 ---
 title: Phone & Tablet
 description: How to use your phone or tablet with an odio instance.
+howto: true
 ---
 
 Your phone is both an audio source and a remote control for odio. You keep using the apps you already have.

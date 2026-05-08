@@ -1,6 +1,7 @@
 ---
 title: Tidal & Qobuz
 description: Tidal Connect and Qobuz streaming support via upmpdcli.
+howto: true
 ---
 
 Tidal Connect and Qobuz streaming are available via [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/). Configuration is done in upmpdcli's config file — see the official documentation:

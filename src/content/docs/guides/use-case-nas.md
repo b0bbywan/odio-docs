@@ -1,6 +1,7 @@
 ---
 title: NAS
 description: How to use a NAS with an odio instance.
+howto: true
 ---
 
 A NAS is where your music library lives. odio doesn't try to replace it, it uses it.
