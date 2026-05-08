@@ -1,6 +1,7 @@
 ---
 title: AirPlay
 description: Stream audio from any Apple device to your Pi.
+howto: true
 ---
 
 Your odio node appears as an AirPlay 2 receiver on your local network via [shairport-sync](https://github.com/mikebrady/shairport-sync). No configuration needed on the client side.

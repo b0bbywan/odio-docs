@@ -1,6 +1,7 @@
 ---
 title: Desktop & Laptop
 description: How to use your desktop or laptop with an odio instance.
+howto: true
 ---
 
 Your desktop or laptop already handles your music, browser, games, and video calls. odio plugs into that, you don't change anything.

@@ -1,6 +1,7 @@
 ---
 title: UPnP / DLNA
 description: Stream from your NAS or any DLNA source to your Pi.
+howto: true
 ---
 
 Your odio node acts as a UPnP/DLNA renderer via [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/). Browse your media library on a NAS or phone and direct playback to the Pi.

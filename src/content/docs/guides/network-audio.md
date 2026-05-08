@@ -1,6 +1,7 @@
 ---
 title: Network audio (TCP sink)
 description: Send your desktop audio to the Pi over the network.
+howto: true
 ---
 
 Your odio node advertises itself as a network audio sink via [PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) Zeroconf. Any Linux desktop on the same network can use it as an audio output — browser, media players, games, system sounds, everything.

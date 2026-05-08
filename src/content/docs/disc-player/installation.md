@@ -1,6 +1,7 @@
 ---
 title: Installation
 description: Install go-mpd-discplayer from APT, packages, or source.
+howto: true
 ---
 
 go-mpd-discplayer requires runtime libraries for disc ID reading and device monitoring (`libdiscid`, `libgudev`, `libcdio-paranoia`). These are installed automatically by the deb package.

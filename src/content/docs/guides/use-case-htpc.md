@@ -1,6 +1,7 @@
 ---
 title: HTPC
 description: How to use a home theater PC with an odio instance.
+howto: true
 ---
 
 An HTPC running [Kodi](https://kodi.tv/) or a browser for streaming already handles video and media playback. odio fits right alongside it, you get a DAC-quality audio output for both movies and music, with unified control over every source.
