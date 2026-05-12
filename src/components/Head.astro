@@ -3,22 +3,46 @@ import Default from '@astrojs/starlight/components/Head.astro';
 import {
 	buildSiteGraph,
 	buildHowToSchema,
+	buildBreadcrumbSchema,
 	DEFAULT_TITLE,
 	DEFAULT_DESCRIPTION,
 	OG_IMAGE,
 	OG_IMAGE_ALT,
 	OG_IMAGE_WIDTH,
 	OG_IMAGE_HEIGHT,
+	type BreadcrumbItem,
 } from '../data/seo';
 
-const { entry } = Astro.locals.starlightRoute;
+type SidebarLink = { type: 'link'; label: string; href: string; isCurrent: boolean };
+type SidebarGroup = { type: 'group'; label: string; entries: SidebarEntry[] };
+type SidebarEntry = SidebarLink | SidebarGroup;
+
+function findBreadcrumbTrail(
+	items: readonly SidebarEntry[],
+	parents: BreadcrumbItem[] = [],
+): BreadcrumbItem[] | null {
+	for (const item of items) {
+		if (item.type === 'group') {
+			const sub = findBreadcrumbTrail(item.entries, [...parents, { label: item.label }]);
+			if (sub) return sub;
+		} else if (item.isCurrent) {
+			return [...parents, { label: item.label, href: item.href }];
+		}
+	}
+	return null;
+}
+
+const { entry, sidebar } = Astro.locals.starlightRoute;
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const howto = (entry?.data as { howto?: boolean } | undefined)?.howto === true;
 
 const pageTitle = entry?.data?.title ?? DEFAULT_TITLE;
 const pageDescription = entry?.data?.description ?? DEFAULT_DESCRIPTION;
 
+const trail = findBreadcrumbTrail(sidebar as readonly SidebarEntry[]) ?? [];
+
 const siteJsonLd = buildSiteGraph();
+const breadcrumbJsonLd = buildBreadcrumbSchema(trail);
 const howToJsonLd = howto ? buildHowToSchema(entry, canonical) : null;
 ---
 
@@ -40,6 +64,10 @@ const howToJsonLd = howto ? buildHowToSchema(entry, canonical) : null;
 <meta name="twitter:image:alt" content={OG_IMAGE_ALT} />
 
 <script type="application/ld+json" set:html={JSON.stringify(siteJsonLd)} />
+
+{breadcrumbJsonLd && (
+	<script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+)}
 
 {howToJsonLd && (
 	<script type="application/ld+json" set:html={JSON.stringify(howToJsonLd)} />

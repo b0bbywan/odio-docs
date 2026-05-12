@@ -115,6 +115,35 @@ export function buildSiteGraph() {
 	};
 }
 
+export interface BreadcrumbItem {
+	label: string;
+	href?: string;
+}
+
+export function buildBreadcrumbSchema(trail: BreadcrumbItem[]) {
+	if (trail.length === 0) return null;
+	const home = {
+		'@type': 'ListItem',
+		position: 1,
+		name: DEFAULT_TITLE,
+		item: `${DOCS_URL}/`,
+	};
+	const items = [
+		home,
+		...trail.map((it, i) => ({
+			'@type': 'ListItem',
+			position: i + 2,
+			name: it.label,
+			...(it.href ? { item: new URL(it.href, DOCS_URL).toString() } : {}),
+		})),
+	];
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: items,
+	};
+}
+
 export interface HowToEntry {
 	data?: {
 		title?: string;
