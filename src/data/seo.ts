@@ -5,6 +5,12 @@ export const DEFAULT_TITLE = 'odio docs';
 export const DEFAULT_DESCRIPTION =
 	'Documentation for odio, the open-source Raspberry Pi audio streamer.';
 
+export const OG_IMAGE = `${SITE_URL}/og-cover.png`;
+export const OG_IMAGE_ALT =
+	'odio dashboard: AirPlay 2, Spotify, Snapcast, Bluetooth services on a Raspberry Pi';
+export const OG_IMAGE_WIDTH = 1200;
+export const OG_IMAGE_HEIGHT = 630;
+
 export interface SchemaIdRef {
 	'@id': string;
 }
