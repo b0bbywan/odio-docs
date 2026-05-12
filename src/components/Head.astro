@@ -3,6 +3,7 @@ import Default from '@astrojs/starlight/components/Head.astro';
 import {
 	buildSiteGraph,
 	buildHowToSchema,
+	buildTechArticleSchema,
 	buildBreadcrumbSchema,
 	DEFAULT_TITLE,
 	DEFAULT_DESCRIPTION,
@@ -44,6 +45,10 @@ const trail = findBreadcrumbTrail(sidebar as readonly SidebarEntry[]) ?? [];
 const siteJsonLd = buildSiteGraph();
 const breadcrumbJsonLd = buildBreadcrumbSchema(trail);
 const howToJsonLd = howto ? buildHowToSchema(entry, canonical, lastUpdated) : null;
+const techArticleJsonLd =
+	entry && !howto && trail.length > 0
+		? buildTechArticleSchema(entry, canonical, lastUpdated)
+		: null;
 ---
 
 <Default {...Astro.props}><slot /></Default>
@@ -71,4 +76,8 @@ const howToJsonLd = howto ? buildHowToSchema(entry, canonical, lastUpdated) : nu
 
 {howToJsonLd && (
 	<script type="application/ld+json" set:html={JSON.stringify(howToJsonLd)} />
+)}
+
+{techArticleJsonLd && (
+	<script type="application/ld+json" set:html={JSON.stringify(techArticleJsonLd)} />
 )}

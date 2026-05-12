@@ -176,7 +176,7 @@ export function buildBreadcrumbSchema(trail: BreadcrumbItem[]) {
 	};
 }
 
-export interface HowToEntry {
+export interface PageEntry {
 	data?: {
 		title?: string;
 		description?: string;
@@ -184,7 +184,7 @@ export interface HowToEntry {
 }
 
 export function buildHowToSchema(
-	entry: HowToEntry | undefined,
+	entry: PageEntry | undefined,
 	canonical: string,
 	lastUpdated?: Date,
 ) {
@@ -196,6 +196,27 @@ export function buildHowToSchema(
 		url: canonical,
 		mainEntityOfPage: canonical,
 		inLanguage: 'en',
+		about: OS_REF,
+		author: AUTHOR,
+		publisher: ORG_REF,
+		...(lastUpdated ? { dateModified: lastUpdated.toISOString() } : {}),
+	};
+}
+
+export function buildTechArticleSchema(
+	entry: PageEntry | undefined,
+	canonical: string,
+	lastUpdated?: Date,
+) {
+	return {
+		'@context': 'https://schema.org',
+		'@type': 'TechArticle',
+		headline: entry?.data?.title ?? DEFAULT_TITLE,
+		description: entry?.data?.description ?? '',
+		url: canonical,
+		mainEntityOfPage: canonical,
+		inLanguage: 'en',
+		isPartOf: WEBSITE_REF,
 		about: OS_REF,
 		author: AUTHOR,
 		publisher: ORG_REF,
