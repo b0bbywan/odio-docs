@@ -1,3 +1,5 @@
+import stats from './stats.json';
+
 export const SITE_URL = 'https://odio.love';
 export const DOCS_URL = 'https://docs.odio.love';
 
@@ -19,11 +21,44 @@ export const ORG_REF: SchemaIdRef = { '@id': `${SITE_URL}/#organization` };
 export const OS_REF: SchemaIdRef = { '@id': `${SITE_URL}/#os` };
 export const WEBSITE_REF: SchemaIdRef = { '@id': `${DOCS_URL}/#website` };
 
+export const SOCIALS = [
+	'https://www.linkedin.com/in/mrequillart/',
+	'https://mathieu-requillart.medium.com/',
+];
+
+const ORG_SAMEAS = ['https://github.com/b0bbywan', DOCS_URL, ...SOCIALS];
+
 export const AUTHOR = {
 	'@type': 'Person' as const,
 	name: 'b0bbywan',
 	url: 'https://github.com/b0bbywan',
+	sameAs: SOCIALS,
 };
+
+const SCREENSHOTS = [
+	'audio-cd-playback.png',
+	'bt-playing.png',
+	'embedded-ui.png',
+	'odio-ha.png',
+	'pwa-instances.png',
+	'rpi-imager.png',
+].map((f) => `${SITE_URL}/screenshots/${f}`);
+
+interface StatsRelease {
+	tag: string;
+	prerelease: boolean;
+}
+interface StatsRepo {
+	name: string;
+	releases?: StatsRelease[];
+}
+
+function latestStableRelease(repo: string): string | undefined {
+	const r = (stats.repos as StatsRepo[]).find((x) => x.name === repo);
+	return r?.releases?.find((rel) => !rel.prerelease)?.tag;
+}
+
+const ODIOS_VERSION = latestStableRelease('odios');
 
 const KEYWORDS = [
 	'Raspberry Pi audio streamer',
@@ -70,12 +105,7 @@ export function buildSiteGraph() {
 					url: 'https://github.com/b0bbywan/odios/issues',
 					availableLanguage: ['English', 'French'],
 				},
-				sameAs: [
-					'https://github.com/b0bbywan',
-					DOCS_URL,
-					'https://www.linkedin.com/in/mrequillart/',
-					'https://mathieu-requillart.medium.com/',
-				],
+				sameAs: ORG_SAMEAS,
 			},
 			{
 				'@type': 'WebSite',
@@ -106,6 +136,8 @@ export function buildSiteGraph() {
 				},
 				releaseNotes: 'https://github.com/b0bbywan/odios/releases',
 				license: 'https://opensource.org/licenses/BSD-2-Clause',
+				...(ODIOS_VERSION ? { softwareVersion: ODIOS_VERSION } : {}),
+				screenshot: SCREENSHOTS,
 				keywords: KEYWORDS,
 				author: AUTHOR,
 				publisher: ORG_REF,
@@ -151,7 +183,11 @@ export interface HowToEntry {
 	};
 }
 
-export function buildHowToSchema(entry: HowToEntry | undefined, canonical: string) {
+export function buildHowToSchema(
+	entry: HowToEntry | undefined,
+	canonical: string,
+	lastUpdated?: Date,
+) {
 	return {
 		'@context': 'https://schema.org',
 		'@type': 'HowTo',
@@ -163,5 +199,6 @@ export function buildHowToSchema(entry: HowToEntry | undefined, canonical: strin
 		about: OS_REF,
 		author: AUTHOR,
 		publisher: ORG_REF,
+		...(lastUpdated ? { dateModified: lastUpdated.toISOString() } : {}),
 	};
 }

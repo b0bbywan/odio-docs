@@ -32,7 +32,7 @@ function findBreadcrumbTrail(
 	return null;
 }
 
-const { entry, sidebar } = Astro.locals.starlightRoute;
+const { entry, sidebar, lastUpdated } = Astro.locals.starlightRoute;
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const howto = (entry?.data as { howto?: boolean } | undefined)?.howto === true;
 
@@ -43,7 +43,7 @@ const trail = findBreadcrumbTrail(sidebar as readonly SidebarEntry[]) ?? [];
 
 const siteJsonLd = buildSiteGraph();
 const breadcrumbJsonLd = buildBreadcrumbSchema(trail);
-const howToJsonLd = howto ? buildHowToSchema(entry, canonical) : null;
+const howToJsonLd = howto ? buildHowToSchema(entry, canonical, lastUpdated) : null;
 ---
 
 <Default {...Astro.props}><slot /></Default>
