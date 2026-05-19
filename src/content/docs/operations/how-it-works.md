@@ -11,7 +11,11 @@ Because odio lives in your user session, it has natural access to the entire mul
 
 Every audio service (MPD, shairport-sync, spotifyd, upmpdcli, Snapclient) runs as a systemd user unit. They can be started, stopped, and monitored through the API — no SSH, no reboot needed.
 
-![odio network diagram](https://beta.odio.love/architecture-network.svg)
+<div class="screenshot-carousel wide">
+<figure>
+<img src="https://beta.odio.love/architecture-network.svg" alt="odio network diagram" />
+</figure>
+</div>
 
 ## Why PulseAudio, not ALSA
 
@@ -45,7 +49,11 @@ Every audio source (Spotify, Bluetooth, AirPlay, MPD, ...) exposes itself as an 
 
 go-odio-api never talks to any media player directly, it only speaks MPRIS over D-Bus. That's what keeps the backend source-agnostic, any MPRIS-compliant player shows up with zero integration work. The flip side is that odio's control surface for a given player is only as good as that player's MPRIS implementation, transport controls, metadata, cover art, and position reporting all depend on what the player actually exposes. Spotify Connect and shairport-sync are solid, MPD needs a [forked mpDris2](/guides/mpd/#playback-controls) to report cover art correctly, some players expose barely anything. When controls look patchy for a given source, it's almost always the player's MPRIS layer, not odio.
 
-![odio architecture diagram](https://beta.odio.love/architecture.svg)
+<div class="screenshot-carousel wide">
+<figure>
+<img src="https://beta.odio.love/architecture.svg" alt="odio architecture diagram" />
+</figure>
+</div>
 
 The binary ships with an [embedded web UI](/control/embedded-ui/). The API and the interface are the same process. But the API is the product. The embedded UI is one client among many. See the full [API documentation](/api/overview/).
 

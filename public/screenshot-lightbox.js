@@ -36,6 +36,8 @@
     const cap = overlay.querySelector('.sl-caption');
     img.src = it.src;
     img.alt = it.alt;
+    if (it.width) img.setAttribute('width', it.width); else img.removeAttribute('width');
+    if (it.height) img.setAttribute('height', it.height); else img.removeAttribute('height');
     cap.textContent = it.caption;
     cap.style.display = it.caption ? '' : 'none';
     const multi = items.length > 1;
@@ -51,6 +53,8 @@
         src: (im && (im.currentSrc || im.src)) || '',
         alt: (im && im.alt) || '',
         caption: (fc && fc.textContent.trim()) || '',
+        width: (im && (im.getAttribute('width') || im.naturalWidth)) || '',
+        height: (im && (im.getAttribute('height') || im.naturalHeight)) || '',
       };
     }).filter((it) => it.src);
     if (!items.length) return;
