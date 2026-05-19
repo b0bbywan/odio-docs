@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 660" font-family="system-ui, -apple-system, sans-serif" role="img" aria-label="odio repo graph: clients at top (odio-ha, odio-pwa), server daemons, shared Go modules (go-disc-cuer, go-odio-notify), odio-apt-repo distribution hub, then odios alongside odio.love and odio-docs, plus a hosting row with GitHub Pages and Vercel; deploy arrows go down to each platform, and the apt install fetch goes back up from GitHub Pages to odios.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660" font-family="system-ui, -apple-system, sans-serif" role="img" aria-label="odio repo graph: clients at top (odio-ha, odio-pwa), server daemons, shared Go modules (go-disc-cuer, go-odio-notify), odio-apt-repo distribution hub, then odios alongside odio.love and odio-docs, plus a hosting row with GitHub Pages and Vercel; deploy arrows go down to each platform, and the apt install fetch goes back up from GitHub Pages to odios.">
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
       <path d="M0,0 L0,6 L9,3 z" fill="#5ab81e"/>
@@ -55,9 +55,13 @@
   <text x="670" y="152" class="name">mpDris2</text>
   <text x="670" y="168" class="tag">MPRIS for MPD (fork)</text>
 
-  <rect x="760" y="130" width="170" height="50" rx="6" class="repo"/>
-  <text x="845" y="152" class="name">odio-mympd</text>
-  <text x="845" y="168" class="tag">myMPD .deb (build-only)</text>
+  <rect x="760" y="130" width="150" height="50" rx="6" class="repo"/>
+  <text x="835" y="152" class="name">snapclientmpris</text>
+  <text x="835" y="168" class="tag">MPRIS for Snapcast</text>
+
+  <rect x="930" y="130" width="150" height="50" rx="6" class="repo"/>
+  <text x="1005" y="152" class="name">odio-mympd</text>
+  <text x="1005" y="168" class="tag">myMPD .deb (build-only)</text>
 
   <!-- ROW 3: Shared Go modules -->
   <rect x="60" y="220" width="140" height="44" rx="6" class="repo-lib"/>
@@ -92,13 +96,16 @@
   <path d="M 670 180 L 670 370" class="edge" marker-end="url(#arrow)"/>
   <text x="680" y="300" class="edge-label" text-anchor="start">.deb</text>
 
-  <path d="M 845 180 L 845 370" class="edge" marker-end="url(#arrow)"/>
-  <text x="855" y="300" class="edge-label" text-anchor="start">.deb (cron-tracked)</text>
+  <path d="M 835 180 L 835 370" class="edge" marker-end="url(#arrow)"/>
+  <text x="845" y="300" class="edge-label" text-anchor="start">.deb</text>
+
+  <path d="M 1005 180 L 1005 370" class="edge" marker-end="url(#arrow)"/>
+  <text x="1015" y="300" class="edge-label" text-anchor="start">.deb (cron-tracked)</text>
 
   <!-- ROW 4: odio-apt-repo hub -->
-  <rect x="100" y="370" width="780" height="60" rx="8" class="repo-accent"/>
-  <text x="490" y="393" class="name">odio-apt-repo</text>
-  <text x="490" y="412" class="tag">reprepro · GPG-signed · weekly cron · apt.odio.love</text>
+  <rect x="100" y="370" width="950" height="60" rx="8" class="repo-accent"/>
+  <text x="575" y="393" class="name">odio-apt-repo</text>
+  <text x="575" y="412" class="tag">reprepro · GPG-signed · weekly cron · apt.odio.love</text>
 
   <!-- ROW 5: odios + odio.love + odio-docs -->
   <rect x="280" y="470" width="300" height="70" rx="8" class="repo-accent"/>
@@ -128,10 +135,10 @@
   <!-- Vercel deploy arrows -->
   <path d="M 710 540 L 710 580" class="edge" marker-end="url(#arrow)"/>
   <path d="M 910 540 L 910 580" class="edge" marker-end="url(#arrow)"/>
-  <path d="M 620 55 L 985 55 L 985 605 L 940 605" class="edge" marker-end="url(#arrow)"/>
+  <path d="M 620 55 L 1085 55 L 1085 605 L 940 605" class="edge" marker-end="url(#arrow)"/>
 
   <!-- Divider between flow and hosting -->
-  <line x1="40" y1="565" x2="960" y2="565" class="divider"/>
+  <line x1="40" y1="565" x2="1060" y2="565" class="divider"/>
 
   <!-- ROW 6: Hosting -->
   <rect x="50" y="580" width="300" height="60" rx="8" class="repo-host"/>
