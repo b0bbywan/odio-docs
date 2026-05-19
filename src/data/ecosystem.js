@@ -49,6 +49,13 @@ export const ecosystemProjects = [
     tech: { label: 'Go', color: '#00ADD8' },
   },
   {
+    name: 'snapclientmpris',
+    desc: 'MPRIS2 bridge for the local Snapcast client. Forwards playback controls to the snapserver source, so pausing from one room pauses every listener.',
+    url: 'https://github.com/b0bbywan/snapclientmpris',
+    live: null,
+    tech: { label: 'Python', color: '#3776AB' },
+  },
+  {
     name: 'odio-apt-repo',
     desc: 'The apt repository. Fully CI-maintained. Packages are built and published automatically on every release.',
     url: 'https://github.com/b0bbywan/odio-apt-repo',
@@ -73,11 +80,10 @@ export const ecosystemProjects = [
   },
   {
     name: 'mpDris2',
-    desc: 'Fork of mpDris2 (MPRIS for MPD) carrying the as_directory-aware cover-art lookup for CD virtual folders.',
+    desc: 'MPRIS2 bridge for MPD. Complete rewrite around python-mpd2 and dbus-fast, with as_directory-aware cover-art lookup for CUE virtual folders.',
     url: 'https://github.com/b0bbywan/mpDris2',
     live: null,
     tech: { label: 'Python', color: '#3776AB' },
-    kind: 'apt-external',
   },
   {
     name: 'odio-docs',
