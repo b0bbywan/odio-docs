@@ -149,10 +149,16 @@ async function fetchRepo(name) {
   }
 
   let commits = [];
+  let mergesSkipped = 0;
   try {
-    commits = await ghApiPaginateArray(
+    const all = await ghApiPaginateArray(
       `/repos/${repo}/commits?since=${encodeURIComponent(SINCE_ISO)}&per_page=100`
     );
+    // Exclude merge commits (parents.length > 1) from everything downstream:
+    // they double-count diffs in LoC sums and inflate commit counts vs the
+    // "real work" view shown in GitHub's Code frequency / Contributors pages.
+    commits = all.filter((c) => (c.parents?.length || 0) <= 1);
+    mergesSkipped = all.length - commits.length;
   } catch (e) {
     console.warn(`[stats]   commits failed: ${e.message.split('\n')[0]}`);
   }
@@ -181,7 +187,8 @@ async function fetchRepo(name) {
       }
     }
   } else if (commits.length > 0) {
-    // Fallback: walk each commit's stats individually (N+1 calls, rate-limit friendly)
+    // Fallback: walk each commit's stats individually (N+1 calls, rate-limit friendly).
+    // commits already excludes merges (see source filter above).
     let done = 0;
     const concurrency = 8;
     const queue = [...commits];
@@ -197,7 +204,8 @@ async function fetchRepo(name) {
       }
     }
     await Promise.all(Array.from({ length: concurrency }, worker));
-    console.log(`[stats]   loc via per-commit fallback (${done}/${commits.length})`);
+    const skipNote = mergesSkipped > 0 ? `, ${mergesSkipped} merge skipped` : '';
+    console.log(`[stats]   loc via per-commit fallback (${done}/${commits.length}${skipNote})`);
   }
 
   // Discussions (via GraphQL — small counts, no pagination needed for now)
