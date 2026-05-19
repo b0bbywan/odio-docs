@@ -7,7 +7,13 @@ import { Aside } from '@astrojs/starlight/components';
 
 You don't need to know the whole CI/CD pipeline to contribute to odio. The sections below cover it piece by piece, with the workflow files linked inline, so you can jump straight to the part you care about. The pipeline runs on [GitHub Actions](https://github.com/features/actions); from a `v*` tag on a component repo to a signed `.deb` on [apt.odio.love](https://apt.odio.love), it's short enough to trace end to end whenever you do want the full view.
 
+<div class="screenshot-carousel wide">
+<figure>
+
 ![odio CI/CD pipeline diagram](../../../assets/ci-cd.svg)
+
+</figure>
+</div>
 
 ## CI on every pull request
 
@@ -53,7 +59,13 @@ A weekly cron runs the same workflow every Monday at 04:00 UTC as a safety net, 
 
 Pull requests to odios run the same matrix against a `pr-<N>` pre-release instead of the tag, which means the install path you'd take is tested before merge, not only before release.
 
+<div class="screenshot-carousel wide">
+<figure>
+
 ![GitHub Actions visualization of a pull-request run of odios release.yml: four checks jobs (ansible-lint, shellcheck, unit-tests, role-drift) gating the build, build feeding pre-release and build-test-image, then matrices for build-image (2), test-upgrade (4), test-install (2), test-playbook plus test-playbook-arm (3), and final publish-image and publish-manifest](../../../assets/odios-release-pipeline.webp)
+
+</figure>
+</div>
 
 All of it lands on a single [GitHub Release](https://github.com/b0bbywan/odios/releases). The URLs users hit, `beta.odio.love/install`, `/manifest.json`, `/odio.rpi-imager-manifest`, and `odio.love/upgrade`, are 307 redirects served by the [odio.love](https://github.com/b0bbywan/odio.love) Astro site on Vercel, pointing at `github.com/b0bbywan/odios/releases/latest/download/<asset>`. The URLs stay stable across releases, so `curl -fsSL https://beta.odio.love/install | bash` never needs updating. Pinning a specific version means calling the GitHub URL with the tag directly, as shown in [Upgrade](/operations/upgrade/).
 

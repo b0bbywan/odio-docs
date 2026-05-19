@@ -54,6 +54,10 @@
 	width: min(260px, 70vw);
 }
 
+.screenshot-carousel figure > p {
+	margin: 0;
+}
+
 /* For carousels of landscape (desktop) screenshots — wider so dense UI stays legible */
 .screenshot-carousel.wide > figure {
 	width: min(720px, 90vw);
