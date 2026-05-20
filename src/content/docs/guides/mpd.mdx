@@ -23,14 +23,14 @@ If you want library browsing, you have two options: mount a NAS share locally, o
 
 MPD exposes itself as an MPRIS player via [mpDris2](https://github.com/b0bbywan/mpDris2). This is what allows the odio API to discover and control MPD playback alongside all other sources. Playback is controllable from the embedded UI, the odio application, Home Assistant, or any MPD client.
 
-odio uses a [fork of mpDris2](https://github.com/b0bbywan/mpDris2) that adds cover art retrieval from MPD via the `readpicture` and `albumart` commands. The upstream version only looks for cover art on the local filesystem, which doesn't work for CD playback where the current song is a `cdda://` URI.
+The [mpDris2 fork](https://github.com/b0bbywan/mpDris2) shipped by odio walks an ordered cover-art pipeline: the embedded picture inside the audio file (MPD's `readpicture`), a regex-matched image in the song's directory, MPD's `albumart` resolver, a CUE/cdda fallback that looks next to the loaded `.cue` playlist when the current song is a virtual reference like `cdda://Disc/Track01` or `sheet.cue/trackNNNN`, and an XDG cover cache at `$XDG_CACHE_HOME/mpDris2/` for downloaded covers.
 
-For CDs, MPD's CUE playlist plugin is configured with `as_directory "true"`, which exposes the CUE sheet as a virtual directory. The fork resolves this virtual path and finds the `cover.jpg` fetched by [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) in the parent directory. The upstream mpDris2 crashed with this configuration.
+The CUE fallback is what makes cover art work for [audio CD playback](/guides/audio-cd/): MPD's CUE plugin is configured with `as_directory "true"`, which exposes the CUE sheet as a virtual directory, and the `cover.jpg` cached by [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) sits next to it where the fallback finds it.
 
 <div class="screenshot-carousel wide">
 	<figure>
 		<Image src={cdPlayback} alt="odio embedded UI playing an audio CD via MPD: Retroaction - A Noisy Blast - Son of Light, with album cover art and full transport controls" />
-		<figcaption>CD playback in the embedded UI, cover art via the mpDris2 fork</figcaption>
+		<figcaption>CD playback in the embedded UI, cover art via mpDris2</figcaption>
 	</figure>
 	<figure>
 		<Image src={usbPlayback} alt="odio embedded UI playing a USB flash drive via MPD: Dooz Kawa - Sans pluie pas d'arc-en-ciel from Vol de Nuit, with album cover art and transport controls" />
