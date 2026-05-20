@@ -22,9 +22,9 @@ CD playback is controlled like any other MPD source — from the odio applicatio
 - Seek within tracks
 - Shuffle and repeat
 
-![Embedded UI playing an audio CD via MPD, Retroaction - A Noisy Blast - Son of Light, with album cover art and full transport controls](../../../assets/audio-cd-playback.webp)
+![Embedded UI playing an audio CD via MPD, with album cover art and full transport controls](../../../assets/audio-cd-playback.webp)
 
-Cover art in the embedded UI for CD playback ships since odios [2026.4.0rc6](https://github.com/b0bbywan/odios/releases/tag/2026.4.0rc6), via the [mpDris2 fork](https://github.com/b0bbywan/mpDris2) that resolves the CUE virtual directory and forwards the cached `cover.jpg` over MPRIS.
+Cover art in the embedded UI for CD playback ships since odios [2026.4.0rc6](https://github.com/b0bbywan/odios/releases/tag/2026.4.0rc6), via the [mpDris2 fork](https://github.com/b0bbywan/mpDris2) that finds the `cover.jpg` fetched by [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) inside the CUE virtual directory and forwards it over MPRIS. See [MPD — Playback controls](/guides/mpd/#playback-controls) for the full cover-art pipeline.
 
 From an MPD client like MALP, cover art and full track metadata are available:
 
