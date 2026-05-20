@@ -17,7 +17,7 @@ odio is designed as a streamer, not a library manager. A large music database on
 
 By default, MPD only maintains a lightweight local database for [CD](/guides/audio-cd/) and [USB](/guides/usb-flashdrives/) playback via [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer).
 
-If you want library browsing, you have two options: mount a NAS share locally, or run MPD on the NAS and output audio to the odio node.
+If you want library browsing, [two options](#using-a-nas-library) are available: an NFS mount, or MPD running on the NAS.
 
 ## Playback controls
 
@@ -70,50 +70,36 @@ It covers the MPD-side use cases the embedded UI doesn't: queue editing, library
 
 Web radios get their own dedicated treatment. See [Webradios → Via myMPD on the odio node](/guides/webradios/#via-mympd-on-the-odio-node).
 
-## Mounting a NAS share
+## Using a NAS library
 
-Mount your NAS music folder via NFS into MPD's music directory:
+The two options from above each carry a tradeoff.
+
+### Mount the share over NFS
+
+odio's MPD watches `/media/USB`, so mount your NAS export as a subfolder there. Install the NFS client and mount it:
+
+```bash
+sudo apt install nfs-common
+sudo mount -t nfs 192.168.1.21:/export/Music /media/USB/Music
+```
+
+To survive reboots, add an `/etc/fstab` entry (`_netdev` waits for the network):
 
 ```
-/media/USB/Music  nfs  192.168.1.21:/export/Music
+192.168.1.21:/export/Music  /media/USB/Music  nfs  defaults,_netdev  0  0
 ```
 
-After mounting, trigger a database update:
+Then trigger a database update:
 
 ```bash
 mpc update
 ```
 
-Your library is now browsable from any MPD client (MALP, mympd, etc.).
+The files are browsable from any MPD client. Simple, but the scan runs on the Pi and gets slow over NFS for large collections, the exact problem odio sidesteps by default.
 
-## Using a remote MPD on your NAS
+### Run MPD on the NAS
 
-Instead of running the database locally, you can run MPD on your NAS and have it output audio to the odio node over the network via PulseAudio TCP.
-
-### NAS side
-
-Configure MPD on your NAS to send audio to the odio node:
-
-```
-# /etc/mpd.conf on the NAS
-
-audio_output {
-    type    "pulse"
-    name    "odio"
-    server  "192.168.1.6"
-}
-```
-Restart MPD on the NAS:
-
-```bash
-systemctl --user restart mpd.service
-```
-
-### Browsing
-
-Point your MPD client (MALP, mympd, etc.) at the NAS address instead of the odio node. The NAS handles the library and database, the odio node handles the audio output.
-
-The NAS MPD instance appears as a PulseAudio client on the odio node, with per-client volume control available from the embedded UI and the odio application.
+For a large library, run MPD on the NAS itself. The full NAS-side setup lives in the [NAS use case](/guides/use-case-nas/#mpd-on-the-nas).
 
 ## MPD clients
 
