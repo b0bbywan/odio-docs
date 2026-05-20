@@ -5,8 +5,16 @@ howto: true
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import snapcastNasMpdSource from '../../../assets/snapcast-nas-mpd-source.png';
+import snapcastClientMpris from '../../../assets/snapcast-client-mpris.png';
+import snapcastNasGoLibrespot from '../../../assets/snapcast-nas-go-librespot.png';
+import snapcastClientGoLibrespot from '../../../assets/snapcast-client-go-librespot.png';
+import snapcastClientLibrespot from '../../../assets/snapcast-client-librespot.png';
+import snapcastSpotifyConnectCast from '../../../assets/snapcast-spotify-connect-cast.png';
+import snapcastSpotifyControllerMpris from '../../../assets/snapcast-spotify-controller-mpris.png';
 
-[Snapcast](https://github.com/snapcast/snapcast) provides perfectly synchronized audio playback across multiple rooms. odio nodes run as Snapcast clients — you need a Snapserver running elsewhere (typically a NAS).
+[Snapcast](https://github.com/snapcast/snapcast) provides perfectly synchronized audio playback across multiple rooms. odio nodes run as Snapcast clients, you need a Snapserver running elsewhere (typically a NAS).
 
 ## How it works
 
@@ -15,17 +23,81 @@ Snapcast has two components:
 - **Snapserver** runs on your NAS or a dedicated machine. It receives audio from multiple sources (MPD, Spotify, AirPlay, PipeWire) and distributes them as synchronized streams.
 - **Snapclient** runs on each odio node. It receives a stream from the Snapserver and plays it back in perfect sync with all other clients.
 
-The heavy work (mixing, source management) is on the server. Clients are lightweight — even old Raspberry Pi B+ boards work perfectly.
+The heavy work (mixing, source management) is on the server, Clients are lightweight.
 
-## Snapserver setup
+## On the odio node
 
-Install Snapserver on your NAS. Debian 13 ships Snapcast 0.31+ natively:
+odio ships [Snapclient](https://github.com/snapcast/snapcast) pre-installed as a `systemctl --user` service; it can be started, stopped, or monitored from the [embedded UI](/control/embedded-ui/), the [application](/control/pwa/), or [Home Assistant](/control/home-assistant/) via the service controls. Discovery of the Snapserver is automatic via Zeroconf (avahi), as long as both ends share a network.
 
-```bash
-sudo apt install snapserver
+### MPRIS integration (snapclientmpris)
+
+Snapclient on its own has no MPRIS interface, so the currently playing stream is invisible to the odio UI, or any other MPRIS consumer. [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) bridges that gap: it surfaces stream metadata (title, artist, album, cover art) from the snapserver, and forwards MPRIS Play, Pause, Next, Previous, Stop to the stream's actual source through snapserver's `Stream.Control`. Pausing from one room pauses every listener on the stream, the multi-room semantic MPRIS clients expect (like Spotify Connect or AirPlay 2).
+
+The bridge appears on D-Bus as `org.mpris.MediaPlayer2.snapcast` and is picked up automatically by the odio UI, Home Assistant, `playerctl`, GNOME's media keys, gnome-music, and any other MPRIS client.
+
+<div class="screenshot-carousel wide">
+	<figure>
+		<Image src={snapcastNasMpdSource} alt="odio UI on the NAS: the Media Players panel shows MPD active with cover art and transport controls, and the Services panel lists snapserver.service active alongside docker, minidlna, and mpd" />
+		<figcaption>NAS, MPD source: MPD plays the track, snapserver picks it up and exposes the stream's metadata.</figcaption>
+	</figure>
+	<figure>
+		<Image src={snapcastClientMpris} alt="odio UI on a Raspberry Pi client: the Media Players panel shows Snapcast client playing the same track via MPRIS with cover art, and Snapcast client service active in the Services panel" />
+		<figcaption>Pi client, MPD stream: snapclientmpris re-publishes the same track over MPRIS, so every room can see and pause it.</figcaption>
+	</figure>
+	<figure>
+		<Image src={snapcastNasGoLibrespot} alt="odio UI on the NAS: go-librespot is the active MPRIS player with cover art and transport controls, and the Services panel lists snapserver active alongside docker, minidlna, and mpd" />
+		<figcaption>NAS, go-librespot source: `mpris_enabled: true` makes go-librespot itself an MPRIS player on the NAS, and the control script feeds the same metadata into the snapserver stream.</figcaption>
+	</figure>
+	<figure>
+		<Image src={snapcastClientGoLibrespot} alt="odio UI on a Raspberry Pi client: the Media Players panel shows Snapcast client playing the same track with cover art forwarded by the meta_go-librespot.py control script" />
+		<figcaption>Pi client, go-librespot stream: same propagation path, this time fed by `meta_go-librespot.py`.</figcaption>
+	</figure>
+	<figure>
+		<Image src={snapcastClientLibrespot} alt="odio UI on a Raspberry Pi client: the Media Players panel shows Snapcast client with the generic Spotify logo and a track title only, no artist or cover art" />
+		<figcaption>Pi client, librespot stream: only the track title reaches snapclientmpris, no artist or cover art (librespot's built-in metadata path is sparser than the control-script one).</figcaption>
+	</figure>
+	<figure>
+		<Image src={snapcastSpotifyConnectCast} alt="Spotify desktop app with the Connect panel open: SnapSpotHD is the selected target at the top, with SnapSpot, raspodio, and other devices listed below; the footer reads Playing on SnapSpotHD" />
+		<figcaption>Controller side, Spotify Connect: casting from the Spotify desktop app to `SnapSpotHD` (the `devicename=` of the librespot source).</figcaption>
+	</figure>
+	<figure>
+		<Image src={snapcastSpotifyControllerMpris} alt="odio UI on the controlling desktop: the Media Players panel shows Spotify with full cover art, track title, artist, album, and transport controls; the Services panel lists MPD and PipeWire PulseAudio" />
+		<figcaption>Controller side, odio UI: the Spotify desktop app keeps its own rich MPRIS surface alive on the host that's casting, so the controlling node sees full metadata even when the snapclient rooms (above) only get sparse data from librespot.</figcaption>
+	</figure>
+</div>
+
+#### Installation
+
+[odios](https://github.com/b0bbywan/odios) installs snapclientmpris alongside Snapclient [since 2026.5.0b3](https://github.com/b0bbywan/odios/releases/tag/2026.5.0b3), so a fresh odio node has it ready. For manual installation on an existing node, the package ships from [apt.odio.love](/operations/apt-repository/):
+
+```sh
+sudo apt install snapclientmpris
 ```
 
-<Aside type="caution">Snapserver >= 0.31 is required for AddStream/RemoveStream support. On Debian 12, install from [GitHub releases](https://github.com/snapcast/snapcast/releases).</Aside>
+The package depends on `snapclient` (apt pulls it in automatically) and ships two systemd units, one for each D-Bus bus mode below. Neither is auto-enabled.
+
+#### Session bus mode (default)
+
+The mode odios enables. The bridge runs as a `systemctl --user` service on the session D-Bus, where the rest of the odio stack already runs. The unit is also D-Bus session-activatable: any MPRIS client requesting `org.mpris.MediaPlayer2.snapcast` starts the bridge on demand, so `systemctl --user enable --now` is only useful to bring it up before any client asks.
+
+#### System bus mode
+
+For setups where Snapclient already runs as a system service (typically a HiFiBerry-style deployment or another integration that pre-dates the user-session approach), system bus mode runs the bridge as the `_snapclient` system user and owns `org.mpris.MediaPlayer2.snapcast` on the system bus instead. The package ships the matching D-Bus policy so any local user can still talk to it.
+
+Switching is a [config-file](https://github.com/b0bbywan/snapclientmpris#configuration) change (`dbus-bus = system` instead of `session`) followed by enabling the system-scope unit rather than the user-scope one; see the [README](https://github.com/b0bbywan/snapclientmpris#install) for the exact commands.
+
+## On the server (Snapserver)
+
+The setup below targets Snapserver [v0.35.0 or later](https://github.com/snapcast/snapcast/releases/tag/v0.35.0), which exposes the control-script metadata pipeline that [snapclientmpris](#mpris-integration-snapclientmpris) on each client picks up. Debian 13 still ships 0.31, so grab the matching `.deb` from the [Snapcast releases page](https://github.com/snapcast/snapcast/releases) (pick the right arch and Debian codename, the example below is `amd64` + `trixie`):
+
+```bash
+wget https://github.com/snapcast/snapcast/releases/download/v0.35.0/snapserver_0.35.0-1_amd64_trixie.deb
+sudo dpkg -i snapserver_0.35.0-1_amd64_trixie.deb
+```
+
+<Aside type="caution">
+Upgrading from Snapcast < 0.33? Two config sections were renamed in 0.33: `[tcp]` → `[tcp-control]`, and TCP-streaming options moved from `[stream]` to `[tcp-streaming]`. Update `/etc/snapserver.conf` accordingly before restarting. The [PipeWire desktop integration](#desktop-integration-pipewire) is also affected by an upstream regression on 0.33+, see the note in that section.
+</Aside>
 
 ### Running as a user service
 
@@ -72,7 +144,7 @@ enabled = true
 bind_to_address = 0.0.0.0
 doc_root = /usr/share/snapweb
 
-[tcp]
+[tcp-control]
 enabled = true
 bind_to_address = 0.0.0.0
 ```
@@ -95,26 +167,90 @@ Then add the stream source in `/etc/snapserver.conf`:
 
 ```ini
 [stream]
-source = pipe:///tmp/mpdfifo?name=MPD&devicename=SnapMPD
+source = pipe:///tmp/mpdfifo?name=MPD&controlscript=meta_mpd.py
 ```
 
-### Spotify stream (Librespot)
+The `controlscript=meta_mpd.py` parameter wires snapserver to MPD's metadata over the local socket, so the currently playing track propagates through `Stream.OnProperties` to every client (and through [snapclientmpris](#mpris-integration-snapclientmpris) to every MPRIS surface in every room). The script ships with snapserver in `/usr/share/snapserver/plug-ins/`.
 
-Install [Librespot](https://github.com/librespot-org/librespot) from source (Debian packages are too old):
+### Spotify streams (Librespot, go-librespot)
+
+Two Spotify Connect daemons work as Snapcast sources. Pick whichever fits, or run both in parallel as separate streams.
+
+**[Librespot](https://github.com/librespot-org/librespot)** is what Snapcast has always supported, simple to install. Only the track title is propagated to snapserver, no artist or cover art, and librespot doesn't expose its own MPRIS interface on the NAS. When the controller is a Spotify desktop or phone app, that app keeps its own rich MPRIS surface on its host, so any other odio node running on the controlling host sees the full metadata (see the last two figures in the carousel above).
+
+Install via Cargo:
 
 ```bash
 sudo apt install build-essential libasound2-dev
 curl https://sh.rustup.rs -sSf | sh
 cargo install librespot
-sudo mv .cargo/bin/librespot /usr/local/bin
+sudo mv ~/.cargo/bin/librespot /usr/local/bin/
 ```
 
-Add the stream source in `/etc/snapserver.conf`:
+To pick up a new librespot release later:
+
+```bash
+cargo install librespot
+sudo mv ~/.cargo/bin/librespot /usr/local/bin/
+systemctl --user restart snapserver
+```
+
+Snapserver source line:
 
 ```ini
 [stream]
-source = librespot:///usr/local/bin/librespot?name=Spotify&devicename=SnapSpot&bitrate=320&volume=100&normalize=false
+source = librespot:///usr/local/bin/librespot?name=SpotifyHD&devicename=SnapSpotHD&bitrate=320&volume=100&normalize=false
 ```
+
+**[go-librespot](https://github.com/devgianlu/go-librespot)** is a Go rewrite of the Spotify Connect daemon that exposes a local REST API for playback state and metadata. Paired with snapserver's `meta_go-librespot.py` control script (shipped in `/usr/share/snapserver/plug-ins/` [since 0.33](https://github.com/snapcast/snapcast/blob/master/changelog.md#version-0330)), it delivers full track metadata to every room. Pre-built binaries are on the [go-librespot releases page](https://github.com/devgianlu/go-librespot/releases):
+
+```bash
+sudo wget -O /usr/local/bin/go-librespot \
+    https://github.com/devgianlu/go-librespot/releases/latest/download/go-librespot_linux_amd64
+sudo chmod +x /usr/local/bin/go-librespot
+mkdir -p ~/.config/go-librespot
+```
+
+Then in `~/.config/go-librespot/config.yml`, pipe PCM to stdout (snapserver captures it from `process://`), expose the REST API at port 24879 for the control script, and let users pair from the Spotify app via Zeroconf:
+
+```yaml
+device_name: "SnapSpot"
+device_type: "speaker"
+
+audio_backend: "pipe"
+audio_output_pipe: "/dev/stdout"
+audio_output_pipe_format: "s16le"
+
+bitrate: 320
+
+normalisation_disabled: true
+normalisation_use_album_gain: true
+normalisation_pregain: 0.0
+
+server:
+  enabled: true
+  port: 24879
+
+credentials:
+  type: zeroconf
+  zeroconf:
+    persist_credentials: true
+
+mpris_enabled: true
+```
+
+The source line in `/etc/snapserver.conf`:
+
+```ini
+[stream]
+source = process:///usr/local/bin/go-librespot?name=Spotify&sampleformat=44100:16:2&params=--config_dir%20/home/odio/.config/go-librespot&dryout_ms=2000&wd_timeout=0&log_stderr=false&controlscript=meta_go-librespot.py&controlscriptparams=--stream=Spotify%20--librespot-host=127.0.0.1%20--librespot-port=24879
+```
+
+`audio_output_pipe_format: s16le` in the config and `sampleformat=44100:16:2` in the source line have to match, otherwise snapserver decodes garbage. Adjust the `--config_dir` path if the snapserver user's home isn't `/home/odio`; `%20` is the URL-encoded space (snapserver doesn't accept literal spaces in the query string).
+
+<Aside type="note">
+Subjective observation: librespot sounds better to my ears than go-librespot, and I haven't pinned down why. If you've compared the two with measurements or trained ears and have findings to share, [open a discussion](https://github.com/b0bbywan/odios/discussions) or PR a note here.
+</Aside>
 
 ### AirPlay stream (shairport-sync)
 
@@ -163,20 +299,22 @@ sudo systemctl restart snapserver
 
 ## Controlling rooms
 
-- **Snapweb** — web UI at `http://<server>:1780` showing all clients and streams.
-- **Snapcast app** (Android) — assign streams to rooms, control per-room volume.
+Snapcast has several control surfaces; pick whichever fits the moment:
+
+- **Snapweb** — web UI at `http://<server>:1780` showing all clients and streams. Per-room volume, mute, stream assignment.
+- **Snapcast app** (Android) — same controls on your phone.
+- **MPRIS clients** — through [snapclientmpris](#mpris-integration-snapclientmpris), the standard MPRIS surface (odio UI, Home Assistant, `playerctl`, gnome-music, ...) shows the current stream's metadata and lets you pause or skip from any room, pausing every listener at once.
+- **Home Assistant** — Snapcast also has its own [dedicated HA integration](https://www.home-assistant.io/integrations/snapcast/) (separate from odio's), exposing clients and streams as native HA entities.
 
 Each client can be assigned to a different stream: living room on Spotify, bedroom on MPD, office on AirPlay.
-
-## Integration
-
-Snapclient runs as a systemd user service on each odio node. It can be started/stopped from the embedded UI, the application, or Home Assistant via the service controls.
-
-Snapcast also has its own [Home Assistant integration](https://www.home-assistant.io/integrations/snapcast/) for controlling clients and streams.
 
 ## Desktop integration (PipeWire)
 
 PipeWire can automatically detect Snapcast servers on your network. With the `libpipewire-module-snapcast-discover` module, any audio played on a desktop or laptop (browser, media player, games, system sounds) automatically appears as a Snapcast stream — zero configuration needed.
+
+<Aside type="caution">
+This integration is currently broken on Snapserver 0.33, 0.34, and 0.35: PipeWire's `snapcast-discover` no longer finds the server (upstream [snapcast#1496](https://github.com/snapcast/snapcast/issues/1496), still open). It works against Snapserver 0.32 and earlier. If desktop discovery matters more than the new control-script metadata pipeline, stay on 0.32 for now; otherwise this section is informational until the upstream fix lands.
+</Aside>
 
 Create `~/.config/pipewire/pipewire.conf.d/my-snapcast-discover.conf`:
 
