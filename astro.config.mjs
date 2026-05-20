@@ -75,6 +75,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Upgrade', slug: 'operations/upgrade' },
 						{ label: 'Power management', slug: 'operations/power' },
+						{ label: 'APT repository', slug: 'operations/apt-repository' },
 						{ label: 'Extensions', slug: 'operations/extensions' },
 						{ label: 'Audio notifications', slug: 'operations/audio-notifications' },
 					],

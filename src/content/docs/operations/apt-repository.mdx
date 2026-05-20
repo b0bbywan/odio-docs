@@ -1,0 +1,38 @@
+---
+title: APT repository
+description: Set up apt.odio.love to install and update odio components on Debian and Raspberry Pi OS.
+howto: true
+---
+
+[apt.odio.love](https://apt.odio.love) hosts the signed `.deb` packages for the odio stack, produced by the [CI/CD pipeline](/community/ci-cd/) on every component release. Configuring it on a Debian, Raspberry Pi OS, Ubuntu, or Armbian system gives you `apt install` access to every odio component.
+
+The [odios installer](/operations/installation/) adds the repository automatically, so a fresh odio node doesn't need any of this. The steps below are for adding the repo manually on an existing Debian-family system, typically to install a single component standalone (`odio-api` on a desktop, `mpd-discplayer` on an MPD-only host, etc.).
+
+## Setup
+
+```bash
+curl -fsSL https://apt.odio.love/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/odio.gpg
+echo "deb [signed-by=/usr/share/keyrings/odio.gpg] https://apt.odio.love stable main" | sudo tee /etc/apt/sources.list.d/odio.list
+sudo apt update
+```
+
+After this, every package below is one `sudo apt install <name>` away.
+
+## Available packages
+
+| Package | Source | What it is |
+|---|---|---|
+| `odio-api` | [go-odio-api](https://github.com/b0bbywan/go-odio-api) | The [core REST API + embedded UI](/api/overview/). |
+| `mpd-discplayer` | [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) | [CD and USB auto-play](/disc-player/overview/) daemon for MPD. |
+| `mpdris2` | [mpDris2](https://github.com/b0bbywan/mpDris2) | [MPRIS bridge for MPD](/guides/mpd/#playback-controls), with `as_directory`-aware cover-art lookup. |
+| `snapclientmpris` | [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) | [MPRIS bridge for the local Snapcast client](/guides/snapcast/#mpris-integration-snapclientmpris). |
+| `mympd` | [odio-mympd](https://github.com/b0bbywan/odio-mympd) | The [myMPD](/guides/mpd/#mympd-web-ui) web UI, tracked daily against [upstream](https://github.com/jcorporation/myMPD). |
+| `spotifyd` | [spotifyd](https://github.com/b0bbywan/spotifyd) | [Spotify Connect daemon](/guides/spotify/). |
+
+All packages are built for `amd64`, `arm64`, `armhf`, and `armv7hf`; pure-Python packages (`mpdris2`, `snapclientmpris`) ship as `arch:all` and work on every architecture.
+
+## Suites: stable and testing
+
+The default `stable` suite ships only tagged stable releases. To opt into pre-releases (`-rc`, `-beta`, `-alpha`), swap `stable` for `testing` in `/etc/apt/sources.list.d/odio.list` and `sudo apt update`. Both suites cover the same package set; `testing` simply tracks the latest pre-release version of each.
+
+The same machine can switch back and forth, useful for trying a new release candidate without reinstalling.

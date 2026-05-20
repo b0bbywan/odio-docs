@@ -19,10 +19,9 @@ go-odio-api runs on any Linux system with a D-Bus user session. Written in Go, n
 
 ## APT repository (Debian / Raspberry Pi OS)
 
+Add the [apt.odio.love repository](/operations/apt-repository/), then:
+
 ```bash
-curl -fsSL https://apt.odio.love/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/odio.gpg
-echo "deb [signed-by=/usr/share/keyrings/odio.gpg] https://apt.odio.love stable main" | sudo tee /etc/apt/sources.list.d/odio.list
-sudo apt update
 sudo apt install odio-api
 ```
 
