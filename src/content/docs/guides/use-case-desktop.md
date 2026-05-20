@@ -26,7 +26,7 @@ With PipeWire, your desktop audio can be sent to a [Snapserver](/guides/snapcast
 
 Install [go-odio-api](/api/overview/) on the desktop itself and it discovers every MPRIS player in the session: browser tabs, Spotify, native media apps. The [network sink](/guides/network-audio/) of a remote odio node stays selectable as the default output, so audio plays on the Pi while control and metadata aggregate on the desktop.
 
-![Embedded UI on a desktop node — PipeWire audio server with the default sink set to a remote raspodio built-in output, Chromium and Spotify aggregated as MPRIS media players](../../../assets/desktop-embedded-ui.png)
+![Embedded UI on a desktop node: a Chrome browser tab playing a video appears as an MPRIS media player, audio routed to a remote raspodio sink, with Spotify as a second player and PipeWire as the audio server](../../../assets/desktop-youtube.webp)
 
 ## Control
 
