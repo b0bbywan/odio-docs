@@ -8,6 +8,7 @@
   ],
   "words": [
     "albumart",
+    "albumartsmall",
     "AirPlay",
     "ALSA",
     "Armbian",
@@ -110,6 +111,7 @@
     "MPRIS",
     "mprisqueeze",
     "MusicBrainz",
+    "Musique",
     "myMPD",
     "mypy",
     "Navidrome",
@@ -124,6 +126,7 @@
     "odio-ha",
     "odios",
     "odiotv",
+    "netdev",
     "pbattino",
     "pactl",
     "paprefs",

@@ -1,0 +1,330 @@
+---
+title: NAS
+description: How to use a NAS with an odio instance.
+howto: true
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import nasMpd from '../../../assets/snapcast-nas-mpd-source.png';
+import nasGoLibrespot from '../../../assets/snapcast-nas-go-librespot.png';
+
+A NAS is where your music library lives. odio doesn't try to replace it, it uses it.
+
+## Music library
+
+Mount your NAS music folder into MPD's music directory via NFS, trigger a database update with `mpc update`, and browse your library from any [MPD client](/guides/mpd/). Playback goes through the odio node's audio output.
+
+Alternatively, serve the library over UPnP/DLNA (see [DLNA server](#dlna-server-minidlna) below) and browse it from any control point, directing playback to the odio node acting as a [DLNA renderer](/guides/dlna/).
+
+## MPD on the NAS
+
+If your library is large, running [MPD](/guides/mpd/) directly on the NAS avoids slow database scans over NFS. The NAS handles the library; the odio node handles the audio, over [PulseAudio TCP](/guides/network-audio/).
+
+Install MPD; it runs as a user service, so disable the system service the package sets up:
+
+```bash
+sudo apt install mpd
+sudo systemctl disable --now mpd.service
+```
+
+`~/.config/mpd/mpd.conf`:
+
+```ini
+music_directory     "/share/Musique/music"
+playlist_directory  "/share/Musique/playlists"
+db_file             "/share/Musique/mpd/tag_cache"
+
+state_file          "/var/lib/mpd/state"
+sticker_file        "/share/Musique/mpd/sticker.sql"
+
+bind_to_address     "localhost"
+bind_to_address     "192.168.1.21"
+bind_to_address     "/run/user/1001/mpd/socket"
+port                "6600"
+auto_update         "yes"
+
+zeroconf_enabled    "yes"
+zeroconf_name       "nas-MPD"
+
+input {
+    plugin "curl"
+}
+
+audio_output {
+    type   "pulse"
+    name   "raspodio"
+    server "192.168.1.6"
+}
+
+audio_output {
+    type       "fifo"
+    name       "SnapMPD"
+    path       "/tmp/mpdfifo"
+    format     "48000:16:2"
+    mixer_type "software"
+}
+
+filesystem_charset  "UTF-8"
+```
+
+- The third `bind_to_address` is a user socket; mpDris2 connects to it (see below).
+- `input { plugin "curl" }` lets MPD play HTTP streams, required for [webradios](/guides/webradios/).
+- The `pulse` output sends audio to the odio node; the `fifo` output (`SnapMPD`) feeds the [Snapcast MPD stream](#mpd-stream).
+
+Enable the user service:
+
+```bash
+systemctl --user enable --now mpd.service
+```
+
+### MPRIS and cover art
+
+For the NAS MPD to appear as an MPRIS player (and for cover art to resolve), run [mpDris2](https://github.com/b0bbywan/mpDris2) on the NAS. It ships from [apt.odio.love](/operations/apt-repository/):
+
+```bash
+sudo apt install mpdris2
+```
+
+Configure `~/.config/mpDris2/mpDris2.conf`:
+
+```ini
+[Connection]
+host = /run/user/1001/mpd/socket
+
+[Bling]
+notify = False
+```
+
+Connecting via the **unix socket** gives mpDris2 local filesystem access, so cover-art lookups read `cover.*` files straight off the disk, including non-standard names like `folder.jpg`. Connecting over TCP (the LAN address) works too, but then mpDris2 falls back to MPD's `albumart` command, which resolves only the standard `cover.{png,jpg,jxl,webp}` names and ships the bytes through MPD. `notify = False` skips desktop notifications, pointless on a headless NAS.
+
+```bash
+systemctl --user enable --now mpDris2.service
+```
+
+## DLNA server (MiniDLNA)
+
+To serve the library over UPnP/DLNA instead of (or alongside) MPD, [MiniDLNA](https://sourceforge.net/projects/minidlna/) (a.k.a. ReadyMedia) is a lightweight media server. Any control point can then browse it and direct playback to the odio node as a [DLNA renderer](/guides/dlna/).
+
+```bash
+sudo apt install minidlna
+```
+
+`/etc/minidlna.conf`:
+
+```ini
+media_dir=A,/share/Musique/music
+db_dir=/share/Musique/dlna
+port=8200
+friendly_name="NAS upnp"
+inotify=yes
+
+album_art_names=Cover.jpg/cover.jpg/AlbumArtSmall.jpg/albumartsmall.jpg
+album_art_names=AlbumArt.jpg/albumart.jpg/Album.jpg/album.jpg
+album_art_names=Folder.jpg/folder.jpg/Thumb.jpg/thumb.jpg
+```
+
+- `media_dir=A,...` — the `A` restricts the scan to audio.
+- `inotify=yes` — re-scan automatically on file changes.
+- `album_art_names` — filename patterns matched for cover art (additive across lines).
+
+```bash
+sudo systemctl enable --now minidlna.service
+```
+
+The server shows up as "NAS upnp" in any control point (BubbleDS Next, BubbleUPnP, Home Assistant's media browser).
+
+## Snapserver for multi-room
+
+The NAS is the natural place to run a [Snapserver](/guides/snapcast/), it's always on, has the CPU for mixing, and sits at the center of your network. Feed it audio sources, MPD, Spotify, AirPlay, and every odio node receives synchronized streams as a Snapcast client. Each room can play a different source or all play the same thing, perfectly in sync.
+
+The setup below targets Snapserver [v0.35.0 or later](https://github.com/snapcast/snapcast/releases/tag/v0.35.0), which exposes the control-script metadata pipeline that [snapclientmpris](/guides/snapcast/#mpris-integration-snapclientmpris) on each client picks up. Debian 13 still ships 0.31, so grab the matching `.deb` from the [Snapcast releases page](https://github.com/snapcast/snapcast/releases) (pick the right arch and Debian codename, the example below is `amd64` + `trixie`):
+
+```bash
+wget https://github.com/snapcast/snapcast/releases/download/v0.35.0/snapserver_0.35.0-1_amd64_trixie.deb
+sudo dpkg -i snapserver_0.35.0-1_amd64_trixie.deb
+```
+
+<Aside type="caution">
+Upgrading from Snapcast < 0.33? Two config sections were renamed in 0.33: `[tcp]` → `[tcp-control]`, and TCP-streaming options moved from `[stream]` to `[tcp-streaming]`. Update `/etc/snapserver.conf` accordingly before restarting. The [PipeWire desktop integration](/guides/snapcast/#desktop-integration-pipewire) is also affected by an upstream regression on 0.33+, see the note in that section.
+</Aside>
+
+### Running Snapserver as a user service
+
+Like the rest of the odio stack, Snapserver can run in your user session. Disable the system service and create a user unit:
+
+```bash
+sudo systemctl disable --now snapserver.service
+```
+
+`~/.config/systemd/user/snapserver.service`:
+
+```ini
+[Unit]
+Description=Snapcast server
+Documentation=man:snapserver(1)
+Wants=network-online.target avahi-daemon.service
+After=network-online.target time-sync.target avahi-daemon.service
+
+[Service]
+EnvironmentFile=-/etc/default/snapserver
+ExecStart=/usr/bin/snapserver --logging.sink=system --server.datadir="${HOME}" $SNAPSERVER_OPTS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+systemctl --user enable --now snapserver.service
+```
+
+Install [Snapweb](https://github.com/snapcast/snapweb) for the web UI:
+
+```bash
+wget https://github.com/snapcast/snapweb/releases/download/v0.9.3/snapweb_0.9.3-1_all.deb
+sudo dpkg -i snapweb_0.9.3-1_all.deb
+```
+
+Configure `/etc/snapserver.conf`:
+
+```ini
+[http]
+enabled = true
+bind_to_address = 0.0.0.0
+doc_root = /usr/share/snapweb
+
+[tcp-control]
+enabled = true
+bind_to_address = 0.0.0.0
+```
+
+### MPD stream
+
+The MPD `fifo` output (`SnapMPD`, in the [mpd.conf above](#mpd-on-the-nas)) writes PCM to `/tmp/mpdfifo`. Add the matching stream source in `/etc/snapserver.conf`:
+
+```ini
+[stream]
+source = pipe:///tmp/mpdfifo?name=MPD&controlscript=meta_mpd.py
+```
+
+The `controlscript=meta_mpd.py` parameter wires snapserver to MPD's metadata over the local socket, so the currently playing track propagates through `Stream.OnProperties` to every client (and through [snapclientmpris](/guides/snapcast/#mpris-integration-snapclientmpris) to every MPRIS surface in every room). The script ships with snapserver in `/usr/share/snapserver/plug-ins/`.
+
+### Spotify streams (Librespot, go-librespot)
+
+Two Spotify Connect daemons work as Snapcast sources. Pick whichever fits, or run both in parallel as separate streams.
+
+**[Librespot](https://github.com/librespot-org/librespot)** is what Snapcast has always supported, simple to install. Only the track title is propagated to snapserver, no artist or cover art, and librespot doesn't expose its own MPRIS interface on the NAS. When the controller is a Spotify desktop or phone app, that app keeps its own rich MPRIS surface on its host, so any other odio node running on the controlling host sees the full metadata (see the carousel on the [Snapcast page](/guides/snapcast/#mpris-integration-snapclientmpris)).
+
+Install via Cargo:
+
+```bash
+sudo apt install build-essential libasound2-dev
+curl https://sh.rustup.rs -sSf | sh
+cargo install librespot
+sudo mv ~/.cargo/bin/librespot /usr/local/bin/
+```
+
+To pick up a new librespot release later:
+
+```bash
+cargo install librespot
+sudo mv ~/.cargo/bin/librespot /usr/local/bin/
+systemctl --user restart snapserver
+```
+
+Snapserver source line:
+
+```ini
+[stream]
+source = librespot:///usr/local/bin/librespot?name=SpotifyHD&devicename=SnapSpotHD&bitrate=320&volume=100&normalize=false
+```
+
+**[go-librespot](https://github.com/devgianlu/go-librespot)** is a Go rewrite of the Spotify Connect daemon that exposes a local REST API for playback state and metadata. Paired with snapserver's `meta_go-librespot.py` control script (shipped in `/usr/share/snapserver/plug-ins/` [since 0.33](https://github.com/snapcast/snapcast/blob/master/changelog.md#version-0330)), it delivers full track metadata to every room. Pre-built binaries are on the [go-librespot releases page](https://github.com/devgianlu/go-librespot/releases):
+
+```bash
+sudo wget -O /usr/local/bin/go-librespot \
+    https://github.com/devgianlu/go-librespot/releases/latest/download/go-librespot_linux_amd64
+sudo chmod +x /usr/local/bin/go-librespot
+mkdir -p ~/.config/go-librespot
+```
+
+Then in `~/.config/go-librespot/config.yml`, pipe PCM to stdout (snapserver captures it from `process://`), expose the REST API at port 24879 for the control script, and let users pair from the Spotify app via Zeroconf:
+
+```yaml
+device_name: "SnapSpot"
+device_type: "speaker"
+
+audio_backend: "pipe"
+audio_output_pipe: "/dev/stdout"
+audio_output_pipe_format: "s16le"
+
+bitrate: 320
+
+normalisation_disabled: true
+normalisation_use_album_gain: true
+normalisation_pregain: 0.0
+
+server:
+  enabled: true
+  port: 24879
+
+credentials:
+  type: zeroconf
+  zeroconf:
+    persist_credentials: true
+
+mpris_enabled: true
+```
+
+The source line in `/etc/snapserver.conf`:
+
+```ini
+[stream]
+source = process:///usr/local/bin/go-librespot?name=Spotify&sampleformat=44100:16:2&params=--config_dir%20/home/odio/.config/go-librespot&dryout_ms=2000&wd_timeout=0&log_stderr=false&controlscript=meta_go-librespot.py&controlscriptparams=--stream=Spotify%20--librespot-host=127.0.0.1%20--librespot-port=24879
+```
+
+`audio_output_pipe_format: s16le` in the config and `sampleformat=44100:16:2` in the source line have to match, otherwise snapserver decodes garbage. Adjust the `--config_dir` path if the snapserver user's home isn't `/home/odio`; `%20` is the URL-encoded space (snapserver doesn't accept literal spaces in the query string).
+
+<Aside type="note">
+Subjective observation: librespot sounds better to my ears than go-librespot, and I haven't pinned down why. If you've compared the two with measurements or trained ears and have findings to share, [open a discussion](https://github.com/b0bbywan/odios/discussions) or PR a note here.
+</Aside>
+
+### AirPlay stream (shairport-sync)
+
+Install shairport-sync on the NAS and disable the standalone service (Snapserver launches its own instance):
+
+```bash
+sudo apt install shairport-sync
+sudo systemctl disable --now shairport-sync
+```
+
+Add the stream source in `/etc/snapserver.conf`:
+
+```ini
+[stream]
+source = airplay:///usr/bin/shairport-sync?name=Airplay&devicename=SnapAir&port=5000
+```
+
+Because Snapserver runs in your user session, shairport-sync runs as your user on the session bus and owns its D-Bus names without any extra system policy.
+
+Restart Snapserver after adding all stream sources:
+
+```bash
+systemctl --user restart snapserver
+```
+
+## go-odio-api on the NAS
+
+You can also install [go-odio-api](/api/overview/) directly on the NAS. It runs on any Linux system with a D-Bus user session, including OpenMediaVault. The NAS becomes an odio node with its own [embedded web UI](/control/embedded-ui/), controllable from the [odio application](/control/pwa/) and [Home Assistant](/control/home-assistant/).
+
+<div class="screenshot-carousel wide">
+	<figure>
+		<Image src={nasMpd} alt="odio embedded UI running on the NAS: the Media Players panel shows MPD with cover art and transport controls, and the Services panel lists snapserver, mpd, minidlna, and docker" />
+		<figcaption>The NAS as an odio node, MPD active with snapserver and minidlna in the services list.</figcaption>
+	</figure>
+	<figure>
+		<Image src={nasGoLibrespot} alt="odio embedded UI running on the NAS: the Media Players panel shows go-librespot active with cover art and transport controls, and the Services panel lists snapserver and the other NAS daemons" />
+		<figcaption>Same node, go-librespot as the active MPRIS player.</figcaption>
+	</figure>
+</div>
