@@ -20,6 +20,7 @@ import mympdQueue from '../../../assets/mympd-webradios-queue.webp';
 import mympdEmbeddedRoots from '../../../assets/mympd-webradios-embedded-roots.webp';
 import mympdEmbeddedGrosse from '../../../assets/mympd-webradios-embedded-grosse.webp';
 import mympdCustom from '../../../assets/mympd-webradios-custom.webp';
+import cueCover from '../../../assets/webradios-cue-cover.webp';
 
 odio plays internet radio out of the box. The most polished entry point is [myMPD](https://jcorporation.github.io/myMPD/)'s built-in WebradioDB browser on the odio node itself; the [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/) backend also exposes a few built-in station sources in the [UPnP/DLNA](/guides/dlna/) library for any control point, and Home Assistant or a remote MPD work too.
 
@@ -149,5 +150,39 @@ http://stream.srg-ssr.ch/m/couleur3/mp3_128
 Drop it as e.g. `~/.mpd/playlists/webradios-fr.m3u` (or wherever your `playlist_directory` points), run `mpc lsplaylists` to confirm MPD picked it up, then load and play it from any client.
 
 </details>
+
+## Cover art for custom stations
+
+WebradioDB ships its own station artwork, so catalog stations already display cover art. For favorite stations not in any catalog, [mpDris2](https://github.com/b0bbywan/mpDris2) v0.10.0 added a CUE-based workaround that reuses the same cover-art pipeline as [audio CDs](/guides/audio-cd/): drop a `cover.{jpg,png,webp}` alongside a `playlist.cue` in MPD's `music_directory`, and the cover surfaces in the odio UI, myMPD, and any other MPRIS consumer while the station plays.
+
+Per station, create a folder under MPD's music directory and drop a cover image inside:
+
+```bash
+mkdir /media/USB/GrosseRadioReggae/
+# Place cover.png (or cover.jpg, cover.webp) in there.
+```
+
+Then write a `playlist.cue` next to the cover, referencing the stream URL:
+
+```ini
+REM COVER "/media/USB/GrosseRadioReggae/"
+REM GENRE "Reggae"
+PERFORMER "La Grosse Radio Reggae"
+TITLE "La Grosse Radio Reggae"
+FILE "http://hd.lagrosseradio.info/lagrosseradio-reggae-192.mp3" MP3
+  TRACK 01 AUDIO
+    TITLE "La Grosse Radio Reggae"
+```
+
+The cover surfaces because mpDris2 scans the directory holding the loaded `.cue` for `cover.{jpg,png,webp}`, the same CUE fallback step that makes [audio CDs](/guides/audio-cd/) work. The `REM` lines (including `REM COVER`) are documentation only, mpDris2 doesn't parse them. Run `mpc update`, browse to the folder in any MPD client, and play the track inside the CUE virtual directory (MPD's CUE plugin is configured with `as_directory "true"` on odio by default).
+
+<div class="screenshot-carousel wide">
+<figure>
+<Image src={cueCover} alt="odio embedded UI playing a webradio via MPD, with the custom station cover art from the CUE folder shown alongside transport controls and an active PulseAudio client" />
+<figcaption>Custom station cover art in the embedded UI, from the CUE folder.</figcaption>
+</figure>
+</div>
+
+Hacky, but useful for favorite stations or motivated setups. See [discussion #33](https://github.com/b0bbywan/odios/discussions/33#discussioncomment-16950365) for the full rationale. mpDris2 v0.11.0 will add a MusicBrainz / Cover Art Archive fallback for cases where maintaining folder structures by hand isn't appealing.
 
 <Aside type="note">The built-in sources cover most needs, but favorites, custom editing, and an in-UI station picker are still being scoped on [discussion #33](https://github.com/b0bbywan/odios/discussions/33), where [@pbattino](https://github.com/pbattino) has been particularly helpful shaping the direction. Feedback and contributions welcome.</Aside>
