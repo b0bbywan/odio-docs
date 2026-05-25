@@ -1,0 +1,28 @@
+---
+import { ecosystemProjects } from '../data/ecosystem.js';
+
+const rows = ecosystemProjects.filter((p) => p.short);
+---
+
+<table>
+	<thead>
+		<tr>
+			<th>Repository</th>
+			<th>Language</th>
+			<th>What it does</th>
+		</tr>
+	</thead>
+	<tbody>
+		{
+			rows.map((p) => (
+				<tr>
+					<td>
+						<a href={p.url}>{p.name}</a>
+					</td>
+					<td>{p.tech.label}</td>
+					<td>{p.short}</td>
+				</tr>
+			))
+		}
+	</tbody>
+</table>
