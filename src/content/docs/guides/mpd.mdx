@@ -8,6 +8,7 @@ import { Image } from 'astro:assets';
 import cdPlayback from '../../../assets/audio-cd-playback.webp';
 import usbPlayback from '../../../assets/usb-playback.webp';
 import webradioPlayback from '../../../assets/webradios-embedded-ui.png';
+import mympdHome from '../../../assets/mympd-home.webp';
 
 [MPD (Music Player Daemon)](https://www.musicpd.org/) is the local music player on your odio node. It handles [audio CD](/guides/audio-cd/), [USB flash drive](/guides/usb-flashdrives/) playback, and can also serve a full music library from a NAS.
 
@@ -60,6 +61,10 @@ http://<hostname>.local:8080
 
 Since [2026.5.0b1](https://github.com/b0bbywan/odios/pull/56), the [odio API](/api/systemd/) also publishes the myMPD URL alongside `mpd.service`, so the [embedded UI](/control/embedded-ui/) and [odio application](/control/pwa/) link to it directly from their services list.
 
+The home page surfaces four quick-access shortcuts: an odio icon that jumps back to the [embedded UI](/control/embedded-ui/), plus Webradios, Albums, and Artists views into the local library.
+
+<Image src={mympdHome} alt="myMPD home page with four shortcut tiles: a green odio logo, Webradios with a radio icon, Albums with a disc icon, and Artists with a group icon" />
+
 It covers the MPD-side use cases the embedded UI doesn't: queue editing, library browsing, tag-aware search.
 
 ![myMPD playback queue showing a USB-loaded album, current track highlighted, transport controls in the footer](../../../assets/mympd-usb.webp)
@@ -100,6 +105,10 @@ The files are browsable from any MPD client. Simple, but the scan runs on the Pi
 ### Run MPD on the NAS
 
 For a large library, run MPD on the NAS itself. The full NAS-side setup lives in the [NAS use case](/guides/use-case-nas/#mpd-on-the-nas).
+
+## Custom MPD config
+
+Direct edits to `~/.config/mpd/mpd.conf` get overwritten on every odios upgrade. Since [2026.5.0b3](https://github.com/b0bbywan/odios/releases/tag/2026.5.0b3), the managed config includes an optional `~/.config/mpd/mpd_local.conf` parsed last, so any directive set there takes precedence over the managed ones. Create the file as the target user, add your overrides, and restart `mpd.service`.
 
 ## MPD clients
 
