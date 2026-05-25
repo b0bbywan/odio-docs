@@ -3,13 +3,15 @@ title: How it works
 description: Architecture and design decisions behind odio.
 ---
 
+import EcosystemTable from '../../../components/EcosystemTable.astro';
+
 ## User session
 
 odio runs in your **systemd user session**. Not as root — [go-odio-api](https://github.com/b0bbywan/go-odio-api) actually refuses to run as root. This is the architectural foundation, not an implementation detail.
 
 Because odio lives in your user session, it has natural access to the entire multimedia stack: the D-Bus session bus, PulseAudio, MPRIS, logind, BlueZ user-level profiles. No privilege escalation, no setuid tricks. The security model is the standard UNIX model.
 
-Every audio service (MPD, shairport-sync, spotifyd, upmpdcli, Snapclient) runs as a systemd user unit. They can be started, stopped, and monitored through the API — no SSH, no reboot needed.
+Every audio service (MPD, shairport-sync, spotifyd, upmpdcli, Snapclient) runs as a systemd user unit. They can be started, stopped, and monitored through the API: no SSH or reboot needed.
 
 <div class="screenshot-carousel wide">
 <figure>
@@ -19,23 +21,23 @@ Every audio service (MPD, shairport-sync, spotifyd, upmpdcli, Snapclient) runs a
 
 ## Why PulseAudio, not ALSA
 
-Most audio appliances use ALSA directly. ALSA gives exclusive access to the sound card — one process at a time. When you try to run multiple audio sources (Bluetooth, Spotify, MPD, AirPlay), they fight for control, causing cracks, glitches, and lag.
+Most audio appliances use ALSA directly. ALSA gives exclusive access to the sound card, one process at a time. When you try to run multiple audio sources (Bluetooth, Spotify, MPD, AirPlay), they fight for control, causing cracks, glitches, and lag.
 
-[PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) sits on top of ALSA and solves this at the root. It's a sound server that mixes all audio sources in the same session. There is no source switching in odio because there is no exclusive lock. MPD, shairport-sync, Snapclient, Bluetooth — all live in the same PulseAudio mixer at once. You don't select a source. You just play.
+[PulseAudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) sits on top of ALSA and solves this at the root. It's a sound server that mixes all audio sources in the same session. There is no source switching in odio because there is no exclusive lock. MPD, shairport-sync, Snapclient, Bluetooth: all live in the same PulseAudio mixer at once. You don't select a source. You just play.
 
 PulseAudio also enables features that ALSA alone cannot provide: per-application volume control, Bluetooth audio (A2DP), network audio (TCP sink with Zeroconf), and dynamic output routing.
 
-Some audio distributions stick to ALSA for "audiophile" reasons. I chose PulseAudio for the comfort it brings — seamless mixing, per-app volume, and above all [PulseAudio TCP](/guides/network-audio/), which lets any desktop on your network use the node as an audio output. I don't hear the difference with ALSA, but I definitely feel the usability difference.
+Some audio distributions stick to ALSA for "audiophile" reasons. I chose PulseAudio for the comfort it brings: seamless mixing, per-app volume, and above all [PulseAudio TCP](/guides/network-audio/), which lets any desktop on your network use the node as an audio output. I don't hear the difference with ALSA, but I definitely feel the usability difference.
 
 When you commit to PulseAudio, every audio application must output to it directly. MPD, shairport-sync, spotifyd — all configured with PulseAudio as their audio backend.
 
 ### Equalizer and volume normalization
 
-odio ships without equalizer or volume normalization — I don't use them and prefer a clean, unprocessed signal. If there is demand and concrete proposals, this could be considered ([open an issue](https://github.com/b0bbywan/odios/issues)).
+odio ships without equalizer or volume normalization, I don't use them and prefer a clean, unprocessed signal. If there is demand and concrete proposals, this could be considered ([open an issue](https://github.com/b0bbywan/odios/issues)). You can also set up your own as an [extension](/operations/extensions)
 
 ### PipeWire
 
-[PipeWire](https://pipewire.org/) is the future of Linux audio. It provides lower latency, better device management, and full PulseAudio compatibility via `pipewire-pulse`. From the outside, nothing changes — all existing clients keep working.
+[PipeWire](https://pipewire.org/) is the future of Linux audio. It provides lower latency, better device management, and full PulseAudio compatibility via `pipewire-pulse`. From the outside, nothing changes, all existing clients keep working.
 
 odio currently runs PulseAudio, backed by six years of production use. PipeWire will arrive as an option in the future.
 
@@ -47,7 +49,7 @@ The architecture is event-driven. No polling, no busy loops. go-odio-api listens
 
 Every audio source (Spotify, Bluetooth, AirPlay, MPD, ...) exposes itself as an [MPRIS](https://specifications.freedesktop.org/mpris/latest/) player on D-Bus. go-odio-api discovers them all automatically and provides a unified control surface — regardless of the source.
 
-go-odio-api never talks to any media player directly, it only speaks MPRIS over D-Bus. That's what keeps the backend source-agnostic, any MPRIS-compliant player shows up with zero integration work. The flip side is that odio's control surface for a given player is only as good as that player's MPRIS implementation, transport controls, metadata, cover art, and position reporting all depend on what the player actually exposes. Spotify Connect and shairport-sync are solid, MPD needs a [forked mpDris2](/guides/mpd/#playback-controls) to report cover art correctly, some players expose barely anything. When controls look patchy for a given source, it's almost always the player's MPRIS layer, not odio.
+go-odio-api never talks to any media player directly, it only speaks MPRIS over D-Bus. That's what keeps the backend source-agnostic, any MPRIS-compliant player shows up with zero integration work. The flip side is that odio's control surface for a given player is only as good as that player's MPRIS implementation, transport controls, metadata, cover art, and position reporting all depend on what the player actually exposes. Spotify Connect and shairport-sync are solid, MPD needs a [forked mpDris2](/guides/mpd/#playback-controls) to report cover art correctly, Snapclient needed a [dedicated wrapper](/guides/snapcast/#mpris-integration-snapclientmpris), some players expose barely anything. When controls look patchy for a given source, it's almost always the player's MPRIS layer, not odio.
 
 <div class="screenshot-carousel wide">
 <figure>
@@ -69,16 +71,6 @@ If you disagree with a software choice or configuration default, or think there'
 
 ## The ecosystem
 
-| Repository | Language | What it does |
-|---|---|---|
-| [go-odio-api](https://github.com/b0bbywan/go-odio-api) | Go | REST API + embedded web UI |
-| [odios](https://github.com/b0bbywan/odios) | Ansible | Installer and service orchestrator |
-| [odio-pwa](https://github.com/b0bbywan/odio-pwa) | Svelte | Web application for multi-node management |
-| [odio-ha](https://github.com/b0bbywan/odio-ha) | Python | Home Assistant integration |
-| [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) | Go | CD and USB auto-play daemon |
-| [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) | Go | CUE sheet library (GnuDB, MusicBrainz) |
-| [mpDris2](https://github.com/b0bbywan/mpDris2) (fork) | Python | MPRIS bridge for MPD with CD cover art support |
-| [go-odio-notify](https://github.com/b0bbywan/go-odio-notify) | Go | Audio notification library (PulseAudio) |
-| [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo) | CI | apt repository, CI-managed |
+<EcosystemTable />
 
 For the full architecture deep-dive, see [How odio works](https://beta.odio.love/how-it-works).

@@ -2,6 +2,7 @@ export const ecosystemProjects = [
   {
     name: 'go-odio-api',
     desc: 'The core. REST API + embedded web UI. Bridges systemd, PulseAudio, MPRIS, D-Bus and Bluetooth. The engine that makes everything else possible.',
+    short: 'REST API + embedded web UI',
     url: 'https://github.com/b0bbywan/go-odio-api',
     live: null,
     tech: { label: 'Go', color: '#00ADD8' },
@@ -9,6 +10,7 @@ export const ecosystemProjects = [
   {
     name: 'odios',
     desc: 'The installer and service orchestrator. One script, full stack — MPD, Snapcast, Shairport Sync, upmpdcli, and all glue between them.',
+    short: 'Installer and service orchestrator',
     url: 'https://github.com/b0bbywan/odios',
     live: null,
     tech: { label: 'Ansible', color: '#EE0000' },
@@ -16,6 +18,7 @@ export const ecosystemProjects = [
   {
     name: 'odio-pwa',
     desc: 'Progressive Web App. Install from your browser, manage all your odio nodes from one place.',
+    short: 'Web application for multi-node management',
     url: 'https://github.com/b0bbywan/odio-pwa',
     live: 'https://pwa.odio.love/',
     tech: { label: 'Svelte', color: '#FF3E00' },
@@ -23,6 +26,7 @@ export const ecosystemProjects = [
   {
     name: 'odio-ha',
     desc: 'Home Assistant integration. Complete odio support with native HA entities.',
+    short: 'Home Assistant integration',
     url: 'https://github.com/b0bbywan/odio-ha',
     live: null,
     tech: { label: 'Python', color: '#3776AB' },
@@ -30,6 +34,7 @@ export const ecosystemProjects = [
   {
     name: 'go-mpd-discplayer',
     desc: 'CD and USB auto-play daemon with metadata.',
+    short: 'CD and USB auto-play daemon',
     url: 'https://github.com/b0bbywan/go-mpd-discplayer',
     live: null,
     tech: { label: 'Go', color: '#00ADD8' },
@@ -37,6 +42,7 @@ export const ecosystemProjects = [
   {
     name: 'go-disc-cuer',
     desc: 'Go library for CUE sheet. The metadata backbone behind go-mpd-discplayer, via GnuDB and MusicBrainz.',
+    short: 'CUE sheet library (GnuDB, MusicBrainz)',
     url: 'https://github.com/b0bbywan/go-disc-cuer',
     live: null,
     tech: { label: 'Go', color: '#00ADD8' },
@@ -44,13 +50,23 @@ export const ecosystemProjects = [
   {
     name: 'go-odio-notify',
     desc: 'Audio notification library and CLI. Sound feedback for system events across the odio stack.',
+    short: 'Audio notification library (PulseAudio)',
     url: 'https://github.com/b0bbywan/go-odio-notify',
     live: null,
     tech: { label: 'Go', color: '#00ADD8' },
   },
   {
+    name: 'mpDris2',
+    desc: 'MPRIS2 bridge for MPD. Complete rewrite around python-mpd2 and dbus-fast, with as_directory-aware cover-art lookup for CUE virtual folders.',
+    short: 'Async MPRIS bridge for MPD with CUE cover-art support',
+    url: 'https://github.com/b0bbywan/mpDris2',
+    live: null,
+    tech: { label: 'Python', color: '#3776AB' },
+  },
+  {
     name: 'snapclientmpris',
     desc: 'MPRIS2 bridge for the local Snapcast client. Forwards playback controls to the snapserver source, so pausing from one room pauses every listener.',
+    short: 'MPRIS bridge for Snapcast client with multi-room controls',
     url: 'https://github.com/b0bbywan/snapclientmpris',
     live: null,
     tech: { label: 'Python', color: '#3776AB' },
@@ -58,6 +74,7 @@ export const ecosystemProjects = [
   {
     name: 'odio-apt-repo',
     desc: 'The apt repository. Fully CI-maintained. Packages are built and published automatically on every release.',
+    short: 'apt repository, CI-managed',
     url: 'https://github.com/b0bbywan/odio-apt-repo',
     live: null,
     tech: { label: 'GitHub Actions', color: '#2088FF' },
@@ -77,13 +94,6 @@ export const ecosystemProjects = [
     live: null,
     tech: { label: 'GitHub Actions', color: '#2088FF' },
     kind: 'apt-external',
-  },
-  {
-    name: 'mpDris2',
-    desc: 'MPRIS2 bridge for MPD. Complete rewrite around python-mpd2 and dbus-fast, with as_directory-aware cover-art lookup for CUE virtual folders.',
-    url: 'https://github.com/b0bbywan/mpDris2',
-    live: null,
-    tech: { label: 'Python', color: '#3776AB' },
   },
   {
     name: 'odio-docs',
