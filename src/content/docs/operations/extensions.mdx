@@ -16,9 +16,13 @@ odio manages audio routing and volume through PulseAudio, and the odio UI lists 
 
 ## MPRIS integration
 
-odio detects and exposes media sources through [MPRIS](/api/mpris/). For third-party software to appear in the odio UI and Home Assistant, it needs to register as an MPRIS player on the session D-Bus. Whether that works depends on the software itself, some support it natively, others need a plugin or wrapper (like [Kodi](/guides/use-case-htpc/#kodi), [MPD](/guides/mpd/), or [Squeezelite](#example-squeezelite-with-lms)), and some may require specific build flags or configuration.
+odio detects and exposes media sources through [MPRIS](/api/mpris/). For third-party software to appear in the odio UI and Home Assistant, it needs to register as an MPRIS player on the session D-Bus. Whether that works depends on the software itself, some support it natively, others need a plugin or wrapper (like [Kodi](/guides/use-case-htpc/#kodi), [MPD](/guides/mpd/), [Snapclient](/guides/snapcast/#mpris-integration-snapclientmpris) or [Squeezelite](#example-squeezelite-with-lms)), and some may require specific build flags or configuration.
 
 <Aside type="note">There is no guarantee that a given application will expose an MPRIS interface. This is community territory — if you get it working, please share your setup!</Aside>
+
+## odio-api integration
+
+MPRIS picks up the player in the **Media Players** panel of the [embedded UI](/control/embedded-ui/) and [odio application](/control/pwa/) automatically. To also list a systemd user service in the **Services** panel, add it via a [drop-in override](/api/configuration/#drop-in-overrides) under `~/.config/odio-api/conf.d/`.
 
 ## Example: Plexamp
 
