@@ -29,6 +29,8 @@ The heavy work (mixing, source management) is on the server, Clients are lightwe
 
 odio ships [Snapclient](https://github.com/snapcast/snapcast) pre-installed as a `systemctl --user` service; it can be started, stopped, or monitored from the [embedded UI](/control/embedded-ui/), the [application](/control/pwa/), or [Home Assistant](/control/home-assistant/) via the service controls. Discovery of the Snapserver is automatic via Zeroconf (avahi), as long as both ends share a network.
 
+Since [2026.5.0b3](https://github.com/b0bbywan/odios/releases/tag/2026.5.0b3), the [odio API](/api/systemd/) also publishes the snapweb URL alongside `snapclient.service`, so the embedded UI and odio application link to the server's web interface directly from their services list.
+
 ### MPRIS integration (snapclientmpris)
 
 Snapclient on its own has no MPRIS interface, so the currently playing stream is invisible to the odio UI, or any other MPRIS consumer. [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) bridges that gap: it surfaces stream metadata (title, artist, album, cover art) from the snapserver, and forwards MPRIS Play, Pause, Next, Previous, Stop to the stream's actual source through snapserver's `Stream.Control`. Pausing from one room pauses every listener on the stream, the multi-room semantic MPRIS clients expect (like Spotify Connect or AirPlay 2).
