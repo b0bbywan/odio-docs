@@ -1,5 +1,6 @@
 ---
 import Default from '@astrojs/starlight/components/Head.astro';
+import Analytics from '@vercel/analytics/astro';
 import {
 	buildSiteGraph,
 	buildHowToSchema,
@@ -52,6 +53,8 @@ const techArticleJsonLd =
 ---
 
 <Default {...Astro.props}><slot /></Default>
+
+<Analytics />
 
 <meta name="robots" content="index, follow" />
 
