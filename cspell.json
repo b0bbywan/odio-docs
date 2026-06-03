@@ -129,6 +129,7 @@
     "netdev",
     "pbattino",
     "pactl",
+    "pairable",
     "paprefs",
     "pavucontrol",
     "passwordless",
