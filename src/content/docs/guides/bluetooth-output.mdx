@@ -5,65 +5,32 @@ howto: true
 ---
 
 import { Image } from 'astro:assets';
+import { Aside } from '@astrojs/starlight/components';
+import btScan from '../../../assets/bt-output-scan.png';
 import jblSink from '../../../assets/bt-output-jbl.png';
 
-odio can act as a Bluetooth **source**, routing whatever it's playing (Spotify Connect, MPD, AirPlay, CDs, ...) to a Bluetooth speaker or headphones. Once paired, the remote device shows up as a PulseAudio sink in the embedded UI's **Default Sink** dropdown, selectable like any other output.
-
-:::caution[Manual setup for now]
-There is no UI flow for pairing an output device yet, and [go-odio-api](https://github.com/b0bbywan/go-odio-api) doesn't manage outgoing Bluetooth connections. Pairing is a one-time CLI step with `bluetoothctl`, after which the speaker behaves like a regular audio sink. A UI may come later if there's demand, let us know on [odios discussions](https://github.com/b0bbywan/odios/discussions).
-:::
+odio can act as a Bluetooth **source**, routing whatever it's playing (Spotify Connect, MPD, AirPlay, CDs, ...) to a Bluetooth speaker or headphones. Once connected, the speaker shows up as a PulseAudio sink in the embedded UI's **Default Sink** dropdown, selectable like any other output.
 
 ## Pairing a speaker
 
-1. Put your Bluetooth speaker in pairing mode (usually a long-press on the Bluetooth button).
-2. SSH into the odio node and open an interactive `bluetoothctl` session:
+Since odio-api v0.14.0, the **Bluetooth** panel in the embedded UI handles the whole flow, no CLI needed.
 
-   ```bash
-   bluetoothctl
-   ```
+1. Put your Bluetooth speaker in pairing mode, usually a long-press on the Bluetooth button.
+2. In the Bluetooth panel, click **Scan**. odio powers the adapter up if needed, discovers nearby audio devices, and streams them into the **Devices** list as they appear. A freshly seen device shows a grey dot.
 
-3. Power the adapter, scan for the speaker, connect, and trust it:
+   <Aside type="note">
+   The panel's **Pairing** button is the opposite direction, making odio discoverable so a phone can stream *to* it. For an output speaker you want **Scan**, then **Connect**.
+   </Aside>
 
-   ```text
-   power on
-   scan on
-   ```
+3. When your speaker shows up, click **Connect** next to it. odio opens a pairing window for the connection, bonds with the speaker (no PIN needed while it's in pairing mode), trusts it for future reconnections, and stops the scan. The button shows a spinner until the speaker reports connected, then its dot turns green.
 
-   Wait for your speaker to appear in the scan output, for example:
+The dot colors track pairing, not presence: a **blue** dot marks a device odio has already bonded with, so you can reconnect it later without redoing the pairing, whether or not it's in range right now. A **green** dot means it's connected at this moment.
 
-   ```text
-   [NEW] Device 40:C1:F6:D4:67:88 JBL Go 3
-   ```
-
-   Then stop the scan, connect, and trust the device for future reconnections:
-
-   ```text
-   scan off
-   connect 40:C1:F6:D4:67:88
-   trust 40:C1:F6:D4:67:88
-   exit
-   ```
-
-   Replace the MAC with yours. Because the speaker is in pairing mode, `connect` auto-pairs and bonds, no PIN needed. `trust` lets the node reconnect the speaker without manual confirmation after a reboot.
-
-### After a reflash
-
-If you reflash the node, BlueZ loses its pairing state, but the speaker still has the previous odio in its trusted list. Put the speaker back in pairing mode and run the same `bluetoothctl` flow (`power on`, `scan on`, wait for the speaker to show up, `scan off`), with one difference: `trust` comes before `connect`.
-
-```text
-[bluetoothctl]> trust 40:C1:F6:D4:67:88
-[CHG] Device 40:C1:F6:D4:67:88 Trusted: yes
-Changing 40:C1:F6:D4:67:88 trust succeeded
-[bluetoothctl]> connect 40:C1:F6:D4:67:88
-Attempting to connect to 40:C1:F6:D4:67:88
-[CHG] Device 40:C1:F6:D4:67:88 Connected: yes
-```
-
-The speaker side still has odio trusted from the first pairing, so trusting on the node side first puts both ends back in sync before the connect attempt.
+<Image src={btScan} alt="odio embedded UI Bluetooth panel with the scan running and a Connect button next to each discovered device" />
 
 ## Selecting the sink
 
-Open the embedded UI. The paired speaker appears in **Audio Server → Default Sink**. Pick it, and every odio source now plays through it.
+The connected speaker appears in **Audio Server → Default Sink**. Pick it, and every odio source now plays through it.
 
 <Image src={jblSink} alt="odio embedded UI with a JBL Go 3 selected as the Default Sink, Spotifyd streaming through it" />
 
@@ -71,13 +38,51 @@ Volume sync works the same way as for a built-in DAC: moving the UI slider chang
 
 ## Reconnecting
 
-Once trusted, BlueZ reconnects the speaker automatically when both sides are powered and in range, including after a reboot of the node. This usually just works, but auto-reconnect isn't 100% reliable across every speaker and firmware. If the sink doesn't show up, reconnect manually:
+Once bonded, BlueZ reconnects the speaker automatically when both sides are powered and in range, including after a reboot of the node. This usually just works, but auto-reconnect isn't 100% reliable across every speaker and firmware. If the sink doesn't come back on its own, open the Bluetooth panel and click **Connect** next to the speaker.
+
+## After a reflash
+
+A reflash wipes the node's bonding state, so the speaker is no longer known. Put it back into pairing mode and reconnect from the embedded UI (**Scan**, then **Connect**).
+
+<Aside type="caution">
+Re-bonding after a reflash depends on the speaker and its firmware, and doesn't always work on the first try. Restarting BlueZ on the node (`sudo systemctl restart bluetooth.service`) and power-cycling the speaker often help. If it still won't connect, open an issue on [odios](https://github.com/b0bbywan/odios/issues) with the device and the `bluetoothctl` output.
+</Aside>
+
+<details>
+<summary>Pairing from the command line (fallback)</summary>
+
+Pairing can also be done over SSH with `bluetoothctl`, handy on a headless node or when the UI flow won't bond a stubborn speaker.
+
+Put the speaker in pairing mode, SSH into the node, and open an interactive session:
 
 ```bash
-bluetoothctl connect 40:C1:F6:D4:67:88
+bluetoothctl
 ```
 
-You can wrap this in a systemd user unit and add it to the `systemd.user` whitelist in [go-odio-api's config](/api/configuration/#systemd-opt-in-whitelist-required), which makes it manageable from the Services panel in the embedded UI.
+Power the adapter and scan until the speaker appears in the output:
+
+```text
+power on
+scan on
+```
+
+```text
+[NEW] Device 40:C1:F6:D4:67:88 JBL Go 3
+```
+
+Then stop the scan, make the adapter pairable, connect, and trust the device for future reconnections:
+
+```text
+scan off
+pairable on
+connect 40:C1:F6:D4:67:88
+trust 40:C1:F6:D4:67:88
+exit
+```
+
+Replace the MAC with yours. `pairable on` lets the adapter accept a new bond; with the speaker in pairing mode, `connect` then pairs and bonds with no PIN needed, and `trust` lets the node reconnect it without manual confirmation after a reboot.
+
+</details>
 
 ## See also
 
