@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 
@@ -280,14 +280,25 @@ async function fetchRepo(name) {
   };
 }
 
-const repos = [];
-for (const name of repoNames) {
-  try {
-    repos.push(await fetchRepo(name));
-  } catch (e) {
-    console.error(`[stats] ✗ ${name}: ${e.message.split('\n')[0]}`);
+// Fetch repos concurrently, but bounded: each repo already fans out internally
+// (per-commit calls), so keep this modest to stay under GitHub's secondary rate
+// limits. Results are kept in input order; failed repos are dropped.
+const results = new Array(repoNames.length);
+const repoConcurrency = 4;
+let nextRepo = 0;
+async function repoWorker() {
+  while (nextRepo < repoNames.length) {
+    const i = nextRepo++;
+    const name = repoNames[i];
+    try {
+      results[i] = await fetchRepo(name);
+    } catch (e) {
+      console.error(`[stats] ✗ ${name}: ${e.message.split('\n')[0]}`);
+    }
   }
 }
+await Promise.all(Array.from({ length: repoConcurrency }, repoWorker));
+const repos = results.filter(Boolean);
 
 const sum = (key) => repos.reduce((a, r) => a + (key(r) || 0), 0);
 const totals = {
@@ -347,10 +358,6 @@ const starsByWeek = commitsByWeek.map(({ w }) => {
 for (const r of repos) delete r.starEvents;
 
 const generatedAt = new Date().toISOString();
-let ghVersion = 'unknown';
-try {
-  ghVersion = (await gh(['--version'])).split('\n')[0].trim();
-} catch {}
 
 const output = {
   since: SINCE,
@@ -363,8 +370,6 @@ const output = {
   repos,
 };
 
-const meta = { generatedAt, since: SINCE, ghVersion };
-
 console.log(
   `[stats] done — ${repos.length} repos, ${totals.pr.merged} merged / ${totals.pr.closedUnmerged} closed, ${totals.commits} commits, ${totals.releases} releases, ${totals.stars}⭐ ${totals.forks}🍴`
 );
@@ -375,22 +380,5 @@ if (dryRun) {
 }
 
 writeFileSync(join(root, 'src/data/stats.json'), JSON.stringify(output));
-writeFileSync(join(root, 'src/data/stats.meta.json'), JSON.stringify(meta));
 
-const historyPath = join(root, 'src/data/stats.history.json');
-let history = [];
-if (existsSync(historyPath)) {
-  try {
-    history = JSON.parse(readFileSync(historyPath, 'utf8'));
-  } catch {
-    history = [];
-  }
-}
-history.push({
-  date: generatedAt,
-  totals: { stars: totals.stars, forks: totals.forks },
-  perRepo: Object.fromEntries(repos.map((r) => [r.name, { stars: r.stars, forks: r.forks }])),
-});
-writeFileSync(historyPath, JSON.stringify(history));
-
-console.log('[stats] wrote src/data/stats.json, stats.meta.json, stats.history.json');
+console.log('[stats] wrote src/data/stats.json');
