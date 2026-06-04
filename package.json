@@ -11,6 +11,7 @@
     "stats": "node scripts/fetch-github-stats.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
     "@astrojs/starlight": "^0.39.3",
     "@vercel/analytics": "^2.0.1",
     "astro": "^6.4.4",
