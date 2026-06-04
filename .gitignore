@@ -22,4 +22,7 @@ pnpm-debug.log*
 
 # vercel
 .vercel
+
+# generated at build / in CI, never committed
+src/data/stats.json
 .env*
