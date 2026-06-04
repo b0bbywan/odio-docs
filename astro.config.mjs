@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import sitemap from '@astrojs/sitemap';
+import { lastmodFor } from './src/lib/git-lastmod.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -134,6 +136,15 @@ export default defineConfig({
 					],
 				},
 			],
+		}),
+		// Declaring @astrojs/sitemap ourselves makes Starlight skip its own bundled
+		// one, so we can add a per-page <lastmod> from each doc's git history.
+		sitemap({
+			serialize(item) {
+				const lastmod = lastmodFor(new URL(item.url).pathname);
+				if (lastmod) item.lastmod = lastmod;
+				return item;
+			},
 		}),
 	],
 });
