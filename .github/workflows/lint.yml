@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 6 * * *'  # daily stats refresh
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,6 +23,15 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # stats.json is gitignored and imported at build time, so regenerate it
+      # first. Use the dedicated PAT; fall back to the auto GITHUB_TOKEN on fork
+      # PRs (where secrets are unavailable) — read-only is enough for public repos.
+      - name: Generate stats
+        run: npm run stats
+        env:
+          GH_TOKEN: ${{ secrets.GH_STATS_TOKEN || secrets.GITHUB_TOKEN }}
+
       - run: npm run build
 
       - name: Upload dist
@@ -32,6 +44,7 @@ jobs:
   links:
     name: Check links
     needs: build
+    if: github.event_name != 'schedule'  # no need to re-check links on the daily stats refresh
     runs-on: ubuntu-latest
     steps:
       - name: Download dist
@@ -65,8 +78,9 @@ jobs:
     # may intentionally reference not-yet-published release URLs.
     needs: [build, spelling]
     # Skip on fork PRs: they have no access to the Vercel secrets and only
-    # need the build/links/spell signal above. Owner PRs get a preview, main gets prod.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    # need the build/links/spell signal above. Owner PRs get a preview, main
+    # (push + daily schedule + manual dispatch) gets prod.
+    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -74,6 +88,7 @@ jobs:
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ secrets.GH_STATS_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -87,6 +102,10 @@ jobs:
 
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
+
+      # Fresh stats baked into this deploy (uses GH_TOKEN from the job env).
+      - name: Generate stats
+        run: npm run stats
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
