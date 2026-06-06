@@ -3,10 +3,16 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
 import { lastmodFor } from './src/lib/git-lastmod.mjs';
+import remarkGfm from 'remark-gfm';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.odio.love',
+	markdown: {
+		// Astro 6.4.x stopped applying GFM to .mdx files, breaking tables there
+		// (plain .md was unaffected). Register it explicitly so MDX inherits it.
+		remarkPlugins: [remarkGfm],
+	},
 	redirects: {
 		'/guides/upgrade': '/operations/upgrade',
 		'/guides/power': '/operations/power',
