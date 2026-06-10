@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/stats.json",
+      "destination": "https://stats.odio.love/repos.json",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

@@ -21,14 +21,8 @@ jobs:
 
       - run: npm ci
 
-      # stats.json is gitignored and imported at build time, so regenerate it
-      # first. Use the dedicated PAT; fall back to the auto GITHUB_TOKEN on fork
-      # PRs (where secrets are unavailable) — read-only is enough for public repos.
-      - name: Generate stats
-        run: npm run stats
-        env:
-          GH_TOKEN: ${{ secrets.GH_STATS_TOKEN || secrets.GITHUB_TOKEN }}
-
+      # Stats are fetched client-side from stats.odio.love, so the build no
+      # longer needs a GitHub token or any stats generation step.
       - run: npm run build
 
       - name: Upload dist
