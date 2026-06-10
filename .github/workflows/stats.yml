@@ -1,0 +1,60 @@
+name: Stats
+
+# Regenerates the ecosystem stats and publishes them to GitHub Pages, served at
+# https://stats.odio.love/repos.json. The docs site fetches this at runtime, so
+# a refresh needs no site rebuild — this workflow is the only thing that touches
+# the GitHub API, and the site build stays token-free.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily refresh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Publish repos.json
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate stats
+        run: npm run stats
+        env:
+          GH_TOKEN: ${{ secrets.GH_STATS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Assemble Pages site
+        run: |
+          mkdir -p _site
+          cp src/data/stats.json _site/repos.json
+          echo 'stats.odio.love' > _site/CNAME
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
