@@ -1,0 +1,171 @@
+.activity {
+  --amber: #c8943a;
+}
+.activitySub {
+  color: var(--sl-color-gray-2);
+  font-size: 1.05rem;
+  margin-bottom: 2rem;
+}
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 3rem;
+  align-items: stretch;
+}
+@media (min-width: 640px) { .kpiGrid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1024px) { .kpiGrid { grid-template-columns: repeat(4, 1fr); } }
+.kpi {
+  background: var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+}
+.kpiValue {
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 1.65rem;
+  line-height: 1.1;
+  color: var(--sl-color-accent-high);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.35rem;
+}
+.kpiLabel { color: var(--sl-color-white); font-size: 0.85rem; line-height: 1.2; }
+.kpiSub {
+  color: var(--sl-color-gray-3);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+.kpiSub > div { margin: 0; }
+
+.chartBlock { margin-bottom: 3rem; }
+.chartBlock h3 { margin-bottom: 0.8rem; }
+.chartBox {
+  background: var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem;
+  padding: 1.2rem;
+  position: relative;
+  overflow-x: auto;
+}
+.chartBox svg { width: 100%; height: auto; display: block; }
+.axisLabel {
+  fill: var(--sl-color-gray-3);
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 10px;
+}
+.axisLabelAmber { fill: #c8943a; opacity: 0.75; }
+.tooltip {
+  pointer-events: none;
+  position: absolute;
+  border-radius: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  background: var(--sl-color-black);
+  border: 1px solid var(--sl-color-accent);
+  color: var(--sl-color-white);
+  font-family: var(--sl-font-mono, monospace);
+  z-index: 10;
+  transform: translate(-50%, -130%);
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.tooltipVisible { opacity: 1; }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--sl-color-gray-2);
+}
+.legendItem { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legendSwatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.legendLine {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  background: #c8943a;
+}
+
+.tableWrap {
+  background: var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.activityTable {
+  width: 100%;
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 0.85rem;
+  border-collapse: collapse;
+  margin: 0;
+}
+.activityTable th {
+  text-align: left;
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid var(--sl-color-gray-4);
+}
+.activityTable th.num { text-align: right; }
+.activityTable td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--sl-color-gray-4);
+  color: var(--sl-color-gray-2);
+  vertical-align: middle;
+}
+.activityTable tr:last-child td { border-bottom: none; }
+.activityTable td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.repoCell a {
+  color: var(--sl-color-white);
+  text-decoration: none;
+}
+.repoCell a:hover { text-decoration: underline; }
+.locAdded { color: var(--sl-color-accent-high); }
+.locRemoved { color: #c8943a; opacity: 0.85; font-size: 0.75rem; }
+
+.barWrap { display: flex; align-items: center; gap: 0.5rem; min-width: 90px; }
+.barTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--sl-color-gray-4);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.barFill {
+  height: 100%;
+  background: var(--sl-color-accent-high);
+}
+.barPct {
+  font-size: 0.7rem;
+  color: var(--sl-color-gray-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.releaseLink { text-decoration: none; }
+.releaseLink:hover .releaseTag { color: var(--sl-color-accent-high); }
+.releaseTag { color: var(--sl-color-gray-2); }
+.releaseDate { display: block; font-size: 0.75rem; color: var(--sl-color-gray-3); }
+.muted { color: var(--sl-color-gray-3); font-size: 0.75rem; }
+
+.activityFooter {
+  font-size: 0.75rem;
+  color: var(--sl-color-gray-3);
+}

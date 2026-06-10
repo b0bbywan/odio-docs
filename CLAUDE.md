@@ -32,6 +32,10 @@ npm run stats     # Regenerate GitHub activity stats (reads src/data/ecosystem.j
 
 ## Activity / stats pipeline
 
-`scripts/fetch-github-stats.mjs` uses the local `gh` CLI to collect PR / commit / release / issue / star / fork / discussion data for the repos in `src/data/ecosystem.js`. Outputs minified `src/data/stats.json` (consumed by `src/components/Activity.astro` at build time). The same JSON is served at `https://docs.odio.love/stats.json` through `src/pages/stats.json.ts` (endpoint, no duplication). The page lives at `src/content/docs/guides/activity.mdx`.
+`scripts/fetch-github-stats.mjs` uses the local `gh` CLI to collect PR / commit / release / issue / star / fork / discussion data for the repos in `src/data/ecosystem.js`. Outputs minified `src/data/stats.json`.
 
-The sister site `odio.love` also ships a compact KPI strip linking here; its copy of `stats.json` is regenerated with the same script on that side.
+The stats are **decoupled from the site build**: the `Stats` workflow (`.github/workflows/stats.yml`, daily cron + manual dispatch) runs the script and publishes the JSON to GitHub Pages, served at `https://stats.odio.love/repos.json`. `src/components/Activity.astro` fetches that URL **client-side**, so refreshed stats appear live without a rebuild and the site build needs no GitHub token. The page lives at `src/content/docs/guides/activity.mdx`. `docs.odio.love/stats.json` still works via a redirect to the new URL (`vercel.json`).
+
+`src/data/seo.ts` needs the latest odios version for its `softwareVersion` JSON-LD field; it reads it at build from GitHub's `releases/latest` redirect (no token, no API), falling back to omitting the field on failure. Nothing else imports `src/data/stats.json` at build time.
+
+The sister site `odio.love` also ships a compact KPI strip; it regenerates its own copy with the same script on that side.

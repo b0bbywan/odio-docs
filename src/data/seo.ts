@@ -1,5 +1,3 @@
-import stats from './stats.json';
-
 export const SITE_URL = 'https://odio.love';
 export const DOCS_URL = 'https://docs.odio.love';
 
@@ -44,21 +42,24 @@ const SCREENSHOTS = [
 	'rpi-imager.png',
 ].map((f) => `${SITE_URL}/screenshots/${f}`);
 
-interface StatsRelease {
-	tag: string;
-	prerelease: boolean;
-}
-interface StatsRepo {
-	name: string;
-	releases?: StatsRelease[];
+// Latest stable odios release, read at build from GitHub's "latest release"
+// redirect (github.com, not the API — no token, no rate limit). On any failure
+// (offline dev, GitHub down) it resolves to undefined and softwareVersion is
+// simply omitted from the schema, so the build never depends on it.
+async function latestOdiosRelease(): Promise<string | undefined> {
+	try {
+		const res = await fetch('https://github.com/b0bbywan/odios/releases/latest', {
+			redirect: 'manual',
+			signal: AbortSignal.timeout(8000),
+		});
+		const tag = res.headers.get('location')?.split('/tag/')[1];
+		return tag ? decodeURIComponent(tag) : undefined;
+	} catch {
+		return undefined;
+	}
 }
 
-function latestStableRelease(repo: string): string | undefined {
-	const r = (stats.repos as StatsRepo[]).find((x) => x.name === repo);
-	return r?.releases?.find((rel) => !rel.prerelease)?.tag;
-}
-
-const ODIOS_VERSION = latestStableRelease('odios');
+const ODIOS_VERSION = await latestOdiosRelease();
 
 const KEYWORDS = [
 	'Raspberry Pi audio streamer',
