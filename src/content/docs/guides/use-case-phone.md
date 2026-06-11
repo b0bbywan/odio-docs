@@ -1,5 +1,5 @@
 ---
-title: Phone & Tablet
+title: How to stream from a phone or tablet to odio
 description: Stream from your phone or tablet to an odio node over Bluetooth, AirPlay, DLNA, or Spotify Connect, and control playback from the odio app or Home Assistant.
 howto: true
 ---

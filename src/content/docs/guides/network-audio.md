@@ -1,5 +1,5 @@
 ---
-title: Network audio (TCP sink)
+title: How to stream Linux desktop audio to your odio Pi
 description: Send Linux desktop audio to the odio Pi over the network via PulseAudio Zeroconf. Set up the TCP sink on PipeWire or PulseAudio with per-client volume.
 howto: true
 ---

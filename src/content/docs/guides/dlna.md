@@ -1,5 +1,5 @@
 ---
-title: UPnP / DLNA
+title: How to play UPnP/DLNA media on your odio Pi
 description: Use the odio Pi as a UPnP/DLNA renderer via upmpdcli. Browse a NAS or media server from a control point app and play to the Pi, with MPD-backed controls.
 howto: true
 ---
