@@ -1,5 +1,5 @@
 ---
-title: odio API
+title: One REST API for the whole odio audio stack
 description: go-odio-api bridges MPRIS players, PulseAudio/PipeWire, Bluetooth, systemd services, and power management into one REST API with real-time SSE events.
 ---
 

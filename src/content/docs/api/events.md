@@ -1,6 +1,6 @@
 ---
-title: SSE Events
-description: Real-time event stream from all backends.
+title: Real-time SSE event stream in the odio API
+description: Subscribe to the odio API over Server-Sent Events. A single connection streams player, audio, service, Bluetooth, and power changes, filterable by type.
 ---
 
 All backends push state changes as Server-Sent Events (SSE). Connect once and get a unified stream of everything happening on the node.
