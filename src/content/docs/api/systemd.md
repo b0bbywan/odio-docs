@@ -1,6 +1,6 @@
 ---
-title: Systemd
-description: Manage whitelisted systemd services from the API.
+title: Systemd service control in the odio API
+description: The systemd backend starts, stops, restarts, enables, and disables whitelisted user services over D-Bus, while system services remain read-only for status.
 ---
 
 The systemd backend lets you monitor and control systemd services. User services can be started, stopped, restarted, enabled, and disabled. System services (e.g. `bluetooth.service`) are strictly read-only, for status monitoring only.

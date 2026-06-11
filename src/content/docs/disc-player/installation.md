@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install go-mpd-discplayer from APT, packages, or source.
+description: Install go-mpd-discplayer on Debian or Raspberry Pi OS via the apt.odio.love repository, prebuilt deb packages, a standalone binary, or build it from source.
 howto: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Embedded web UI
-description: Access your odio node directly from your browser, no install needed.
+description: Control your odio node from any browser at http://<ip>:8018/ui, no install or account. Playback, volume, Bluetooth, services, and power, served from the binary.
 ---
 
 go-odio-api ships with an embedded web UI. No separate deployment, no build step — the API and the interface are the same process.

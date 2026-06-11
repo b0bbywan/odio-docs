@@ -1,6 +1,6 @@
 ---
 title: Desktop & Laptop
-description: How to use your desktop or laptop with an odio instance.
+description: Route your desktop or laptop audio to an odio node over PulseAudio TCP, AirPlay, or Snapcast, and control playback, volume, and metadata from your browser.
 howto: true
 ---
 

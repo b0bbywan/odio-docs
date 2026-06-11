@@ -1,6 +1,6 @@
 ---
 title: Phone & Tablet
-description: How to use your phone or tablet with an odio instance.
+description: Stream from your phone or tablet to an odio node over Bluetooth, AirPlay, DLNA, or Spotify Connect, and control playback from the odio app or Home Assistant.
 howto: true
 ---
 

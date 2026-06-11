@@ -1,6 +1,6 @@
 ---
 title: Bluetooth (API)
-description: Control the Bluetooth adapter, A2DP sink, and output connections from the API.
+description: The Bluetooth backend drives the BlueZ adapter over D-Bus, both as an A2DP sink that phones stream to and as an output that connects to nearby speakers.
 ---
 
 The Bluetooth backend drives the node's adapter over D-Bus (BlueZ), in both directions:
