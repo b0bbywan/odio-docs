@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
+import preact from '@astrojs/preact';
 import { lastmodFor } from './src/lib/git-lastmod.mjs';
 import remarkGfm from 'remark-gfm';
 
@@ -25,6 +26,7 @@ export default defineConfig({
 		'/guides/home-assistant': '/control/home-assistant',
 	},
 	integrations: [
+		preact(),
 		starlight({
 			title: 'odio docs',
 				logo: {
