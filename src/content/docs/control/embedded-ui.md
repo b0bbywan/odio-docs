@@ -1,5 +1,5 @@
 ---
-title: Embedded web UI
+title: How to control odio from your web browser
 description: Control your odio node from any browser at http://<ip>:8018/ui, no install or account. Playback, volume, Bluetooth, services, and power, served from the binary.
 ---
 
