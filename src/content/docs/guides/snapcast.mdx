@@ -31,6 +31,18 @@ odio ships [Snapclient](https://github.com/snapcast/snapcast) pre-installed as a
 
 Since [2026.5.0b3](https://github.com/b0bbywan/odios/releases/tag/2026.5.0b3), the [odio API](/api/systemd/) also publishes the snapweb URL alongside `snapclient.service`, so the embedded UI and odio application link to the server's web interface directly from their services list.
 
+That URL is discovered once, at first boot: a one-shot service waits for the network and avahi to come up, asks `snapclientmpris --discover` for the Snapserver's snapweb address, writes it into odio-api's config, then drops a marker so it never runs again.
+
+<Aside type="note">
+If the odio node first booted before the Snapserver was reachable, discovery found nothing and the snapweb link stays empty. Remove the marker so it runs again on the next boot:
+
+```sh
+sudo rm /var/lib/odios/firstboot-network-done
+```
+
+Then reboot the node, from the embedded UI or however you prefer, and odio-api gets the discovered URL on the next boot. [odio-upgrade](/operations/upgrade/) also re-runs snapweb discovery on every update, so the link will fill in on its own at the next upgrade even without rebooting.
+</Aside>
+
 ### MPRIS integration (snapclientmpris)
 
 Snapclient on its own has no MPRIS interface, so the currently playing stream is invisible to the odio UI, or any other MPRIS consumer. [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) bridges that gap: it surfaces stream metadata (title, artist, album, cover art) from the snapserver, and forwards MPRIS Play, Pause, Next, Previous, Stop to the stream's actual source through snapserver's `Stream.Control`. Pausing from one room pauses every listener on the stream, the multi-room semantic MPRIS clients expect (like Spotify Connect or AirPlay 2).
