@@ -20,6 +20,8 @@ import mympdQueue from '../../../assets/mympd-webradios-queue.webp';
 import mympdEmbeddedRoots from '../../../assets/mympd-webradios-embedded-roots.webp';
 import mympdEmbeddedGrosse from '../../../assets/mympd-webradios-embedded-grosse.webp';
 import mympdCustom from '../../../assets/mympd-webradios-custom.webp';
+import streamCover from '../../../assets/webradios-stream-cover.webp';
+import stationLogo from '../../../assets/webradios-station-logo.webp';
 import cueCover from '../../../assets/webradios-cue-cover.webp';
 
 odio plays internet radio out of the box. The most polished entry point is [myMPD](https://jcorporation.github.io/myMPD/)'s built-in WebradioDB browser on the odio node itself; the [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/) backend also exposes a few built-in station sources in the [UPnP/DLNA](/guides/dlna/) library for any control point, and Home Assistant or a remote MPD work too.
@@ -105,7 +107,26 @@ Browsing an odio node from any UPnP/DLNA control point ([BubbleDS Next](/guides/
 
 Pick a station, it plays through the odio node like any other source. Playback is visible in the odio API as an MPD session, controllable from the [embedded UI](/control/embedded-ui/), the [odio application](/control/pwa/), or [Home Assistant](/control/home-assistant/).
 
-![Embedded UI on raspodio3bwifi showing MPD playing Dub Incorporation - Dario's Dub from La Grosse Radio Reggae, with transport controls and the Built-in Audio Stereo output active](../../../assets/webradios-embedded-ui.png)
+## Cover art
+
+WebradioDB ships its own station artwork, so catalog stations display cover art out of the box. For everything else, [mpDris2 v0.11.0](https://github.com/b0bbywan/mpDris2/releases/tag/v0.11.0) resolves artwork automatically. Remote sources only kick in when nothing local is found, and split by what the station gives them:
+
+- Stations that broadcast **artist and title** in their stream metadata get the real album cover, looked up by album from Deezer, iTunes, or MusicBrainz / Cover Art Archive, the same track-level sources mpDris2 uses for the rest of the library.
+- Stations with no track metadata fall back to a station logo, from the Radio Browser favicon or myMPD's WebradioDB, matched on the stream URL.
+- Some stations end up with no cover at all: nothing matched the stream URL in WebradioDB or Radio Browser, and either the station broadcasts no metadata or its artist–title pair turned up nothing in any of the album sources.
+
+Each source is opt-in and ordered by priority: `[Cover] sources` for the album lookups, `[Cover] stream_sources` for the stream-URL ones (order is the lookup priority, anything unlisted is off). Lookups run asynchronously, so a slow one never blocks the rest of the metadata, and the resolved cover surfaces over MPRIS in the odio UI, myMPD, and any other MPRIS consumer.
+
+<div class="screenshot-carousel wide">
+	<figure>
+		<Image src={streamCover} alt="odio embedded UI: the Media Players panel shows a webradio playing through MPD with full album cover art, the stream's artist and title below it, and the Services panel listing eight configured services" />
+		<figcaption>Station broadcasting artist and title: the album cover is resolved by metadata lookup.</figcaption>
+	</figure>
+	<figure>
+		<Image src={stationLogo} alt="odio embedded UI: the Media Players panel shows a webradio playing through MPD with the station's own logo as artwork and only the station name as the title, and the Services panel listing eight configured services" />
+		<figcaption>Station with no track metadata: the station logo stands in, matched on the stream URL.</figcaption>
+	</figure>
+</div>
 
 ## Via Home Assistant's Radio Browser
 
@@ -151,9 +172,12 @@ Drop it as e.g. `~/.mpd/playlists/webradios-fr.m3u` (or wherever your `playlist_
 
 </details>
 
-## Cover art for custom stations
+<Aside type="note">The built-in sources cover most needs, but favorites, custom editing, and an in-UI station picker are still being scoped on [discussion #33](https://github.com/b0bbywan/odios/discussions/33), where [@pbattino](https://github.com/pbattino) has been particularly helpful shaping the direction. Feedback and contributions welcome.</Aside>
 
-WebradioDB ships its own station artwork, so catalog stations already display cover art. For favorite stations not in any catalog, [mpDris2](https://github.com/b0bbywan/mpDris2) v0.10.0 added a CUE-based workaround that reuses the same cover-art pipeline as [audio CDs](/guides/audio-cd/): drop a `cover.{jpg,png,webp}` alongside a `playlist.cue` in MPD's `music_directory`, and the cover surfaces in the odio UI, myMPD, and any other MPRIS consumer while the station plays.
+<details>
+<summary>For posterity: manual cover art via a CUE folder (pre-v0.11.0)</summary>
+
+Before automatic lookup landed, [mpDris2](https://github.com/b0bbywan/mpDris2) v0.10.0 offered a CUE-based workaround that reused the same cover-art pipeline as [audio CDs](/guides/audio-cd/): drop a `cover.{jpg,png,webp}` alongside a `playlist.cue` in MPD's `music_directory`, and the cover surfaces while the station plays. Kept here for reference; the automatic lookup above makes it unnecessary for most stations.
 
 Per station, create a folder under MPD's music directory and drop a cover image inside:
 
@@ -183,6 +207,6 @@ The cover surfaces because mpDris2 scans the directory holding the loaded `.cue`
 </figure>
 </div>
 
-Hacky, but useful for favorite stations or motivated setups. See [discussion #33](https://github.com/b0bbywan/odios/discussions/33#discussioncomment-16950365) for the full rationale. mpDris2 v0.11.0 will add a MusicBrainz / Cover Art Archive fallback for cases where maintaining folder structures by hand isn't appealing.
+Hacky, but it worked for favorite stations or motivated setups. See [discussion #33](https://github.com/b0bbywan/odios/discussions/33#discussioncomment-16950365) for the full rationale.
 
-<Aside type="note">The built-in sources cover most needs, but favorites, custom editing, and an in-UI station picker are still being scoped on [discussion #33](https://github.com/b0bbywan/odios/discussions/33), where [@pbattino](https://github.com/pbattino) has been particularly helpful shaping the direction. Feedback and contributions welcome.</Aside>
+</details>

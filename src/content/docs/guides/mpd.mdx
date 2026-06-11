@@ -7,7 +7,7 @@ howto: true
 import { Image } from 'astro:assets';
 import cdPlayback from '../../../assets/audio-cd-playback.webp';
 import usbPlayback from '../../../assets/usb-playback.webp';
-import webradioPlayback from '../../../assets/webradios-embedded-ui.png';
+import webradioPlayback from '../../../assets/webradios-stream-cover.webp';
 import mympdHome from '../../../assets/mympd-home.webp';
 
 [MPD (Music Player Daemon)](https://www.musicpd.org/) is the local music player on your odio node. It handles [audio CD](/guides/audio-cd/), [USB flash drive](/guides/usb-flashdrives/) playback, and can also serve a full music library from a NAS.
@@ -38,8 +38,8 @@ The CUE fallback is what makes cover art work for [audio CD playback](/guides/au
 		<figcaption>USB stick playback, cover art served by odio-api v0.11.0+</figcaption>
 	</figure>
 	<figure>
-		<Image src={webradioPlayback} alt="odio embedded UI showing MPD playing Dub Incorporation - Dario's Dub from La Grosse Radio Reggae, with transport controls and the Built-in Audio Stereo output active" />
-		<figcaption>Webradio playback via the upmpdcli built-in sources</figcaption>
+		<Image src={webradioPlayback} alt="odio embedded UI playing a webradio via MPD, with the stream's album cover art and the artist and title shown alongside transport controls" />
+		<figcaption>Webradio playback, album cover art resolved by mpDris2</figcaption>
 	</figure>
 </div>
 
