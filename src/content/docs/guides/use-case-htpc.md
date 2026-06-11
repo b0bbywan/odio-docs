@@ -1,6 +1,6 @@
 ---
-title: HTPC
-description: How to use a home theater PC with an odio instance.
+title: How to use odio with a home theater PC (HTPC)
+description: Route all home theater PC audio to an odio node DAC, run Kodi or a browser kiosk, and control every source from your phone, the web UI, or Home Assistant.
 howto: true
 ---
 

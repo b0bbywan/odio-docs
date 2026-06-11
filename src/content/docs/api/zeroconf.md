@@ -1,6 +1,6 @@
 ---
 title: Zeroconf
-description: mDNS auto-discovery on the local network.
+description: The Zeroconf backend advertises the node on the local network over mDNS/DNS-SD as _http._tcp.local., so native clients like Home Assistant discover it.
 ---
 
 The Zeroconf backend advertises the node on the local network via mDNS/DNS-SD as `_http._tcp.local.` (instance `odio-api`).

@@ -1,6 +1,6 @@
 ---
-title: MPRIS
-description: Auto-discover and control all media players on the node.
+title: MPRIS player control in the odio API
+description: The MPRIS backend auto-discovers every D-Bus media player on the node and exposes unified play, pause, seek, position, volume, loop, and shuffle endpoints.
 ---
 
 The MPRIS backend auto-discovers every MPRIS-compatible player (Spotify, VLC, Firefox, MPD, Kodi, Bluetooth devices) and exposes unified playback controls. Players appear and disappear in real time — no configuration needed.

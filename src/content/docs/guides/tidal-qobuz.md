@@ -1,6 +1,6 @@
 ---
 title: Tidal & Qobuz
-description: Tidal Connect and Qobuz streaming support via upmpdcli.
+description: Add Tidal Connect and Qobuz streaming to the odio Pi via upmpdcli. Configure the service, then browse, search, and play from any UPnP control point app.
 howto: true
 ---
 

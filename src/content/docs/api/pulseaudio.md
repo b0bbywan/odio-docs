@@ -1,6 +1,6 @@
 ---
 title: PulseAudio
-description: Control volume, outputs, and per-client audio via PulseAudio or PipeWire.
+description: The PulseAudio backend controls server, output, and per-client volume and mute via a pure-Go native protocol, working with both PulseAudio and PipeWire.
 ---
 
 The PulseAudio backend provides full control over the node's audio: server info, output selection, global and per-client volume/mute. Works with both PulseAudio and PipeWire (via `pipewire-pulse`).

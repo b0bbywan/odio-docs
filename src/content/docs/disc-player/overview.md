@@ -1,6 +1,6 @@
 ---
 title: MPD Disc Player
-description: Automated audio CD and USB flash drive playback for MPD.
+description: Automated audio CD and USB flash drive playback for MPD. Insert a disc or plug a stick, playback starts with metadata and cover art from GnuDB and MusicBrainz.
 ---
 
 [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) is a daemon that automates audio disc and USB flash drive playback with MPD. Insert a CD or plug in a USB stick — playback starts automatically with full metadata and cover art.

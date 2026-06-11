@@ -1,6 +1,6 @@
 ---
-title: AirPlay
-description: Stream audio from any Apple device to your Pi.
+title: How to stream AirPlay 2 to your odio Pi
+description: Turn the odio Pi into an AirPlay 2 receiver with shairport-sync. Stream from iPhone, iPad, or Mac, with MPRIS controls and PulseAudio desktop discovery.
 howto: true
 ---
 

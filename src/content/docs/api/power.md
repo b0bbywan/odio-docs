@@ -1,6 +1,6 @@
 ---
-title: Power
-description: Remote reboot and power-off via the API.
+title: Remote power control in the odio API
+description: The power backend triggers remote reboot and power-off through the org.freedesktop.login1 D-Bus interface, with each capability toggled on or off in config.
 ---
 
 The power backend provides remote reboot and power-off via the `org.freedesktop.login1` D-Bus interface. Each capability (reboot, power-off) can be individually enabled or disabled in config.
