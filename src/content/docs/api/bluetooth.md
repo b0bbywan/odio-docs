@@ -1,5 +1,5 @@
 ---
-title: Bluetooth (API)
+title: Bluetooth adapter control in the odio API
 description: The Bluetooth backend drives the BlueZ adapter over D-Bus, both as an A2DP sink that phones stream to and as an output that connects to nearby speakers.
 ---
 

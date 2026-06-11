@@ -1,5 +1,5 @@
 ---
-title: PulseAudio
+title: PulseAudio volume control in the odio API
 description: The PulseAudio backend controls server, output, and per-client volume and mute via a pure-Go native protocol, working with both PulseAudio and PipeWire.
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: Zeroconf
+title: Zeroconf mDNS discovery in the odio API
 description: The Zeroconf backend advertises the node on the local network over mDNS/DNS-SD as _http._tcp.local., so native clients like Home Assistant discover it.
 ---
 
