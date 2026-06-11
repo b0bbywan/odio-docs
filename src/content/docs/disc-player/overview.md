@@ -1,5 +1,5 @@
 ---
-title: MPD Disc Player
+title: Automated CD and USB playback for MPD
 description: Automated audio CD and USB flash drive playback for MPD. Insert a disc or plug a stick, playback starts with metadata and cover art from GnuDB and MusicBrainz.
 ---
 
