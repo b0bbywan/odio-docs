@@ -19,5 +19,8 @@
     "preact": "^10.29.2",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.34.2"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
   }
 }
