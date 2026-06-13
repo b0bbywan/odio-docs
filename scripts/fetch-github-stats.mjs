@@ -18,9 +18,10 @@ const SINCE_TS = Math.floor(new Date(SINCE_ISO).getTime() / 1000);
 
 const ecosystemPath = join(root, 'src/data/ecosystem.js');
 const ecosystemSrc = readFileSync(ecosystemPath, 'utf8');
+const ownerPattern = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const repoNames = [
   ...new Set(
-    [...ecosystemSrc.matchAll(new RegExp(`github\\.com/${owner}/([a-z0-9.-]+)`, 'gi'))].map(
+    [...ecosystemSrc.matchAll(new RegExp(`github\\.com/${ownerPattern}/([a-z0-9.-]+)`, 'gi'))].map(
       (m) => m[1].replace(/\.git$/, '')
     )
   ),
