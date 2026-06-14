@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "stats": "node scripts/fetch-github-stats.mjs"
+    "stats": "node scripts/fetch-github-stats.mjs",
+    "downloads": "node scripts/fetch-downloads.mjs"
   },
   "dependencies": {
     "@astrojs/preact": "^5.1.5",
