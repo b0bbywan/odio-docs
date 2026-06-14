@@ -25,4 +25,5 @@ pnpm-debug.log*
 
 # generated at build / in CI, never committed
 src/data/stats.json
+src/data/downloads.json
 .env*

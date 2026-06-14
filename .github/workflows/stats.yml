@@ -43,10 +43,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_STATS_TOKEN || secrets.GITHUB_TOKEN }}
 
+      - name: Generate download counts
+        run: npm run downloads
+        env:
+          GH_TOKEN: ${{ secrets.GH_STATS_TOKEN || secrets.GITHUB_TOKEN }}
+
       - name: Assemble Pages site
         run: |
           mkdir -p _site
           cp src/data/stats.json _site/repos.json
+          cp src/data/downloads.json _site/downloads.json
           echo 'stats.odio.love' > _site/CNAME
 
       - uses: actions/configure-pages@v6
