@@ -14,6 +14,14 @@ export default function Downloads() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // In dev the published URL has no data yet, so preview the locally generated
+    // file (npm run downloads). Production always fetches the live JSON.
+    if (import.meta.env.DEV) {
+      import('../data/downloads.json')
+        .then((m) => setData(m.default))
+        .catch((e) => setError(`local downloads.json missing — run "npm run downloads" (${e.message})`));
+      return;
+    }
     fetch(DOWNLOADS_URL)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
