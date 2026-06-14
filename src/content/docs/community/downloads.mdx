@@ -1,0 +1,16 @@
+---
+title: Downloads
+description: Release-asset download counts across the odio ecosystem, pulled from the GitHub API — images, packages and binaries, per repository and most-downloaded files.
+---
+
+import Downloads from '../../../components/Downloads.jsx';
+
+How often the release assets get downloaded, pulled from the GitHub API. This counts files attached to GitHub releases only, like the [odios](https://github.com/b0bbywan/odios/releases) disk images or the binaries on [go-odio-api](https://github.com/b0bbywan/go-odio-api/releases). Installs from [apt.odio.love](https://apt.odio.love) and clones aren't release downloads, so they don't show up here. Pre-releases are excluded.
+
+A download is not an install. The same file can be fetched many times by CI, mirrors or a curious browser, so read these as interest, not user counts. Two patterns stand out here: the `.deb` counts are driven mostly by the [apt.odio.love](https://apt.odio.love) repository build pulling each package, and the `manifest.json` counts come from CI and from installed systems checking for updates, so each tells its own story rather than a head count of people.
+
+Each repository lists its assets, one row per file with all versions folded together. Expand a row to see the per-version breakdown. Checksums and signatures are left out.
+
+<Downloads client:visible />
+
+Want the per-release breakdown? It's all in the raw [`downloads.json`](https://stats.odio.love/downloads.json).
