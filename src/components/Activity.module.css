@@ -169,3 +169,59 @@
   font-size: 0.75rem;
   color: var(--sl-color-gray-3);
 }
+
+/* Per-repository collapsible block (Downloads page) */
+.repoDetails {
+  background: var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.repoSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+.repoSummary::-webkit-details-marker { display: none; }
+.repoSummary::marker { content: ''; }
+.repoSummary::before {
+  content: '▸';
+  color: var(--sl-color-gray-3);
+  margin-right: 0.2rem;
+}
+.repoDetails[open] .repoSummary::before { content: '▾'; }
+/* Element+class beats Starlight's `.sl-markdown-content a` accent color so the
+   repo name stays bright instead of dropping to the dark green link color. */
+.repoSummary a.repoName {
+  color: var(--sl-color-white);
+  font-weight: 600;
+  text-decoration: none;
+  margin-right: auto;
+}
+.repoSummary a.repoName:hover { text-decoration: underline; }
+.repoMeta {
+  color: var(--sl-color-gray-1);
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.repoTableWrap {
+  border-top: 1px solid var(--sl-color-gray-4);
+  overflow-x: auto;
+}
+.assetRow td { color: var(--sl-color-white); }
+.assetRow:hover td { background: var(--sl-color-gray-6, rgba(255, 255, 255, 0.03)); }
+.versionRow td {
+  color: var(--sl-color-gray-1);
+  font-size: 0.8rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+.versionRow .releaseTag { color: var(--sl-color-white); }
+.versionRow .releaseDate { color: var(--sl-color-gray-2); }

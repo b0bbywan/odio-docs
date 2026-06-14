@@ -138,6 +138,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Get involved', slug: 'community/get-involved' },
 						{ label: 'Activity', slug: 'community/activity' },
+						{ label: 'Downloads', slug: 'community/downloads' },
 						{ label: 'CI/CD', slug: 'community/ci-cd' },
 						{ label: 'Feature requests', slug: 'community/feature-requests' },
 						{ label: 'Empowerment', slug: 'community/empowerment' },
