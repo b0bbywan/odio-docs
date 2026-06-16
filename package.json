@@ -19,7 +19,7 @@
     "astro": "^6.4.6",
     "preact": "^10.29.2",
     "remark-gfm": "^4.0.1",
-    "sharp": "^0.34.2"
+    "sharp": "^0.35.1"
   },
   "overrides": {
     "esbuild": "^0.28.1"
