@@ -1,10 +1,29 @@
 ---
 title: How to upgrade odio and check for releases
-description: Apply odio upgrades with the odio-upgrade helper or systemd user unit, see updates in the SSH MOTD, pin a release tag, and opt out of roles in state.json.
+description: Apply odio upgrades from Home Assistant or the web UI, or from the command line with the odio-upgrade helper. Pin a release tag, opt out of roles in state.json.
 howto: true
 ---
 
-## Check for upgrades
+## From Home Assistant and the web UI
+
+The simplest way to check for and apply upgrades is from Home Assistant or the embedded web UI, no SSH required. Both are backed by [go-odio-api](/api/upgrade/) (v0.15.1), which exposes the `odio-check-upgrade` and `odio-upgrade` units, and `/var/cache/odio/upgrades.json`, over its API. A full odios install wires this up automatically since [2026.6.0b2](https://github.com/b0bbywan/odios/releases/tag/2026.6.0b2).
+
+In the [embedded web UI](/control/embedded-ui/), a status badge sits in the header:
+
+- a check mark when the node is up to date, click to re-check;
+- an up arrow when an upgrade is available, click to start it (with a confirmation);
+- a progress ring while a run is in flight;
+- a red alert badge when the last run failed, hover to reveal the up arrow and retry; it persists until the next run.
+
+![Embedded UI header badge for an odio node, showing a green up arrow that indicates an upgrade is available](../../../assets/embedded-ui-upgrade-badge.png)
+
+In [Home Assistant](/control/home-assistant/), the node carries a native **Firmware** update entity (`update.odio_remote_<hostname>_firmware`). It tracks the installed and latest versions, shows an **Install** button when the server allows starting an upgrade, and reports live progress during a run. Detection is server-driven over SSE, so HA never polls.
+
+![Home Assistant Firmware update entity for an odio node, showing the installed version, a newer available version, and Ignore and Update buttons](../../../assets/home-assistant-upgrade.png)
+
+Both reflect whatever the node's detector reports and trigger the same units, see the [upgrade API](/api/upgrade/) for the contract behind them.
+
+## Check for upgrades from the command line
 
 Each node shows its update status in the MOTD when you SSH in:
 
