@@ -18,6 +18,7 @@ Each backend maps to a Linux subsystem via D-Bus:
 | [Systemd](/api/systemd/) | Start/stop/restart whitelisted user services | Enabled |
 | [Bluetooth](/api/bluetooth/) | A2DP sink — pair, power, discoverable mode | Enabled |
 | [Power](/api/power/) | Remote reboot and power-off | Configurable |
+| [Upgrades](/api/upgrade/) | Status and triggers for an external upgrade detector | Opt-in |
 | [Zeroconf](/api/zeroconf/) | mDNS/DNS-SD auto-discovery on the LAN | Enabled |
 
 Disabling a backend removes all its routes from the API.
