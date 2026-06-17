@@ -42,7 +42,7 @@ Two paths, same result:
 
   > Ethernet is recommended over WiFi for reliable audio streaming.
 
-  The odio stack always runs under the `odio` user. In Imager settings, **pick `odio` as the user** so the upcoming UI-driven upgrade is wired in by default. A different user is fine for SSH, and the CLI [upgrade flow](/operations/upgrade/) is independent of the choice.
+  The odio stack always runs under the `odio` user. In Imager settings, **pick `odio` as the user** so the UI-driven upgrade is wired in by default. A different user is fine for SSH, and the CLI [upgrade flow](/operations/upgrade/) is independent of the choice.
 
   Your Pi boots ready.
 
@@ -126,7 +126,7 @@ Both paths produce the same stack: same packages, same services, same configurat
 
 ## Upgrade
 
-The installer is idempotent, re-run it to upgrade an existing installation. Since [2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1), each node also shows available updates in its SSH MOTD. See [Upgrade](/operations/upgrade/) for details and the upcoming targeted-upgrade flow.
+The installer is idempotent, re-run it to upgrade an existing installation. Each node shows available updates in its SSH MOTD (since [2026.4.1rc1](https://github.com/b0bbywan/odios/releases/tag/2026.4.1rc1)), and upgrades can be checked and applied straight from Home Assistant or the web UI (since [2026.6.0b2](https://github.com/b0bbywan/odios/releases/tag/2026.6.0b2)). See [Upgrade](/operations/upgrade/) for the full flow.
 
 ## DAC and overclocking
 
