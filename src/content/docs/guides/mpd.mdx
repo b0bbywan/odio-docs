@@ -22,16 +22,16 @@ If you want library browsing, [two options](#using-a-nas-library) are available:
 
 ## Playback controls
 
-MPD exposes itself as an MPRIS player via [mpDris2](https://github.com/b0bbywan/mpDris2). This is what allows the odio API to discover and control MPD playback alongside all other sources. Playback is controllable from the embedded UI, the odio application, Home Assistant, or any MPD client.
+MPD exposes itself as an MPRIS player via [mpd2mpris](https://github.com/b0bbywan/mpd2mpris). This is what allows the odio API to discover and control MPD playback alongside all other sources. Playback is controllable from the embedded UI, the odio application, Home Assistant, or any MPD client.
 
-The [mpDris2 fork](https://github.com/b0bbywan/mpDris2) shipped by odio walks an ordered cover-art pipeline: the embedded picture inside the audio file (MPD's `readpicture`), a regex-matched image in the song's directory, MPD's `albumart` resolver, a CUE/cdda fallback that looks next to the loaded `.cue` playlist when the current song is a virtual reference like `cdda://Disc/Track01` or `sheet.cue/trackNNNN`, and an XDG cover cache at `$XDG_CACHE_HOME/mpDris2/` for downloaded covers.
+The [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) daemon shipped by odio walks an ordered cover-art pipeline: the embedded picture inside the audio file (MPD's `readpicture`), a regex-matched image in the song's directory, MPD's `albumart` resolver, a CUE/cdda fallback that looks next to the loaded `.cue` playlist when the current song is a virtual reference like `cdda://Disc/Track01` or `sheet.cue/trackNNNN`, and, when nothing local is found, remote cover-art URLs (MusicBrainz/CAA, iTunes or Deezer for tagged tracks; the station favicon or myMPD WebradioDB for web-radio streams). The remote steps expose the image URL as `mpris:artUrl` directly, so nothing is downloaded or cached to disk.
 
 The CUE fallback is what makes cover art work for [audio CD playback](/guides/audio-cd/): MPD's CUE plugin is configured with `as_directory "true"`, which exposes the CUE sheet as a virtual directory, and the `cover.jpg` cached by [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) sits next to it where the fallback finds it.
 
 <div class="screenshot-carousel wide">
 	<figure>
 		<Image src={cdPlayback} alt="odio embedded UI playing an audio CD via MPD: Retroaction - A Noisy Blast - Son of Light, with album cover art and full transport controls" />
-		<figcaption>CD playback in the embedded UI, cover art via mpDris2</figcaption>
+		<figcaption>CD playback in the embedded UI, cover art via mpd2mpris</figcaption>
 	</figure>
 	<figure>
 		<Image src={usbPlayback} alt="odio embedded UI playing a USB flash drive via MPD: Dooz Kawa - Sans pluie pas d'arc-en-ciel from Vol de Nuit, with album cover art and transport controls" />
@@ -39,7 +39,7 @@ The CUE fallback is what makes cover art work for [audio CD playback](/guides/au
 	</figure>
 	<figure>
 		<Image src={webradioPlayback} alt="odio embedded UI playing a webradio via MPD, with the stream's album cover art and the artist and title shown alongside transport controls" />
-		<figcaption>Webradio playback, album cover art resolved by mpDris2</figcaption>
+		<figcaption>Webradio playback, album cover art resolved by mpd2mpris</figcaption>
 	</figure>
 </div>
 

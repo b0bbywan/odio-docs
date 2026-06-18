@@ -109,9 +109,9 @@ Pick a station, it plays through the odio node like any other source. Playback i
 
 ## Cover art
 
-WebradioDB ships its own station artwork, so catalog stations display cover art out of the box. For everything else, [mpDris2 v0.11.0](https://github.com/b0bbywan/mpDris2/releases/tag/v0.11.0) resolves artwork automatically. Remote sources only kick in when nothing local is found, and split by what the station gives them:
+WebradioDB ships its own station artwork, so catalog stations display cover art out of the box. For everything else, [mpd2mpris v0.11.0](https://github.com/b0bbywan/mpd2mpris/releases/tag/v0.11.0) resolves artwork automatically. Remote sources only kick in when nothing local is found, and split by what the station gives them:
 
-- Stations that broadcast **artist and title** in their stream metadata get the real album cover, looked up by album from Deezer, iTunes, or MusicBrainz / Cover Art Archive, the same track-level sources mpDris2 uses for the rest of the library.
+- Stations that broadcast **artist and title** in their stream metadata get the real album cover, looked up by album from Deezer, iTunes, or MusicBrainz / Cover Art Archive, the same track-level sources mpd2mpris uses for the rest of the library.
 - Stations with no track metadata fall back to a station logo, from the Radio Browser favicon or myMPD's WebradioDB, matched on the stream URL.
 - Some stations end up with no cover at all: nothing matched the stream URL in WebradioDB or Radio Browser, and either the station broadcasts no metadata or its artist–title pair turned up nothing in any of the album sources.
 
@@ -177,7 +177,7 @@ Drop it as e.g. `~/.mpd/playlists/webradios-fr.m3u` (or wherever your `playlist_
 <details>
 <summary>For posterity: manual cover art via a CUE folder (pre-v0.11.0)</summary>
 
-Before automatic lookup landed, [mpDris2](https://github.com/b0bbywan/mpDris2) v0.10.0 offered a CUE-based workaround that reused the same cover-art pipeline as [audio CDs](/guides/audio-cd/): drop a `cover.{jpg,png,webp}` alongside a `playlist.cue` in MPD's `music_directory`, and the cover surfaces while the station plays. Kept here for reference; the automatic lookup above makes it unnecessary for most stations.
+Before automatic lookup landed, [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) v0.10.0 offered a CUE-based workaround that reused the same cover-art pipeline as [audio CDs](/guides/audio-cd/): drop a `cover.{jpg,png,webp}` alongside a `playlist.cue` in MPD's `music_directory`, and the cover surfaces while the station plays. Kept here for reference; the automatic lookup above makes it unnecessary for most stations.
 
 Per station, create a folder under MPD's music directory and drop a cover image inside:
 
@@ -198,7 +198,7 @@ FILE "http://hd.lagrosseradio.info/lagrosseradio-reggae-192.mp3" MP3
     TITLE "La Grosse Radio Reggae"
 ```
 
-The cover surfaces because mpDris2 scans the directory holding the loaded `.cue` for `cover.{jpg,png,webp}`, the same CUE fallback step that makes [audio CDs](/guides/audio-cd/) work. The `REM` lines (including `REM COVER`) are documentation only, mpDris2 doesn't parse them. Run `mpc update`, browse to the folder in any MPD client, and play the track inside the CUE virtual directory (MPD's CUE plugin is configured with `as_directory "true"` on odio by default).
+The cover surfaces because mpd2mpris scans the directory holding the loaded `.cue` for `cover.{jpg,png,webp}`, the same CUE fallback step that makes [audio CDs](/guides/audio-cd/) work. The `REM` lines (including `REM COVER`) are documentation only, mpd2mpris doesn't parse them. Run `mpc update`, browse to the folder in any MPD client, and play the track inside the CUE virtual directory (MPD's CUE plugin is configured with `as_directory "true"` on odio by default).
 
 <div class="screenshot-carousel wide">
 <figure>

@@ -56,10 +56,10 @@ export const ecosystemProjects = [
     tech: { label: 'Go', color: '#00ADD8' },
   },
   {
-    name: 'mpDris2',
+    name: 'mpd2mpris',
     desc: 'MPRIS2 bridge for MPD. Complete rewrite around python-mpd2 and dbus-fast, with as_directory-aware cover-art lookup for CUE virtual folders.',
     short: 'Async MPRIS bridge for MPD with CUE cover-art support',
-    url: 'https://github.com/b0bbywan/mpDris2',
+    url: 'https://github.com/b0bbywan/mpd2mpris',
     live: null,
     tech: { label: 'Python', color: '#3776AB' },
   },

@@ -131,7 +131,7 @@ playlist_plugin {
 }
 ```
 
-The `as_directory "true"` option is critical — it makes MPD expose the CUE sheet as a virtual directory instead of a flat playlist. This is what allows the [mpDris2 fork](https://github.com/b0bbywan/mpDris2) to find the `cover.jpg` fetched by go-disc-cuer alongside the virtual tracks, and forward it over MPRIS to the embedded UI and the odio application. See [MPD — Playback controls](/guides/mpd/#playback-controls) for more details.
+The `as_directory "true"` option is critical: it makes MPD expose the CUE sheet as a virtual directory instead of a flat playlist. This is what allows [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) to find the `cover.jpg` fetched by go-disc-cuer alongside the virtual tracks, and forward it over MPRIS to the embedded UI and the odio application. See [MPD playback controls](/guides/mpd/#playback-controls) for more details.
 
 ```
 ```

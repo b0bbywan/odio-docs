@@ -25,4 +25,4 @@ upmpdcli also supports [Tidal and Qobuz](/guides/tidal-qobuz/) streaming.
 
 DLNA uses three entities: a **server** (your NAS or media library), a **renderer** (the odio node via upmpdcli), and a **control point** (your phone app). The control point browses the server and tells the renderer what to play.
 
-upmpdcli runs as a systemd user service and feeds audio to MPD, which outputs to PulseAudio. Since MPD is an MPRIS player via mpDris2, playback is automatically visible in the odio API.
+upmpdcli runs as a systemd user service and feeds audio to MPD, which outputs to PulseAudio. Since MPD is an MPRIS player via mpd2mpris, playback is automatically visible in the odio API.
