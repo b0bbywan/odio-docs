@@ -17,7 +17,7 @@
   <text x="460" y="45" class="label">Source repos</text>
   <text x="460" y="68" class="sub">go-odio-api · go-mpd-discplayer · go-odio-notify</text>
   <text x="460" y="85" class="sub">odios · odio-pwa · odio-ha · odio-docs</text>
-  <text x="460" y="102" class="sub">mpDris2 · spotifyd · odio-mympd · snapclientmpris</text>
+  <text x="460" y="102" class="sub">mpd2mpris · spotifyd · odio-mympd · snapclientmpris</text>
 
   <!-- Arrows from source down to CI and Build -->
   <path d="M 360 118 L 360 155 L 180 155 L 180 205" class="line" marker-end="url(#arrow)"/>

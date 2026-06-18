@@ -68,7 +68,7 @@ audio_output {
 filesystem_charset  "UTF-8"
 ```
 
-- The third `bind_to_address` is a user socket; mpDris2 connects to it (see below).
+- The third `bind_to_address` is a user socket; mpd2mpris connects to it (see below).
 - `input { plugin "curl" }` lets MPD play HTTP streams, required for [webradios](/guides/webradios/).
 - The `pulse` output sends audio to the odio node; the `fifo` output (`SnapMPD`) feeds the [Snapcast MPD stream](#mpd-stream).
 
@@ -80,26 +80,23 @@ systemctl --user enable --now mpd.service
 
 ### MPRIS and cover art
 
-For the NAS MPD to appear as an MPRIS player (and for cover art to resolve), run [mpDris2](https://github.com/b0bbywan/mpDris2) on the NAS. It ships from [apt.odio.love](/operations/apt-repository/):
+For the NAS MPD to appear as an MPRIS player (and for cover art to resolve), run [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) on the NAS. It ships from [apt.odio.love](/operations/apt-repository/):
 
 ```bash
-sudo apt install mpdris2
+sudo apt install mpd2mpris
 ```
 
-Configure `~/.config/mpDris2/mpDris2.conf`:
+Configure `~/.config/mpd2mpris/mpd2mpris.conf`:
 
 ```ini
 [Connection]
 host = /run/user/1001/mpd/socket
-
-[Bling]
-notify = False
 ```
 
-Connecting via the **unix socket** gives mpDris2 local filesystem access, so cover-art lookups read `cover.*` files straight off the disk, including non-standard names like `folder.jpg`. Connecting over TCP (the LAN address) works too, but then mpDris2 falls back to MPD's `albumart` command, which resolves only the standard `cover.{png,jpg,jxl,webp}` names and ships the bytes through MPD. `notify = False` skips desktop notifications, pointless on a headless NAS.
+Connecting via the **unix socket** gives mpd2mpris local filesystem access, so cover-art lookups read `cover.*` files straight off the disk, including non-standard names like `folder.jpg`. Connecting over TCP (the LAN address) works too, but then mpd2mpris falls back to MPD's `albumart` command, which resolves only the standard `cover.{png,jpg,jxl,webp}` names and ships the bytes through MPD.
 
 ```bash
-systemctl --user enable --now mpDris2.service
+systemctl --user enable --now mpd2mpris.service
 ```
 
 ## DLNA server (MiniDLNA)
