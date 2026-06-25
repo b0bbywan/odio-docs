@@ -163,9 +163,12 @@ function Cards({ totals, repos }) {
           ? [`${totals.discussionsAnswered} answered`]
           : null,
     },
+    totals.contributors != null
+      ? { value: fmt.format(totals.contributors), label: 'contributors', sub: ['all kinds of help'] }
+      : null,
     { value: `${fmt.format(totals.stars)} ★`, label: 'stars', sub: null },
     { value: `${fmt.format(totals.forks)} ⑂`, label: 'forks', sub: null },
-  ];
+  ].filter(Boolean);
 
   return (
     <div class={styles.kpiGrid}>

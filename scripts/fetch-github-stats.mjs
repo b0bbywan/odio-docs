@@ -72,7 +72,7 @@ async function fetchRepo(name) {
     'api',
     `/repos/${repo}`,
     '--jq',
-    '{stars: .stargazers_count, forks: .forks_count, description: .description, updatedAt: .updated_at, archived: .archived, defaultBranch: .default_branch}',
+    '{stars: .stargazers_count, forks: .forks_count, description: .description, updatedAt: .updated_at, archived: .archived, defaultBranch: .default_branch, fork: .fork}',
   ]);
 
   const search = `created:>=${SINCE}`;
@@ -252,6 +252,25 @@ async function fetchRepo(name) {
     console.warn(`[stats]   stargazers failed: ${e.message.split('\n')[0]}`);
   }
 
+  // All-contributors roster (.all-contributorsrc). Credits any kind of help —
+  // code, docs, design, ideas, bug reports — so it's richer than the API's
+  // committer list. Most repos don't have the file; a 404 is expected and fine.
+  // Skip forks: their roster is the upstream project's (e.g. spotifyd ships 83
+  // upstream contributors), which has nothing to do with odio.
+  let contributors = [];
+  if (!info?.fork) {
+    try {
+      const raw = await gh([
+        'api',
+        `/repos/${repo}/contents/.all-contributorsrc`,
+        '-H',
+        'Accept: application/vnd.github.raw',
+      ]);
+      const parsed = JSON.parse(raw);
+      contributors = (parsed.contributors || []).map((c) => c.login).filter(Boolean);
+    } catch {}
+  }
+
   return {
     name,
     description: info?.description || null,
@@ -278,6 +297,7 @@ async function fetchRepo(name) {
     latestRelease: releases.find((r) => !r.prerelease) || null,
     issues: { opened: issuesOpened, closed: issuesClosed },
     discussions,
+    contributors,
   };
 }
 
@@ -322,6 +342,10 @@ const totals = {
   discussionsSince: sum((r) => r.discussions?.since || 0),
   discussionsTotal: sum((r) => r.discussions?.total || 0),
   discussionsAnswered: sum((r) => r.discussions?.answered || 0),
+  // Unique all-contributors logins across the ecosystem (deduped by login, so a
+  // person credited on several repos counts once). Only odios has the roster
+  // today; this scales on its own if more repos adopt the spec.
+  contributors: new Set(repos.flatMap((r) => r.contributors || [])).size,
 };
 const decidedTotal = totals.pr.merged + totals.pr.closedUnmerged;
 totals.pr.mergeRatio = decidedTotal > 0 ? totals.pr.merged / decidedTotal : null;
@@ -355,8 +379,11 @@ const starsByWeek = commitsByWeek.map(({ w }) => {
   const newStars = allStarEvents.filter((ts) => ts >= SINCE_ISO && ts <= end).length;
   return { w, cumul: preWindowStars + newStars };
 });
-// Strip raw event arrays from per-repo output (only needed for aggregation)
-for (const r of repos) delete r.starEvents;
+// Strip raw arrays from per-repo output (only needed for aggregation)
+for (const r of repos) {
+  delete r.starEvents;
+  delete r.contributors;
+}
 
 const generatedAt = new Date().toISOString();
 
