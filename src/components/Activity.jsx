@@ -35,6 +35,14 @@ export default function Activity() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // In dev the published URL may lag the local pipeline, so preview the
+    // locally generated file (npm run stats). Production always fetches live.
+    if (import.meta.env.DEV) {
+      import('../data/stats.json')
+        .then((m) => setStats(m.default))
+        .catch((e) => setError(`local stats.json missing — run "npm run stats" (${e.message})`));
+      return;
+    }
     fetch(STATS_URL)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
