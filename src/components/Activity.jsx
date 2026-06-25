@@ -136,21 +136,21 @@ function Cards({ totals, repos }) {
     totals.pr.mergeRatio != null ? Math.round(totals.pr.mergeRatio * 100) : null;
 
   const cards = [
-    {
-      value: fmt.format(totals.pr.merged),
-      label: 'merged',
-      sub:
-        mergeRatioPct != null
-          ? [`${mergeRatioPct}%`, `${totals.pr.closedUnmerged} closed`, `${totals.pr.open} open`]
-          : null,
-    },
     { value: fmt.format(totals.commits), label: 'commits', sub: null },
     {
-      value: fmt.format(totals.releases),
+      value: fmt.format(totals.pr.merged),
+      label: mergeRatioPct != null ? `${mergeRatioPct}% merged` : 'merged',
+      sub:
+        mergeRatioPct != null
+          ? [`${totals.pr.closedUnmerged} closed · ${totals.pr.open} open`]
+          : null,
+    },
+    {
+      value: fmt.format(stableReleaseCount),
       label: 'releases',
       sub:
         stableReleaseCount !== totals.releases
-          ? [`${fmt.format(stableReleaseCount)} stable`]
+          ? [`${fmt.format(totals.releases)} total`]
           : null,
     },
     {
@@ -174,12 +174,15 @@ function Cards({ totals, repos }) {
     totals.contributors != null
       ? { value: fmt.format(totals.contributors), label: 'contributors', sub: ['all kinds of help'] }
       : null,
-    { value: `${fmt.format(totals.stars)} ★`, label: 'stars', sub: null },
-    { value: `${fmt.format(totals.forks)} ⑂`, label: 'forks', sub: null },
+    {
+      value: `${fmt.format(totals.stars)} ★`,
+      label: 'stars',
+      sub: [`${fmt.format(totals.forks)} forks`],
+    },
   ].filter(Boolean);
 
   return (
-    <div class={styles.kpiGrid}>
+    <div class={`${styles.kpiGrid} not-content`}>
       {cards.map((card) => (
         <div class={styles.kpi}>
           <div class={styles.kpiValue}>{card.value}</div>
