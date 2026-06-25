@@ -22,6 +22,8 @@
   padding: 0.85rem 0.9rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 .kpiValue {
   font-family: var(--sl-font-mono, monospace);
@@ -36,7 +38,6 @@
   color: var(--sl-color-gray-3);
   font-size: 0.72rem;
   line-height: 1.35;
-  margin-top: auto;
   padding-top: 0.5rem;
 }
 .kpiSub > div { margin: 0; }
