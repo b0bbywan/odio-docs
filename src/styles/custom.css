@@ -34,6 +34,21 @@
 	--sl-color-red-high: #f87171;
 }
 
+/* Category summary cards: green accent hover.
+   Starlight's default LinkCard hover uses `var(--sl-color-gray-7, ...)` for the
+   background; the theme never defines gray-7, so Starlight's light palette leaked
+   a near-white surface. Force a dark surface with a green border and arrow. */
+.sl-link-card:hover {
+	background: var(--sl-color-gray-6);
+	border-color: var(--sl-color-accent-high);
+}
+.sl-link-card:hover .icon {
+	color: var(--sl-color-accent-high);
+}
+.sl-link-card:hover .title {
+	color: var(--sl-color-accent-high);
+}
+
 /* Horizontal screenshot carousel (scroll-snap, no JS) */
 .screenshot-carousel {
 	display: flex;

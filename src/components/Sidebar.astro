@@ -1,0 +1,18 @@
+---
+// Override of Starlight's Sidebar so it renders our local SidebarSublist
+// (which makes group headers clickable). SidebarSublist itself isn't an
+// overridable component, so we override the whole Sidebar and swap it in.
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import SidebarSublist from './SidebarSublist.astro';
+
+const { sidebar } = Astro.locals.starlightRoute;
+---
+
+<SidebarPersister>
+	<SidebarSublist sublist={sidebar} />
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+	<MobileMenuFooter />
+</div>
