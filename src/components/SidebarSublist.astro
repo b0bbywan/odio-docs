@@ -1,0 +1,205 @@
+---
+// Override of Starlight's SidebarSublist to make group headers clickable.
+// Starlight 0.40 sidebar groups accept only `label` + `items` (no `link`), so we
+// map each group label to its category summary page and render the label as a link.
+// Re-implemented from the default component using only public exports (Icon, Badge);
+// the caret still toggles the <details>, clicking the label navigates.
+import { Icon, Badge } from '@astrojs/starlight/components';
+import SidebarRestorePoint from '@astrojs/starlight/components/SidebarRestorePoint.astro';
+
+const groupLinks = {
+	'Getting Started': '/operations/installation/',
+	'Control': '/control/',
+	'Features': '/features/',
+	'Operations': '/operations/',
+	'Use Cases': '/guides/use-cases/',
+	'API': '/api/overview/',
+	'MPD Disc Player': '/disc-player/overview/',
+	'Audio Notifications': '/notify/overview/',
+	'Community': '/community/',
+};
+
+// Recursively check whether a group contains the current page (to keep it open).
+function containsCurrent(entries) {
+	return entries.some((entry) =>
+		entry.type === 'link' ? entry.isCurrent : containsCurrent(entry.entries)
+	);
+}
+
+const { sublist, nested } = Astro.props;
+---
+
+<ul class:list={{ 'top-level': !nested }}>
+	{
+		sublist.map((entry) => (
+			<li>
+				{entry.type === 'link' ? (
+					<a
+						href={entry.href}
+						aria-current={entry.isCurrent ? 'page' : undefined}
+						class:list={[{ large: !nested }, entry.attrs.class]}
+						{...entry.attrs}
+					>
+						<span>{entry.label}</span>
+						{entry.badge && (
+							<Badge variant={entry.badge.variant} class={entry.badge.class} text={entry.badge.text} />
+						)}
+					</a>
+				) : (
+					<details open={containsCurrent(entry.entries) || !entry.collapsed}>
+						<summary>
+							<span class="group-label">
+								{groupLinks[entry.label] ? (
+									<a class="large group-link" href={groupLinks[entry.label]}>
+										{entry.label}
+									</a>
+								) : (
+									<span class="large">{entry.label}</span>
+								)}
+								{entry.badge && (
+									<Badge variant={entry.badge.variant} class={entry.badge.class} text={entry.badge.text} />
+								)}
+							</span>
+							<Icon name="right-caret" class="caret" size="1.25rem" />
+						</summary>
+						<SidebarRestorePoint />
+						<Astro.self sublist={entry.entries} nested />
+					</details>
+				)}
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	@layer starlight.core {
+		ul {
+			--sl-sidebar-item-padding-inline: 0.5rem;
+			list-style: none;
+			padding: 0;
+		}
+
+		li {
+			overflow-wrap: anywhere;
+		}
+
+		ul ul li {
+			margin-inline-start: var(--sl-sidebar-item-padding-inline);
+			border-inline-start: 1px solid var(--sl-color-hairline-light);
+			padding-inline-start: var(--sl-sidebar-item-padding-inline);
+		}
+
+		.large {
+			font-size: var(--sl-text-lg);
+			font-weight: 600;
+			color: var(--sl-color-white);
+		}
+
+		.group-link {
+			display: inline;
+			padding: 0;
+			text-decoration: none;
+			color: var(--sl-color-white);
+		}
+		.group-link:hover,
+		.group-link:focus {
+			color: var(--sl-color-text-accent);
+		}
+
+		.top-level > li + li {
+			margin-top: 0.75rem;
+		}
+
+		summary {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0.2em var(--sl-sidebar-item-padding-inline);
+			line-height: 1.4;
+			cursor: pointer;
+			user-select: none;
+		}
+		summary::marker,
+		summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.caret {
+			transition: transform 0.2s ease-in-out;
+			flex-shrink: 0;
+		}
+		:global([dir='rtl']) .caret {
+			transform: rotateZ(180deg);
+		}
+		[open] > summary .caret {
+			transform: rotateZ(90deg);
+		}
+
+		a {
+			display: block;
+			border-radius: 0.25rem;
+			text-decoration: none;
+			color: var(--sl-color-gray-2);
+			padding: 0.3em var(--sl-sidebar-item-padding-inline);
+			line-height: 1.4;
+		}
+
+		a:hover,
+		a:focus {
+			color: var(--sl-color-white);
+		}
+
+		[aria-current='page'],
+		[aria-current='page']:hover,
+		[aria-current='page']:focus {
+			font-weight: 600;
+			color: var(--sl-color-text-invert);
+			background-color: var(--sl-color-text-accent);
+		}
+
+		a > *:not(:last-child),
+		.group-label > *:not(:last-child) {
+			margin-inline-end: 0.25em;
+		}
+
+		@media (min-width: 50rem) {
+			.top-level > li + li {
+				margin-top: 0.5rem;
+			}
+			.large {
+				font-size: var(--sl-text-base);
+			}
+			a {
+				font-size: var(--sl-text-sm);
+			}
+		}
+	}
+</style>
+
+<script>
+	// Group headers that link to a category page toggle the <details> natively
+	// on any summary click. Restrict collapsing to the caret: a mouse click on the
+	// label navigates instead of toggling. Keyboard activation and the caret keep
+	// the native toggle.
+	for (const summary of document.querySelectorAll('summary')) {
+		const link = summary.querySelector('a.group-link');
+		if (!link) continue;
+		summary.addEventListener('click', (event) => {
+			if (event.detail === 0) return; // keyboard activation: keep native toggle
+			if (event.target.closest('.caret')) return; // caret: keep native toggle
+			event.preventDefault(); // label or empty space: never toggle
+			// Starlight's SidebarPersistState listens for summary clicks on an ancestor
+			// and records `!open` to sessionStorage, assuming every click toggles. Since
+			// we just prevented the toggle, stop the event here so it doesn't persist a
+			// phantom collapse that would restore this group closed on the next page.
+			event.stopPropagation();
+			if (event.target.closest('a.group-link') && event.button === 0) {
+				if (event.metaKey || event.ctrlKey || event.shiftKey) {
+					window.open(link.href, '_blank');
+				} else {
+					window.location.href = link.href;
+				}
+			}
+		});
+	}
+</script>

@@ -1,0 +1,26 @@
+---
+// Renders a grid of LinkCards for a category summary page, derived from the shared
+// sidebar config. `section` is the sidebar group label (e.g. "Control"): the card
+// title, order, and href come from the sidebar, and the description is pulled from
+// each page's frontmatter, so nothing is duplicated here or in the .mdx pages.
+import { getCollection } from 'astro:content';
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { sidebar } from '../data/sidebar.mjs';
+
+const { section } = Astro.props;
+
+const group = sidebar.find((entry) => entry.label === section);
+if (!group) {
+	throw new Error(`CategoryCards: no sidebar group labelled "${section}".`);
+}
+
+const descriptions = new Map(
+	(await getCollection('docs')).map((entry) => [entry.id, entry.data.description])
+);
+---
+
+<CardGrid>
+	{group.items.map((item) => (
+		<LinkCard title={item.label} href={`/${item.slug}/`} description={descriptions.get(item.slug)} />
+	))}
+</CardGrid>
