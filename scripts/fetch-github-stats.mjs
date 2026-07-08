@@ -29,9 +29,24 @@ const repoNames = [
 
 console.log(`[stats] ${repoNames.length} repos since ${SINCE}: ${repoNames.join(', ')}`);
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Retry transient failures so a secondary rate limit doesn't silently drop data.
+const isTransient = (text) =>
+  /rate limit|secondary rate|too quickly|abuse detection|\b(403|429|50[0-4])\b|timed? ?out/i.test(text);
+
 async function gh(argv) {
-  const { stdout } = await exec('gh', argv, { maxBuffer: 100 * 1024 * 1024 });
-  return stdout;
+  const maxRetries = 4;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const { stdout } = await exec('gh', argv, { maxBuffer: 100 * 1024 * 1024 });
+      return stdout;
+    } catch (e) {
+      const text = `${e.message}\n${e.stderr || ''}`;
+      if (attempt >= maxRetries || !isTransient(text)) throw e;
+      await sleep(2000 * 2 ** attempt); // 2s, 4s, 8s, 16s
+    }
+  }
 }
 
 async function ghJson(argv) {
@@ -177,9 +192,17 @@ async function fetchRepo(name) {
   let locAdded = 0;
   let locRemoved = 0;
   let freq = null;
-  try {
-    freq = await ghJson(['api', `/repos/${repo}/stats/code_frequency`]);
-  } catch {}
+  // code_frequency 202s while GitHub computes it; retry before the per-commit
+  // fallback, whose call-per-commit flood is what trips the rate limiter.
+  if (commits.length > 0) {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        freq = await ghJson(['api', `/repos/${repo}/stats/code_frequency`]);
+      } catch {}
+      if (Array.isArray(freq) && freq.length > 0) break;
+      if (attempt < 3) await sleep(2000 * (attempt + 1)); // 2s, 4s, 6s
+    }
+  }
   if (Array.isArray(freq) && freq.length > 0) {
     for (const [ts, add, rem] of freq) {
       if (ts >= SINCE_TS) {
