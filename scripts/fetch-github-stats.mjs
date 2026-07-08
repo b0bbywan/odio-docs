@@ -258,19 +258,29 @@ async function fetchRepo(name) {
     console.warn(`[stats]   discussions failed: ${e.message.split('\n')[0]}`);
   }
 
-  // Stargazers with timestamps (for time-series chart)
+  // Stargazers with timestamps (for time-series chart). GraphQL, not the REST
+  // star+json media type — that call fails under the CI token; graphql (as used
+  // for discussions above) works there.
   let starEvents = [];
   try {
-    const out = await gh([
-      'api',
-      `/repos/${repo}/stargazers`,
-      '--paginate',
-      '-H',
-      'Accept: application/vnd.github.v3.star+json',
-      '--jq',
-      '.[].starred_at',
-    ]);
-    starEvents = out.trim().split('\n').filter(Boolean);
+    let cursor = null;
+    for (;;) {
+      const q = `query($cursor: String) {
+        repository(owner: "${owner}", name: "${name}") {
+          stargazers(first: 100, after: $cursor, orderBy: { field: STARRED_AT, direction: ASC }) {
+            pageInfo { hasNextPage endCursor }
+            edges { starredAt }
+          }
+        }
+      }`;
+      const argv = ['api', 'graphql', '-f', `query=${q}`];
+      if (cursor) argv.push('-f', `cursor=${cursor}`);
+      const sg = (await ghJson(argv))?.data?.repository?.stargazers;
+      if (!sg) break;
+      starEvents.push(...sg.edges.map((e) => e.starredAt).filter(Boolean));
+      if (!sg.pageInfo?.hasNextPage) break;
+      cursor = sg.pageInfo.endCursor;
+    }
   } catch (e) {
     console.warn(`[stats]   stargazers failed: ${e.message.split('\n')[0]}`);
   }
