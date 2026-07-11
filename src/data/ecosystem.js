@@ -32,6 +32,14 @@ export const ecosystemProjects = [
     tech: { label: 'Python', color: '#3776AB' },
   },
   {
+    name: 'pyodio',
+    desc: 'Async Python client library for odio-api. Live state mirror over SSE, high-level hub and low-level REST client.',
+    short: 'Async Python client library',
+    url: 'https://github.com/b0bbywan/pyodio',
+    live: null,
+    tech: { label: 'Python', color: '#3776AB' },
+  },
+  {
     name: 'go-mpd-discplayer',
     desc: 'CD and USB auto-play daemon with metadata.',
     short: 'CD and USB auto-play daemon',
