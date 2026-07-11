@@ -7,9 +7,11 @@
     "/ghcr\\.io\\/[\\w\\-\\/]+/"
   ],
   "words": [
+    "aiohttp",
     "albumart",
     "albumartsmall",
     "AirPlay",
+    "asyncio",
     "ALSA",
     "Armbian",
     "armhf",
@@ -149,6 +151,7 @@
     "pregain",
     "PulseAudio",
     "PULSESERVER",
+    "pyodio",
     "pytest",
     "Qobuz",
     "RAOP",
