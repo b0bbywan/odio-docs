@@ -1,0 +1,77 @@
+---
+title: How to build your own odio client with pyodio
+description: pyodio is an async Python client library for the odio API, keeping a live mirror of the node's state over SSE. Build scripts, bots, and integrations in a few lines.
+---
+
+[pyodio](https://github.com/b0bbywan/pyodio) is an async Python client library for the [odio API](/api/overview/). Everything the other clients on this page can do, your own Python code can do too: MPRIS players, volume and outputs, systemd services, Bluetooth, power, and upgrades.
+
+```bash
+pip install pyodio
+```
+
+Requires Python 3.12 or newer, with `aiohttp` as the only runtime dependency. MIT licensed.
+
+## Quick start
+
+```python
+import asyncio
+import pyodio
+
+async def main():
+    async with pyodio.connect("http://odio.local:8018") as odio:
+        print(f"Connected to {odio.server.hostname} (odio-api {odio.server.api_version})")
+
+        # MPRIS players are live objects with transport controls
+        player = odio.players.find("spotify")
+        if player:
+            print(f"{player.title} - {player.artist} [{player.playback_status}]")
+            await player.play_pause()
+            await player.set_volume(0.5)
+
+        # Master volume and outputs
+        await odio.audio.set_volume(0.4)
+        for output in odio.audio.outputs.values():
+            print(f"{'*' if output.is_default else ' '} {output.description}")
+
+        # React to live changes pushed by the server
+        odio.players.on_change(lambda change, p: print(f"[{change}] {p.app_name}: {p.title}"))
+        await asyncio.sleep(60)
+
+asyncio.run(main())
+```
+
+## A live mirror of the node
+
+`pyodio.connect()` returns an `OdioHub`: it fetches a full snapshot of the server state, then keeps it in sync through the API's [SSE stream](/api/events/), with automatic reconnection (exponential backoff, full re-snapshot after every reconnect). Every entity carries both its current state and the commands that act on it:
+
+| Domain | State | Commands |
+|---|---|---|
+| `odio.players` | live `Player` entities, `find()`, `playing` | transport, seek, volume, loop, shuffle, `cover_url` |
+| `odio.audio` | master volume/mute, clients, outputs | volume and mute per scope, `make_default()` |
+| `odio.services` | `Service` entities by `scope/name` | `start/stop/restart/enable/disable` |
+| `odio.bluetooth` | adapter state, devices by MAC | power, pairing mode, scan, connect/disconnect |
+| `odio.power` | `can_reboot`, `can_power_off` | `reboot()`, `power_off()` |
+| `odio.upgrade` | availability, versions, live progress | `check()`, `start()` |
+
+Only the domains whose backend is enabled server-side are populated, mirroring the node's [API configuration](/api/configuration/). Each domain exposes an `on_change(cb)` subscription, and the hub itself exposes `on_event(cb)` for raw SSE events and `on_connection_change(cb)` for connectivity.
+
+The hub also smooths over API details for you: `player.position` extrapolates between server beacons using the playback rate, and `set_muted(True/False)` translates to the server's toggle-only mute by comparing with the live state first.
+
+## Low-level client
+
+If you'd rather manage state yourself, `OdioClient` is a stateless, typed REST client with one method per endpoint:
+
+```python
+from pyodio import OdioClient
+
+async with OdioClient("http://odio.local:8018") as client:
+    info = await client.get_server_info()
+    players = await client.get_players()
+    await client.player_play(players[0].bus_name)
+```
+
+It accepts an existing `aiohttp.ClientSession` to reuse (Home Assistant's shared session, for example), and `pyodio.stream_events()` / `pyodio.EventStream` expose the raw SSE stream without the stateful hub.
+
+## Full reference
+
+The complete API surface, error hierarchy, and development setup are documented in the [pyodio README](https://github.com/b0bbywan/pyodio#readme).
