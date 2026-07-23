@@ -8,6 +8,7 @@ import { Image } from 'astro:assets';
 import cdPlayback from '../../../assets/audio-cd-playback.webp';
 import usbPlayback from '../../../assets/usb-playback.webp';
 import webradioPlayback from '../../../assets/webradios-stream-cover.webp';
+import tracklistView from '../../../assets/embedded-ui-tracklist.webp';
 import mympdHome from '../../../assets/mympd-home.webp';
 
 [MPD (Music Player Daemon)](https://www.musicpd.org/) is the local music player on your odio node. It handles [audio CD](/guides/audio-cd/), [USB flash drive](/guides/usb-flashdrives/) playback, and can also serve a full music library from a NAS.
@@ -23,6 +24,8 @@ If you want library browsing, [two options](#using-a-nas-library) are available:
 ## Playback controls
 
 MPD exposes itself as an MPRIS player via [mpd2mpris](https://github.com/b0bbywan/mpd2mpris). This is what allows the odio API to discover and control MPD playback alongside all other sources. Playback is controllable from the embedded UI, the odio application, Home Assistant, or any MPD client.
+
+Since [mpd2mpris v0.13.0](https://github.com/b0bbywan/mpd2mpris/releases/tag/v0.13.0), the MPD queue is also exposed as an MPRIS [TrackList](/api/mpris/#tracklist) and stored playlists through the `Playlists` interface, so a client can browse the queue, jump to a track, add or remove entries, and switch playlists without speaking the MPD protocol. `AddTrack`, `RemoveTrack` and `GoTo` map to MPD's `addid`, `deleteid` and `playid`, and the URI schemes and MIME types advertised over MPRIS come from MPD's own `urlhandlers` and `decoders`. `ActivePlaylist` follows MPD's `lastloadedplaylist`, which needs MPD 0.24 or newer, everything else works on any supported MPD.
 
 The [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) daemon shipped by odio walks an ordered cover-art pipeline: the embedded picture inside the audio file (MPD's `readpicture`), a regex-matched image in the song's directory, MPD's `albumart` resolver, a CUE/cdda fallback that looks next to the loaded `.cue` playlist when the current song is a virtual reference like `cdda://Disc/Track01` or `sheet.cue/trackNNNN`, and, when nothing local is found, remote cover-art URLs (MusicBrainz/CAA, iTunes or Deezer for tagged tracks; the station favicon or myMPD WebradioDB for web-radio streams). The remote steps expose the image URL as `mpris:artUrl` directly, so nothing is downloaded or cached to disk.
 
@@ -40,6 +43,10 @@ The CUE fallback is what makes cover art work for [audio CD playback](/guides/au
 	<figure>
 		<Image src={webradioPlayback} alt="odio embedded UI playing a webradio via MPD, with the stream's album cover art and the artist and title shown alongside transport controls" />
 		<figcaption>Webradio playback, album cover art resolved by mpd2mpris</figcaption>
+	</figure>
+	<figure>
+		<Image src={tracklistView} alt="odio embedded UI with the media player card showing the MPD queue instead of the cover: four rows with a remove cross each, the playing one highlighted in green, transport controls below" />
+		<figcaption>The MPD queue exposed as an MPRIS tracklist, browsable and editable from the embedded UI</figcaption>
 	</figure>
 </div>
 
@@ -65,7 +72,7 @@ The home page surfaces four quick-access shortcuts: an odio icon that jumps back
 
 <Image src={mympdHome} alt="myMPD home page with four shortcut tiles: a green odio logo, Webradios with a radio icon, Albums with a disc icon, and Artists with a group icon" />
 
-It covers the MPD-side use cases the embedded UI doesn't: queue editing, library browsing, tag-aware search.
+It covers the MPD-side use cases the embedded UI doesn't: library browsing, tag-aware search, building a queue from scratch.
 
 ![myMPD playback queue showing a USB-loaded album, current track highlighted, transport controls in the footer](../../../assets/mympd-usb.webp)
 
