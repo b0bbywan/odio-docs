@@ -120,7 +120,7 @@ Each client can be assigned to a different stream: living room on Spotify, bedro
 PipeWire can automatically detect Snapcast servers on your network. With the `libpipewire-module-snapcast-discover` module, any audio played on a desktop or laptop (browser, media player, games, system sounds) automatically appears as a Snapcast stream — zero configuration needed.
 
 <Aside type="caution">
-This integration is currently broken on Snapserver 0.33, 0.34, and 0.35: PipeWire's `snapcast-discover` no longer finds the server (upstream [snapcast#1496](https://github.com/snapcast/snapcast/issues/1496), still open). It works against Snapserver 0.32 and earlier. If desktop discovery matters more than the new control-script metadata pipeline, stay on 0.32 for now; otherwise this section is informational until the upstream fix lands.
+Discovery needs PipeWire 1.6 or later on the desktop. Snapserver 0.33 renamed the mDNS service it publishes, which broke `snapcast-discover` in older PipeWire releases (upstream [snapcast#1496](https://github.com/snapcast/snapcast/issues/1496)); PipeWire 1.6 handles the new name, confirmed working with 1.6.5 against recent Snapserver releases; Debian forky and Fedora 44 both ship a fixed PipeWire. On an older PipeWire (Debian trixie ships 1.4), discovery only finds Snapserver 0.32 and earlier.
 </Aside>
 
 Create `~/.config/pipewire/pipewire.conf.d/my-snapcast-discover.conf`:
