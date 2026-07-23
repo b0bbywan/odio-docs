@@ -28,6 +28,7 @@ GET /events
 | `player.added` | mpris | New player appeared |
 | `player.removed` | mpris | Player closed |
 | `player.position` | mpris | Periodic position tick |
+| `player.tracklist.updated` | mpris | [Tracklist](/api/mpris/#tracklist) replaced, or a track added, removed, or its metadata changed |
 | `audio.updated` | pulseaudio | Sink input added or changed |
 | `audio.removed` | pulseaudio | Sink input removed |
 | `service.updated` | systemd | Unit state change |
