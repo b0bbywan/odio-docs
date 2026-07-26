@@ -38,6 +38,10 @@ jobs:
 
       - run: npm ci
 
+      # GH_STATS_TOKEN must be a *classic* PAT with public_repo scope: listing a
+      # repo's stargazers (the cumulative-stars line) is refused for fine-grained
+      # PATs, and GITHUB_TOKEN only sees this repo. Everything else in the script
+      # works with any of them.
       - name: Generate stats
         run: npm run stats
         env:

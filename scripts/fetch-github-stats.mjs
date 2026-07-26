@@ -31,9 +31,31 @@ console.log(`[stats] ${repoNames.length} repos since ${SINCE}: ${repoNames.join(
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// What gh actually complained about. execFile's e.message starts with the whole
+// command line, so its first line is the query we already know about, not the
+// error — the reason lives on stderr.
+function errText(e) {
+  const src = (e?.stderr || '').trim() || (e?.message || '').trim();
+  const lines = src
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith('Command failed:'));
+  return lines.join(' | ').slice(0, 400) || 'unknown error';
+}
+
 // Retry transient failures so a secondary rate limit doesn't silently drop data.
+// A rate-limit 403 always names the limit ("rate limit", "abuse detection"), so
+// match on that rather than on the bare status: a permission 403 is permanent,
+// and retrying it only burns 30s of backoff per repo.
+// "invalid character ... after object key" is gh failing to decode a response
+// body; it shows up on bursty search-API calls (pr/issue list) and silently
+// dropped whole repos from the PR totals, so retry it like any other throttle.
 const isTransient = (text) =>
-  /rate limit|secondary rate|too quickly|abuse detection|\b(403|429|50[0-4])\b|timed? ?out/i.test(text);
+  /rate limit|secondary rate|too quickly|abuse detection|\b(429|50[0-4])\b|timed? ?out|invalid character/i.test(
+    text
+  );
+
+const isDenied = (text) => /not accessible|requires authentication|bad credentials/i.test(text);
 
 async function gh(argv) {
   const maxRetries = 4;
@@ -44,6 +66,9 @@ async function gh(argv) {
     } catch (e) {
       const text = `${e.message}\n${e.stderr || ''}`;
       if (attempt >= maxRetries || !isTransient(text)) throw e;
+      // Say when we back off: throttling used to be invisible in the logs, and
+      // whatever it dropped came out as a plausible-looking smaller number.
+      console.warn(`[stats]   retrying \`gh ${argv.slice(0, 2).join(' ')}\` after: ${errText(e)}`);
       await sleep(2000 * 2 ** attempt); // 2s, 4s, 8s, 16s
     }
   }
@@ -68,6 +93,27 @@ async function ghApiPaginateRaw(endpoint, extraArgs = []) {
   return out.trim();
 }
 
+
+// Listing a repo's stargazers stopped being readable anonymously (401) and is
+// refused outright for fine-grained PATs (403 "Resource not accessible by
+// personal access token", even on the token's own repo). The Actions GITHUB_TOKEN
+// only sees the repo it runs in. So the timestamps behind the cumulative-stars
+// line need a classic PAT with public_repo scope in GH_STATS_TOKEN. When the
+// token can't read them, say so once and stop asking for the other 14 repos.
+let starDenied = false;
+function noteStarFailure(path, e) {
+  const text = errText(e);
+  if (isDenied(text)) {
+    if (!starDenied) {
+      console.warn(
+        `[stats]   stargazers denied (${path}): ${text} — GH_STATS_TOKEN needs to be a classic PAT with public_repo scope; skipping the stars timeline`
+      );
+    }
+    starDenied = true;
+    return;
+  }
+  console.warn(`[stats]   stargazers via ${path} failed: ${text}`);
+}
 
 function isoWeek(dateStr) {
   const d = new Date(dateStr);
@@ -108,7 +154,7 @@ async function fetchRepo(name) {
       'number,state,mergedAt,closedAt,createdAt,isDraft',
     ]) || [];
   } catch (e) {
-    console.warn(`[stats]   pr list failed: ${e.message.split('\n')[0]}`);
+    console.warn(`[stats]   pr list failed: ${errText(e)}`);
   }
   const prMerged = prs.filter((p) => p.state === 'MERGED').length;
   const prClosed = prs.filter((p) => p.state === 'CLOSED' && !p.mergedAt).length;
@@ -133,7 +179,7 @@ async function fetchRepo(name) {
       'number,state,createdAt,closedAt',
     ]) || [];
   } catch (e) {
-    console.warn(`[stats]   issue list failed: ${e.message.split('\n')[0]}`);
+    console.warn(`[stats]   issue list failed: ${errText(e)}`);
   }
   const issuesOpened = issues.length;
   const issuesClosed = issues.filter((i) => i.state === 'CLOSED').length;
@@ -161,7 +207,7 @@ async function fetchRepo(name) {
         prerelease: r.isPrerelease,
       }));
   } catch (e) {
-    console.warn(`[stats]   release list failed: ${e.message.split('\n')[0]}`);
+    console.warn(`[stats]   release list failed: ${errText(e)}`);
   }
 
   let commits = [];
@@ -176,7 +222,7 @@ async function fetchRepo(name) {
     commits = all.filter((c) => (c.parents?.length || 0) <= 1);
     mergesSkipped = all.length - commits.length;
   } catch (e) {
-    console.warn(`[stats]   commits failed: ${e.message.split('\n')[0]}`);
+    console.warn(`[stats]   commits failed: ${errText(e)}`);
   }
   const byWeekMap = {};
   let aiAssisted = 0;
@@ -255,17 +301,19 @@ async function fetchRepo(name) {
       };
     }
   } catch (e) {
-    console.warn(`[stats]   discussions failed: ${e.message.split('\n')[0]}`);
+    console.warn(`[stats]   discussions failed: ${errText(e)}`);
   }
 
-  // Stargazers with timestamps (for time-series chart). GraphQL, not the REST
-  // star+json media type — that call fails under the CI token; graphql (as used
-  // for discussions above) works there.
+  // Stargazers with timestamps (for the cumulative-stars line). Two independent
+  // paths because each has failed under the CI token at some point and an empty
+  // result flattens the chart: GraphQL first, then REST with the star+json media
+  // type. Whichever answers wins.
   let starEvents = [];
-  try {
-    let cursor = null;
-    for (;;) {
-      const q = `query($cursor: String) {
+  if (!starDenied) {
+    try {
+      let cursor = null;
+      for (;;) {
+        const q = `query($cursor: String) {
         repository(owner: "${owner}", name: "${name}") {
           stargazers(first: 100, after: $cursor, orderBy: { field: STARRED_AT, direction: ASC }) {
             pageInfo { hasNextPage endCursor }
@@ -273,16 +321,29 @@ async function fetchRepo(name) {
           }
         }
       }`;
-      const argv = ['api', 'graphql', '-f', `query=${q}`];
-      if (cursor) argv.push('-f', `cursor=${cursor}`);
-      const sg = (await ghJson(argv))?.data?.repository?.stargazers;
-      if (!sg) break;
-      starEvents.push(...sg.edges.map((e) => e.starredAt).filter(Boolean));
-      if (!sg.pageInfo?.hasNextPage) break;
-      cursor = sg.pageInfo.endCursor;
+        const argv = ['api', 'graphql', '-f', `query=${q}`];
+        if (cursor) argv.push('-f', `cursor=${cursor}`);
+        const sg = (await ghJson(argv))?.data?.repository?.stargazers;
+        if (!sg) break;
+        starEvents.push(...sg.edges.map((e) => e.starredAt).filter(Boolean));
+        if (!sg.pageInfo?.hasNextPage) break;
+        cursor = sg.pageInfo.endCursor;
+      }
+    } catch (e) {
+      noteStarFailure('graphql', e);
     }
-  } catch (e) {
-    console.warn(`[stats]   stargazers failed: ${e.message.split('\n')[0]}`);
+  }
+  if (!starDenied && starEvents.length === 0 && (info?.stars ?? 0) > 0) {
+    try {
+      const rows = await ghApiPaginateArray(`/repos/${repo}/stargazers?per_page=100`, [
+        '-H',
+        'Accept: application/vnd.github.star+json',
+      ]);
+      starEvents = rows.map((r) => r.starred_at).filter(Boolean);
+      console.log(`[stats]   stargazers via rest fallback (${starEvents.length}/${info.stars})`);
+    } catch (e) {
+      noteStarFailure('rest', e);
+    }
   }
 
   // All-contributors roster (.all-contributorsrc). Credits any kind of help —
@@ -347,7 +408,7 @@ async function repoWorker() {
     try {
       results[i] = await fetchRepo(name);
     } catch (e) {
-      console.error(`[stats] ✗ ${name}: ${e.message.split('\n')[0]}`);
+      console.error(`[stats] ✗ ${name}: ${errText(e)}`);
     }
   }
 }
@@ -406,6 +467,17 @@ function weekEndISO(weekLabel) {
   return end.toISOString();
 }
 const allStarEvents = repos.flatMap((r) => r.starEvents || []).sort();
+// Guard the failure mode this series has hit twice: every stargazer call dies,
+// starsByWeek is all zeros, and the chart quietly ships a flat line. Annotate so
+// the run shows it instead of publishing a silent regression.
+if (allStarEvents.length === 0 && totals.stars > 0) {
+  const why = starDenied
+    ? 'the token cannot list stargazers (needs a classic PAT with public_repo scope)'
+    : 'every stargazers call came back empty';
+  console.warn(
+    `::warning title=Stats::no stargazer timestamps collected (${totals.stars} stars exist) — ${why}, so the cumulative-stars line will be flat`
+  );
+}
 const preWindowStars = allStarEvents.filter((ts) => ts < SINCE_ISO).length;
 const starsByWeek = commitsByWeek.map(({ w }) => {
   const end = weekEndISO(w);
