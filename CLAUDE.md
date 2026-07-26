@@ -38,4 +38,4 @@ The stats are **decoupled from the site build**: the `Stats` workflow (`.github/
 
 `src/data/seo.ts` needs the latest odios version for its `softwareVersion` JSON-LD field; it reads it at build from GitHub's `releases/latest` redirect (no token, no API), falling back to omitting the field on failure. Nothing else imports `src/data/stats.json` at build time.
 
-The sister site `odio.love` also ships a compact KPI strip; it regenerates its own copy with the same script on that side.
+The sister site `odio.love` also ships a compact KPI strip; it reads the same `https://stats.odio.love/repos.json`, so this workflow is the only place the stats are generated.
