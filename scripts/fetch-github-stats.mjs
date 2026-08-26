@@ -3,6 +3,7 @@ import { promisify } from 'node:util';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
+import { upstreamProjects } from '../src/data/upstream.js';
 
 const exec = promisify(execFile);
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -395,6 +396,53 @@ async function fetchRepo(name) {
   };
 }
 
+// Contributions to the projects odio builds on, listed in src/data/upstream.js.
+// Two search calls per repo, run sequentially: the search API throttles harder
+// than the REST one, and there are only a handful of repos to walk.
+// `gh search prs` exposes no mergedAt, but a merged PR closes when it merges,
+// so closedAt is the merge date here (the query is scoped to --merged).
+async function fetchUpstream({ repo, why }) {
+  const window = `>=${SINCE}`;
+  let prs = [];
+  let issues = [];
+  try {
+    prs = await ghJson([
+      'search', 'prs', '--repo', repo, '--author', owner, '--merged',
+      '--created', window, '--limit', '100',
+      '--json', 'number,title,url,closedAt',
+    ]) || [];
+  } catch (e) {
+    console.warn(`[stats]   upstream pr search failed (${repo}): ${errText(e)}`);
+  }
+  try {
+    issues = await ghJson([
+      'search', 'issues', '--repo', repo, '--author', owner,
+      '--created', window, '--limit', '100',
+      '--json', 'number,title,url,state,createdAt',
+    ]) || [];
+  } catch (e) {
+    console.warn(`[stats]   upstream issue search failed (${repo}): ${errText(e)}`);
+  }
+  return {
+    repo,
+    why,
+    prs: prs
+      .map((p) => ({ number: p.number, title: p.title, url: p.url, mergedAt: p.closedAt }))
+      .sort((a, b) => b.mergedAt.localeCompare(a.mergedAt)),
+    issues: issues
+      .map((i) => ({ number: i.number, title: i.title, url: i.url, state: i.state, createdAt: i.createdAt }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+  };
+}
+
+const upstream = [];
+for (const project of upstreamProjects) {
+  console.log(`[stats] ↗ ${project.repo}`);
+  const entry = await fetchUpstream(project);
+  // A listed repo with nothing in the window is not worth a row of its own.
+  if (entry.prs.length > 0 || entry.issues.length > 0) upstream.push(entry);
+}
+
 // Fetch repos concurrently, but bounded: each repo already fans out internally
 // (per-commit calls), so keep this modest to stay under GitHub's secondary rate
 // limits. Results are kept in input order; failed repos are dropped.
@@ -440,6 +488,11 @@ const totals = {
   // person credited on several repos counts once). Only odios has the roster
   // today; this scales on its own if more repos adopt the spec.
   contributors: new Set(repos.flatMap((r) => r.contributors || [])).size,
+  upstream: {
+    projects: upstream.length,
+    prsMerged: upstream.reduce((a, u) => a + u.prs.length, 0),
+    issues: upstream.reduce((a, u) => a + u.issues.length, 0),
+  },
 };
 const decidedTotal = totals.pr.merged + totals.pr.closedUnmerged;
 totals.pr.mergeRatio = decidedTotal > 0 ? totals.pr.merged / decidedTotal : null;
@@ -501,10 +554,11 @@ const output = {
   starsByWeek,
   preWindowStars,
   repos,
+  upstream,
 };
 
 console.log(
-  `[stats] done — ${repos.length} repos, ${totals.pr.merged} merged / ${totals.pr.closedUnmerged} closed, ${totals.commits} commits, ${totals.releases} releases, ${totals.stars}⭐ ${totals.forks}🍴`
+  `[stats] done — ${repos.length} repos, ${totals.pr.merged} merged / ${totals.pr.closedUnmerged} closed, ${totals.commits} commits, ${totals.releases} releases, ${totals.stars}⭐ ${totals.forks}🍴, upstream ${totals.upstream.prsMerged} PRs / ${totals.upstream.issues} issues in ${totals.upstream.projects} projects`
 );
 
 if (dryRun) {
