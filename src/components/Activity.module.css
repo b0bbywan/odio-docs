@@ -226,3 +226,74 @@
 }
 .versionRow .releaseTag { color: var(--sl-color-white); }
 .versionRow .releaseDate { color: var(--sl-color-gray-2); }
+
+/* Upstream contributions: one block per project, so the reason odio touched it
+   at all stays next to the list of what landed there. */
+.upstream {
+  background: var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.upstreamProject {
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid var(--sl-color-gray-4);
+}
+.upstreamProject:last-child { border-bottom: none; }
+.upstreamHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  margin-bottom: 0.6rem;
+}
+.upstreamRepo {
+  color: var(--sl-color-white);
+  font-family: var(--sl-font-mono, monospace);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.upstreamRepo:hover { text-decoration: underline; }
+.upstreamWhy {
+  color: var(--sl-color-gray-2);
+  font-size: 0.8rem;
+}
+.upstreamItems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.upstreamItems li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.upstreamKind {
+  flex: none;
+  min-width: 2.9rem;
+  text-align: center;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.35rem;
+  padding: 0 0.35rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sl-color-gray-2);
+}
+.upstreamItems li a {
+  flex: none;
+  font-family: var(--sl-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--sl-color-text-accent);
+}
+.upstreamTitle {
+  flex: 1 1 14rem;
+  color: var(--sl-color-gray-1);
+}

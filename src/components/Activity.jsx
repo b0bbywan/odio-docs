@@ -75,7 +75,7 @@ export default function Activity() {
 }
 
 function ActivityView({ stats }) {
-  const { totals, commitsByWeek, repos, since, generatedAt, owner } = stats;
+  const { totals, commitsByWeek, repos, upstream = [], since, generatedAt, owner } = stats;
 
   const sinceLabel = new Date(since).toLocaleDateString('en-US', {
     month: 'long',
@@ -115,6 +115,16 @@ function ActivityView({ stats }) {
             Forks and build pipelines we host on apt only. Source lives upstream; activity here is mostly tag bumps and packaging changes.
           </p>
           <RepoTable repos={externalRepos} owner={owner} />
+        </>
+      )}
+
+      {upstream.length > 0 && (
+        <>
+          <h3>Upstream contributions</h3>
+          <p class={styles.activitySub}>
+            Fixes and reports sent to the projects odio builds on.
+          </p>
+          <UpstreamList projects={upstream} />
         </>
       )}
 
@@ -174,6 +184,13 @@ function Cards({ totals, repos }) {
     totals.contributors != null
       ? { value: fmt.format(totals.contributors), label: 'contributors', sub: ['all kinds of help'] }
       : null,
+    totals.upstream?.prsMerged > 0
+      ? {
+          value: fmt.format(totals.upstream.prsMerged),
+          label: 'upstream PRs',
+          sub: [`${totals.upstream.projects} projects · ${totals.upstream.issues} issues`],
+        }
+      : null,
     {
       value: `${fmt.format(totals.stars)} ★`,
       label: 'stars',
@@ -194,6 +211,46 @@ function Cards({ totals, repos }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+function UpstreamList({ projects }) {
+  return (
+    <div class={`${styles.upstream} not-content`}>
+      {projects.map((p) => {
+        // One list per project, newest first, PRs and issues interleaved by date.
+        const items = [
+          ...p.prs.map((i) => ({ ...i, kind: 'PR', date: i.mergedAt })),
+          ...p.issues.map((i) => ({ ...i, kind: 'issue', date: i.createdAt })),
+        ].sort((a, b) => b.date.localeCompare(a.date));
+        return (
+          <div class={styles.upstreamProject}>
+            <div class={styles.upstreamHead}>
+              <a
+                class={styles.upstreamRepo}
+                href={`https://github.com/${p.repo}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {p.repo}
+              </a>
+              <span class={styles.upstreamWhy}>{p.why}</span>
+            </div>
+            <ul class={styles.upstreamItems}>
+              {items.map((i) => (
+                <li>
+                  <span class={styles.upstreamKind}>{i.kind}</span>
+                  <a href={i.url} target="_blank" rel="noopener noreferrer">
+                    #{i.number}
+                  </a>
+                  <span class={styles.upstreamTitle}>{i.title}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
     </div>
   );
 }
