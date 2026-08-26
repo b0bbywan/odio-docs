@@ -427,10 +427,10 @@ async function fetchUpstream({ repo, why }) {
     repo,
     why,
     prs: prs
-      .map((p) => ({ number: p.number, title: p.title, url: p.url, mergedAt: p.closedAt }))
+      .map((p) => ({ number: p.number, title: p.title, url: p.url, mergedAt: p.closedAt, week: isoWeek(p.closedAt) }))
       .sort((a, b) => b.mergedAt.localeCompare(a.mergedAt)),
     issues: issues
-      .map((i) => ({ number: i.number, title: i.title, url: i.url, state: i.state, createdAt: i.createdAt }))
+      .map((i) => ({ number: i.number, title: i.title, url: i.url, state: i.state, createdAt: i.createdAt, week: isoWeek(i.createdAt) }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   };
 }

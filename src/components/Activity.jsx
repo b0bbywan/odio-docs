@@ -29,6 +29,8 @@ const repoColors = {
 };
 const colorOf = (name) => repoColors[name] || '#3a7020';
 const AMBER = '#c8943a';
+// Neutral on purpose: the upstream markers annotate the series, they aren't one.
+const UPSTREAM_MARK = '#e6e6e6';
 
 export default function Activity() {
   const [stats, setStats] = useState(null);
@@ -327,7 +329,7 @@ function RepoTable({ repos, owner }) {
 }
 
 function Chart({ stats }) {
-  const { commitsByWeek, starsByWeek = [], repos } = stats;
+  const { commitsByWeek, starsByWeek = [], repos, upstream = [] } = stats;
   const chartRef = useRef(null);
   const [tip, setTip] = useState(null);
 
@@ -345,6 +347,19 @@ function Chart({ stats }) {
   const repoWeekMap = new Map(
     activeRepos.map((r) => [r.name, new Map(r.commits.byWeek.map((d) => [d.w, d.c]))]),
   );
+
+  // Upstream contributions land on the same ISO weeks as the commit bars (the
+  // stats script stamps them), so they can be marked above the plot without
+  // touching the commit series, which only counts repos we own.
+  const upstreamByWeek = new Map();
+  for (const project of upstream) {
+    for (const item of [...project.prs, ...project.issues]) {
+      if (!item.week) continue;
+      if (!upstreamByWeek.has(item.week)) upstreamByWeek.set(item.week, []);
+      upstreamByWeek.get(item.week).push(`${project.repo} #${item.number}`);
+    }
+  }
+  const hasUpstreamMarks = commitsByWeek.some((d) => upstreamByWeek.has(d.w));
 
   const maxC = Math.max(1, ...commitsByWeek.map((d) => d.c));
   const maxS = Math.max(1, ...starsSeries.map((d) => d.cumul));
@@ -484,6 +499,20 @@ function Chart({ stats }) {
               </circle>
             );
           })}
+          {commitsByWeek.map((d, i) => {
+            const marks = upstreamByWeek.get(d.w);
+            if (!marks) return null;
+            const cx = padL + i * (barW + barGap) + barW / 2;
+            return (
+              <g>
+                <title>{`${d.w} — upstream: ${marks.join(', ')}`}</title>
+                <path
+                  d={`M${cx.toFixed(1)},${padT - 16} L${(cx + 4).toFixed(1)},${padT - 12} L${cx.toFixed(1)},${padT - 8} L${(cx - 4).toFixed(1)},${padT - 12} Z`}
+                  fill={UPSTREAM_MARK}
+                />
+              </g>
+            );
+          })}
           {commitsByWeek.map((d, i) =>
             i % 4 === 0 || i === commitsByWeek.length - 1 ? (
               <text
@@ -508,6 +537,12 @@ function Chart({ stats }) {
             <span class={styles.legendLine} />
             cumulative stars
           </span>
+          {hasUpstreamMarks && (
+            <span class={styles.legendItem}>
+              <span class={styles.legendDiamond} />
+              upstream contribution
+            </span>
+          )}
         </div>
       </div>
     </div>
