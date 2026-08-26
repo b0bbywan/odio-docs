@@ -32,7 +32,7 @@ npm run stats     # Regenerate GitHub activity stats (reads src/data/ecosystem.j
 
 ## Activity / stats pipeline
 
-`scripts/fetch-github-stats.mjs` uses the local `gh` CLI to collect PR / commit / release / issue / star / fork / discussion data for the repos in `src/data/ecosystem.js`. Outputs minified `src/data/stats.json`.
+`scripts/fetch-github-stats.mjs` uses the local `gh` CLI to collect PR / commit / release / issue / star / fork / discussion data for the repos in `src/data/ecosystem.js`. Outputs minified `src/data/stats.json`. It also collects merged PRs and issues authored in third-party repos, scoped to the curated list in `src/data/upstream.js` (an unscoped `author:` search returns years of work unrelated to odio); they render as the *Upstream contributions* section of `Activity.jsx`.
 
 The stats are **decoupled from the site build**: the `Stats` workflow (`.github/workflows/stats.yml`, daily cron + manual dispatch) runs the script and publishes the JSON to GitHub Pages, served at `https://stats.odio.love/repos.json`. `src/components/Activity.astro` fetches that URL **client-side**, so refreshed stats appear live without a rebuild and the site build needs no GitHub token. The page lives at `src/content/docs/guides/activity.mdx`. `docs.odio.love/stats.json` still works via a redirect to the new URL (`vercel.json`).
 
