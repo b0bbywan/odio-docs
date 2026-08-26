@@ -24,6 +24,7 @@ const repoColors = {
   'mpDris2': '#d68aff',
   'snapclientmpris': '#5fc3d6',
   'odio-apt-repo': '#d9c758',
+  'odio-ci': '#6f92a8',
   'odio-docs': '#e38dd6',
   'odio.love': '#a09080',
 };
