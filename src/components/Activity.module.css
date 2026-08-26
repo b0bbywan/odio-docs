@@ -99,6 +99,13 @@
   height: 2px;
   background: #c8943a;
 }
+.legendDiamond {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #e6e6e6;
+  transform: rotate(45deg);
+}
 
 .tableWrap {
   background: var(--sl-color-gray-5);
