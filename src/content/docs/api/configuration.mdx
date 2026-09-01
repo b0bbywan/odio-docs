@@ -8,7 +8,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 The odio installer generates `~/.config/odio-api/config.yaml` automatically. The configuration shown below documents all available options — you only need to edit the file if you want to customize the defaults.
 
-<Aside type="caution">On installer-managed systems, changes to `config.yaml` may be overwritten on update. For persistent customization, use `/etc/odio-api/config.yaml` (system-wide) instead — it takes precedence over the user config but is not managed by the installer.</Aside>
+<Aside type="caution">On installer-managed systems, changes to `config.yaml` may be overwritten on update. For persistent customization, add a `*.yml` drop-in in `~/.config/odio-api/conf.d/` instead: it is merged on top of `config.yaml` at startup and left untouched by the installer. See [Drop-in overrides](#drop-in-overrides).</Aside>
 
 For standalone installations, the config file can also be specified with `--config <path>`.
 
