@@ -16,6 +16,14 @@ export const ecosystemProjects = [
     tech: { label: 'Ansible', color: '#EE0000' },
   },
   {
+    name: 'odioctl',
+    desc: 'System control for a node: upgrades, components, DAC overlay, and the settings page on port 8021. One static Go binary, stdlib only.',
+    short: 'Settings page and CLI',
+    url: 'https://github.com/b0bbywan/odioctl',
+    live: null,
+    tech: { label: 'Go', color: '#00ADD8' },
+  },
+  {
     name: 'odio-pwa',
     desc: 'Progressive Web App. Install from your browser, manage all your odio nodes from one place.',
     short: 'Web application for multi-node management',
