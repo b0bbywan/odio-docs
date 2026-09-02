@@ -7,7 +7,7 @@ The upgrade backend is an **agnostic frontend**: the API implements neither dete
 
 Capabilities are additive. The result file alone enables status reads (`GET /upgrade`); each configured unit enables its trigger (`POST /upgrade/check`, `POST /upgrade/start`). Configured units are registered as internal, triggerable but hidden from [`/services`](/api/systemd/) and the [event stream](/api/events/).
 
-Added in [go-odio-api v0.15.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.15.0). Opt-in, disabled by default. On a full [odio install](/operations/installation/) it is wired to the `odio-upgrade` flow out of the box, see [How to upgrade odio](/operations/upgrade/).
+Added in [go-odio-api v0.15.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.15.0). Opt-in, disabled by default. On a full [odio install](/operations/installation/) it is wired to the [odioctl](/operations/settings/) upgrade flow out of the box, see [How to upgrade odio](/operations/upgrade/).
 
 ## Configuration
 
@@ -56,7 +56,7 @@ Detector status, the run snapshot, and which triggers are available:
 - `running` — a run is in flight, with live `percent` and `step`.
 - `failed` — the last run failed; it stays `failed` until the next run starts.
 
-`origin` is `systemd` for a unit-triggered run or `socket` for one started out of band (the CLI `odio-upgrade`, adopted when its first progress line arrives). `started_at` and `finished_at` are RFC 3339 timestamps. `can_check` and `can_upgrade` reflect whether the matching unit is configured. `extra` carries any extra fields the detector wrote, passed through verbatim.
+`origin` is `systemd` for a unit-triggered run or `socket` for one started out of band (the CLI `odioctl upgrade apply`, adopted when its first progress line arrives). `started_at` and `finished_at` are RFC 3339 timestamps. `can_check` and `can_upgrade` reflect whether the matching unit is configured. `extra` carries any extra fields the detector wrote, passed through verbatim.
 
 ### Trigger a re-check
 
