@@ -37,6 +37,7 @@ api:
   port: 8018
   ui:
     enabled: true
+    # admin: ":8021"
   sse:
     enabled: true
   cors:
@@ -50,6 +51,7 @@ api:
 | `enabled` | `true` | Disable to stop the server entirely. |
 | `port` | `8018` | TCP port. Combined with `bind` to form the listen addresses. |
 | `ui.enabled` | `true` | Serves the [embedded web UI](/control/embedded-ui/) at `/ui`. Auto-disabled at startup if `bind` does not include `lo` (the UI is loopback-only by design). |
+| `ui.admin` | unset | Optional link to an admin web app, shown as a gear icon in the UI header. Same forms as a service `url` in the [systemd whitelist](#systemd-opt-in-whitelist-required): `":8021"` resolves against the node's own address. odios points it at the [settings page](/operations/settings/). Since [v0.17.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.0). |
 | `sse.enabled` | `true` | Serves the [SSE event stream](/api/events/) at `/events`. The embedded UI and the [PWA](/control/pwa/) both rely on it for real-time updates. |
 | `cors.origins` | PWA defaults | Browser origins allowed to call the API, see below. |
 
@@ -95,7 +97,7 @@ bind: lo                      # loopback only (default)
 
 Since odio-api v0.12.0, `~/.config/odio-api/conf.d/` is loaded automatically: any `*.yml` file in that directory is merged on top of `config.yaml` at startup, so you can layer overrides on top of a base config without editing it. Within the `systemd` block, the `system` and `user` arrays are replaced wholesale by an override, not merged item by item, so the override must list every entry you want exposed.
 
-On odio streamer installs, the [installer](https://github.com/b0bbywan/odios) creates this directory and drops a `10-systemd.yml.default` reference matching the host's installed services, regenerated on every `odio-upgrade` run. The `.default` extension keeps it ignored at runtime. To use it as a starting point, copy it under a `.yml` name and edit:
+On odio streamer installs, the [installer](https://github.com/b0bbywan/odios) creates this directory and drops a `10-systemd.yml.default` reference matching the host's installed services, regenerated on every upgrade run. The `.default` extension keeps it ignored at runtime. To use it as a starting point, copy it under a `.yml` name and edit:
 
 ```bash
 cd ~/.config/odio-api/conf.d
