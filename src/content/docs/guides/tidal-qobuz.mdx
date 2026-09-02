@@ -8,7 +8,7 @@ import { Aside } from '@astrojs/starlight/components';
 
 Tidal and Qobuz streaming are available via [upmpdcli](https://www.lesbonscomptes.com/upmpdcli/). With either plugin enabled, upmpdcli becomes a full music library: you can browse, search, and play directly from any UPnP control point (e.g. BubbleDS Next or BubbleUPnP), in addition to its role as a [DLNA renderer](/guides/dlna/).
 
-Both plugins ship with the default odio installation (the installer asks, and defaults to yes). What remains is enabling them in upmpdcli's config and authenticating with your account, as walked through below for Tidal. The full parameter list is in the official documentation:
+Both plugins ship with the default odio installation (the installer asks, and defaults to yes). What remains is authenticating with your account, a button on the [settings page](/operations/settings/#components) since 2026.9.0b1, as walked through below for Tidal. The full parameter list is in the official documentation:
 
 - [Tidal streaming parameters](https://www.lesbonscomptes.com/upmpdcli/pages/upmpdcli-manual.html#_tidal_streaming_service_parameters)
 - [Qobuz streaming parameters](https://www.lesbonscomptes.com/upmpdcli/pages/upmpdcli-manual.html#_qobuz_streaming_service_parameters)
@@ -18,6 +18,27 @@ Both plugins ship with the default odio installation (the installer asks, and de
 There are two ways to play Tidal on the node: enable upmpdcli's Tidal plugin, which adds Tidal to the node's UPnP library for any control point, or use a control point that ships its own Tidal integration, like [BubbleUPnP](#tidal-via-bubbleupnps-own-integration), which needs no configuration on the node at all.
 
 ## Tidal in the node's library (upmpdcli plugin)
+
+Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), the installer enables the plugin when the Tidal feature is installed, and signing in is a button on the node's [settings page](/operations/settings/#components): open the Tidal row, click **Log in to Tidal**, and follow the link it shows, valid for five minutes, from any browser. The token lands in `~/.cache/upmpdcli/tidal/oauth2.credentials.json` in the odio user's home. Then [restart upmpdcli](#restart-upmpdcli).
+
+![The settings page with the Log in to Tidal dialog open over the components list: the helper's output announces where the credentials will be written and that the code expires in 300 seconds, above an Open the Tidal sign-in page button](../../../assets/settings-tidal-login.webp)
+
+Stream quality and country code keep their defaults. To change them, edit upmpdcli's config as the odio user over SSH:
+
+```bash
+sudo su - odio
+nano ~/.config/upmpdcli/upmpdcli.conf
+```
+
+In the `Tidal streaming service parameters` section:
+
+```ini
+tidalaudioquality = HI_RES_LOSSLESS
+tidaloverridecountrycode = FR
+```
+
+<details>
+<summary>Manual setup on releases before 2026.9.0b1</summary>
 
 upmpdcli runs as the **odio** user and reads its config from odio's home directory, so every step below starts by switching to that user from your SSH session:
 
@@ -60,9 +81,11 @@ Displaying credentials file for type [/home/odio/.cache/upmpdcli/tidal/oauth2.cr
 ...
 ```
 
-### 3. Restart upmpdcli
+</details>
 
-Restart `upmpdcli.service` to pick up the new config, from the [embedded UI](/control/embedded-ui/)'s Services panel (one click on the restart icon next to the service), or from the same odio terminal:
+### Restart upmpdcli
+
+Restart `upmpdcli.service` to pick up the new config and credentials, from the [embedded UI](/control/embedded-ui/)'s Services panel (one click on the restart icon next to the service), or from the same odio terminal:
 
 ```bash
 systemctl --user restart upmpdcli.service
