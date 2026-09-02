@@ -27,6 +27,10 @@ The embedded UI provides the same controls as the application: playback, volume,
 
 ![Embedded web UI showing the Audio Server with volume sliders, Media Players with Spotify playback and cover art, Bluetooth pairing controls, and Services management](../../../assets/embedded-ui.webp)
 
+Since [odio-api v0.17.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.0), a gear icon in the header opens the node's [settings page](/operations/settings/) on port 8021: upgrades, components, and DAC selection. The link comes from the [`api.ui.admin`](/api/configuration/#api-server) key, which odios sets on a full install.
+
+![Embedded web UI header showing the Audio, MPRIS and Systemd backend badges, then the settings gear, power and refresh icons](../../../assets/embedded-ui-settings-gear.png)
+
 Since [odio-api v0.16.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.16.0), a toggle on the player card swaps the cover for the [tracklist](/api/mpris/#tracklist) when the player exposes one and it holds at least two tracks: the current track is highlighted, tapping a row jumps to it, and each row gets a remove button when the player allows queue edits. The chosen view and the scroll position survive live refreshes. Tapping a cover opens it fullscreen, tap again or press Escape to close.
 
 ![Embedded web UI with the Media Players card showing the MPD queue instead of the cover: four rows with a remove cross each, the playing one highlighted in green, transport controls below, next to the Bluetooth, Audio Server, and Services panels](../../../assets/embedded-ui-tracklist.webp)

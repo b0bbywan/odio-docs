@@ -1,0 +1,41 @@
+---
+title: How to stream Qobuz Connect to your odio Pi
+description: Make the odio Pi a Qobuz Connect endpoint with qbzd. Enable it and sign in from the settings page, then pick the node in the Qobuz app. In test, feedback welcome.
+howto: true
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import qobuzApp from '../../../assets/qobuz-connect-app.webp';
+
+Your odio node can appear as a Qobuz Connect device in the official Qobuz apps, via [qbzd](https://github.com/vicrodh/qbz), the headless daemon of the QBZ player, packaged for odio by [odio-qbz](https://github.com/b0bbywan/odio-qbz). Requires a Qobuz subscription.
+
+<Aside type="caution">
+Qobuz Connect is in test since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1). It is off by default, the package ships in the testing suite of [apt.odio.love](/operations/apt-repository/#suites-stable-and-testing), and upstream still describes the protocol as short of full parity with the official clients. Feedback is welcome in [discussions](https://github.com/b0bbywan/odios/discussions) or as an [issue](https://github.com/b0bbywan/odios/issues).
+</Aside>
+
+## Enable it
+
+From the [settings page](/operations/settings/#components), enable **Qobuz Connect** in the Streaming group, then apply an [upgrade](/operations/settings/#upgrade): that run installs it. On a fresh install, the installer asks the same question. Either way, selecting it also adds the testing suite of the apt repository to the node, pinned low so no other package moves because of it.
+
+## Sign in
+
+Signing in is a button on the same page: **Log in to Qobuz** on the Qobuz Connect row shows a link, valid for five minutes. Open it from a browser on the same network as the node, the sign-in redirects back to the node to finish. There is no other supported login path.
+
+## Usage
+
+1. Open Qobuz on your phone, tablet, or desktop.
+2. Open the device picker.
+3. Select your odio node, it carries the node's hostname.
+
+Music streams from Qobuz to the Pi, and the app acts as a remote. Audio goes through PulseAudio like every other source, so the node's volume and output routing apply.
+
+<Image src={qobuzApp} width={360} alt="The Qobuz phone app's now-playing screen while casting to an odio node: cover art, a quality chip reading 16 bit 44.1 kHz next to a device chip carrying the node's hostname, then the seek bar and transport controls" />
+
+## Playback controls
+
+The Qobuz session appears as an MPRIS player in the [embedded web UI](/control/embedded-ui/), the [application](/control/pwa/) and [Home Assistant](/control/home-assistant/) with transport controls.
+
+![Embedded web UI during Qobuz Connect playback: the Media Players card shows a QBZ player with cover art, seek bar and transport controls, the Audio Server card lists an ALSA playback client tagged qbzd, and the Services panel includes the QBZ headless Qobuz playback daemon](../../../assets/qobuz-connect-embedded-ui.webp)
+
+For Qobuz in the node's UPnP library instead, through upmpdcli's plugin, see [Tidal & Qobuz](/guides/tidal-qobuz/#qobuz).

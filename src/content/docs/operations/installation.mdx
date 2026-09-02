@@ -130,17 +130,11 @@ The installer is idempotent, re-run it to upgrade an existing installation. Each
 
 ## DAC and overclocking
 
-If you use an external DAC (e.g. HiFiBerry DAC+ Standard), edit `/boot/firmware/config.txt`:
+If you use an external DAC (e.g. HiFiBerry DAC+ Standard), pick it from the [settings page](/operations/settings/#dac) on port 8021 and reboot (since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1)). It writes the `dtoverlay` line to `/boot/firmware/config.txt` and turns the onboard audio off. On older releases, edit the file by hand with the overlay from your DAC manufacturer's documentation.
 
-Adjust the `dtoverlay` line to match your DAC — see your DAC manufacturer's documentation.
+Overclocking stays a manual edit in the same file:
 
 ```ini
-# Enable your DAC overlay
-dtoverlay=hifiberry-dacplus-std
-
-# Disable the onboard audio
-#dtparam=audio=on
-
 # Overclock (useful on older armhf boards like Pi B+ at 700MHz)
 arm_boost=1
 arm_freq=800
@@ -151,6 +145,7 @@ arm_freq=800
 Once installed, your odio node is controllable from:
 
 - **[Embedded web UI](/control/embedded-ui/)** — built into the API, accessible from any browser on your network.
+- **[Settings page](/operations/settings/)** — upgrades, components, and DAC selection on port 8021, linked from the web UI header.
 - **[odio application](https://pwa.odio.love)** — web app installable from your browser, manage all your nodes from one place.
 - **[Home Assistant](https://github.com/b0bbywan/odio-ha)** — native integration via HACS. Every feature exposed as HA entities.
 - **Any MPD client** — for library browsing and playback control.

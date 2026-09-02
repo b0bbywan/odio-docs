@@ -26,6 +26,7 @@ export const sidebar = [
 			{ label: 'Bluetooth output', slug: 'guides/bluetooth-output' },
 			{ label: 'AirPlay', slug: 'guides/airplay' },
 			{ label: 'Spotify Connect', slug: 'guides/spotify' },
+			{ label: 'Qobuz Connect', slug: 'guides/qobuz-connect' },
 			{ label: 'UPnP / DLNA', slug: 'guides/dlna' },
 			{ label: 'Network audio (TCP sink)', slug: 'guides/network-audio' },
 			{ label: 'MPD', slug: 'guides/mpd' },
@@ -39,6 +40,7 @@ export const sidebar = [
 	{
 		label: 'Operations',
 		items: [
+			{ label: 'Settings', slug: 'operations/settings' },
 			{ label: 'Upgrade', slug: 'operations/upgrade' },
 			{ label: 'Power management', slug: 'operations/power' },
 			{ label: 'APT repository', slug: 'operations/apt-repository' },
