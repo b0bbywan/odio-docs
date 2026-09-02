@@ -254,7 +254,8 @@
     "pifi",
     "Pisound",
     "pisound",
-    "soundcard"
+    "soundcard",
+    "qbzd"
   ],
   "ignorePaths": [
     "node_modules",
