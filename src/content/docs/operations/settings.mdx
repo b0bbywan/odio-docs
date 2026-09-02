@@ -1,0 +1,168 @@
+---
+title: How to configure an odio node from the settings page
+description: Manage an odio node from its settings page on port 8021, apply upgrades, enable or disable components, pick the DAC overlay. All of it is also odioctl CLI.
+howto: true
+---
+
+Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), every odio node serves a settings page on port 8021. It covers what used to need SSH: applying upgrades, enabling or disabling components, and selecting the DAC overlay. Behind it is [odioctl](https://github.com/b0bbywan/odioctl), a single Go binary with no dependencies, installed by odios from [apt.odio.love](/operations/apt-repository/). It replaces the `odio-upgrade` script, and it is meant to grow with the rest of the node's settings as needs come up. What gets pulled into it versus left on the command line follows the [configuration philosophy](/operations/how-it-works/#configuration-philosophy): bring your case to [discussions](https://github.com/b0bbywan/odios/discussions).
+
+The page is plain HTML forms, no JavaScript, no JSON API. Everything it does is also a subcommand of `odioctl`, see [Command line](#command-line).
+
+## Access
+
+```
+http://<ip>:8021
+```
+
+Or via Zeroconf (mDNS):
+
+```
+http://<hostname>.local:8021
+```
+
+The [embedded web UI](/control/embedded-ui/) links to it from the gear icon in its header, since [odio-api v0.17.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.0). odios sets the [`api.ui.admin`](/api/configuration/#api-server) key for that.
+
+There is no authentication, the same LAN trust model as odio-api: anyone who can reach the port can act on the node. Every form carries a per-process token, so a page on another site cannot drive the box through your browser. The port is held by a systemd user socket, `odioctl-web.socket`, on all interfaces. To keep it on loopback, override its `ListenStream` with a [drop-in](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Description).
+
+![The full settings page of an odio node: the Upgrade section reporting up to date, the Components section listing roles and features grouped as Audio, Playback, Streaming and System with an Installed or Disabled chip and a toggle button each, and the DAC section with the board picker set to onboard audio](../../../assets/settings-page.webp)
+
+## Upgrade
+
+The top section mirrors the daily check run by `odio-check-upgrade.timer`: no check yet, up to date, or the list of roles with a newer version in the target release. **Apply now** starts `odio-upgrade.service`, the same unit Home Assistant and the embedded web UI trigger, so progress shows up in [odio-ui](/control/embedded-ui/) and in the Home Assistant [Firmware entity](/control/home-assistant/) as usual. The node keeps playing, but services restart along the way. See [How to upgrade odio](/operations/upgrade/) for the full flow.
+
+## Components
+
+Components are the roles odios installs (PulseAudio, Bluetooth, MPD, CD player, AirPlay, Spotify Connect, Qobuz Connect, Snapcast, UPnP / DLNA, odio-api, Branding) and the features that plug into a role (myMPD under MPD, Tidal, Qobuz and Web radios under UPnP / DLNA). They are grouped as Audio, Playback, Streaming and System, each with a status chip: installed, excluded, or default when the role is not installed on this node yet.
+
+Enable and Disable only record the choice in `/var/lib/odio/state.json`. Nothing is installed or removed until the next upgrade run: enabling installs the component then, disabling keeps it installed but stops updating it. Trigger an [upgrade](#upgrade) to apply right away. Base system and Upgrade are infrastructure and cannot be toggled.
+
+Tidal and Qobuz Connect carry a login button on their row. It runs the sign-in helper on the node and shows a link, valid for five minutes, to complete the login from your browser.
+
+## DAC
+
+This section appears on Raspberry Pi, where a `config.txt` is found. Pick the board from the list and click **Apply**. odioctl writes one marked block at the end of `/boot/firmware/config.txt`, with the onboard audio turned off and the board's `dtoverlay` line, and comments out any audio line it recognizes elsewhere in the file with an `#odioctl-disabled:` prefix. A copy of the original is kept once as `config.txt.odioctl.bak`. The change takes effect after a reboot, and the page says so until then.
+
+**Reset** removes the block and restores the commented lines. An overlay odioctl does not know is left untouched and reported under the picker, whether a line is audio is not something to guess at.
+
+Overclocking stays a manual edit, outside the managed block, see [Installation](/operations/installation/#dac-and-overclocking).
+
+![The DAC section of the settings page with the board list dropped down, showing the onboard audio entry, two generic I2S entries and the start of the HiFiBerry range, each with its id in parentheses, above the Apply and Reset buttons and a line reading current: onboard, managed by odioctl](../../../assets/settings-dac-picker.webp)
+
+<details>
+<summary>Supported boards</summary>
+
+The id column is what `odioctl dac set` takes. Missing yours? Open an issue on [odioctl](https://github.com/b0bbywan/odioctl/issues) with the `dtoverlay` line it needs.
+
+| Id | Board |
+|---|---|
+| `onboard` | Onboard audio (3.5mm jack / HDMI) |
+| `i2s-dac` | Generic passive I2S DAC (Pi as clock master) |
+| `i2s-master-dac` | Generic I2S DAC acting as clock master |
+| `hifiberry-dac` | HiFiBerry DAC / DAC+ Light / DAC+ Zero / MiniAmp / PCM5102 |
+| `hifiberry-dacplus` | HiFiBerry DAC+ (auto-detect std/pro) |
+| `hifiberry-dacplus-std` | HiFiBerry DAC+ (standard) |
+| `hifiberry-dacplus-pro` | HiFiBerry DAC+ Pro / DAC2 Pro |
+| `hifiberry-dacplusadc` | HiFiBerry DAC+ ADC |
+| `hifiberry-dacplusadcpro` | HiFiBerry DAC+ ADC Pro / DAC2 ADC Pro |
+| `hifiberry-dacplushd` | HiFiBerry DAC+ HD / DAC2 HD |
+| `hifiberry-dacplusdsp` | HiFiBerry DAC+ DSP |
+| `hifiberry-dac8x` | HiFiBerry DAC8x (Pi 5 only) |
+| `hifiberry-studio-dac8x` | HiFiBerry Studio DAC8x |
+| `hifiberry-studio-dac8x-pro` | HiFiBerry Studio DAC8x Pro |
+| `hifiberry-digi` | HiFiBerry Digi / Digi+ |
+| `hifiberry-digi-pro` | HiFiBerry Digi+ Pro / Digi2 Pro |
+| `hifiberry-studio-digi` | HiFiBerry Studio Digi / AES |
+| `hifiberry-amp` | HiFiBerry Amp / Amp+ |
+| `hifiberry-amp100` | HiFiBerry Amp100 |
+| `hifiberry-amp3` | HiFiBerry Amp3 |
+| `hifiberry-amp4pro` | HiFiBerry Amp4 Pro |
+| `iqaudio-dac` | IQaudIO Pi-DAC / Pi-DAC Zero |
+| `iqaudio-dacplus` | IQaudIO Pi-DAC+ / Pi-DAC Pro / Pi-DigiAMP+ |
+| `iqaudio-digi-wm8804-audio` | IQaudIO Pi-Digi+ |
+| `iqaudio-codec` | IQaudIO Pi-Codec+ / Codec Zero |
+| `akkordion-iqdacplus` | Digital Dreamtime Akkordion (IQaudIO DAC+ based) |
+| `rpi-dacplus` | Raspberry Pi DAC+ |
+| `rpi-dacpro` | Raspberry Pi DAC Pro |
+| `rpi-digiampplus` | Raspberry Pi DigiAMP+ |
+| `rpi-codeczero` | Raspberry Pi Codec Zero |
+| `allo-boss-dac-pcm512x-audio` | Allo Boss DAC |
+| `allo-boss2-dac-audio` | Allo Boss2 DAC |
+| `allo-piano-dac-pcm512x-audio` | Allo Piano DAC 2.0 (2.1 in stereo only) |
+| `allo-piano-dac-plus-pcm512x-audio` | Allo Piano DAC 2.1 |
+| `allo-digione` | Allo DigiOne |
+| `allo-katana-dac-audio` | Allo Katana DAC |
+| `justboom-dac` | JustBoom DAC HAT / Amp HAT / DAC Zero / Amp Zero |
+| `justboom-digi` | JustBoom Digi HAT / Digi Zero |
+| `justboom-both` | JustBoom DAC + Digi (stacked) |
+| `pifi-dac-hd` | PiFi DAC HD |
+| `pifi-dac-zero` | PiFi DAC Zero |
+| `pifi-40` | PiFi 40W stereo amplifier |
+| `pifi-mini-210` | PiFi Mini stereo amplifier |
+| `dionaudio-loco` | Dion Audio LOCO DAC-AMP |
+| `dionaudio-loco-v2` | Dion Audio LOCO-V2 DAC-AMP |
+| `dionaudio-kiwi` | Dion Audio KIWI Streamer |
+| `audioinjector-wm8731-audio` | AudioInjector Zero / Stereo |
+| `audioinjector-addons` | AudioInjector Octo |
+| `audioinjector-ultra` | AudioInjector Ultra |
+| `audioinjector-isolated-soundcard` | AudioInjector Isolated |
+| `audioinjector-bare-i2s` | AudioInjector bare I2S |
+| `pisound` | Blokas Pisound |
+| `pisound-pi5` | Blokas Pisound (Pi 5) |
+| `pisound-micro` | Blokas Pisound Micro |
+| `applepi-dac` | Orchard Audio ApplePi-DAC |
+| `i-sabre-q2m` | Audiophonics I-Sabre Q2M |
+| `rra-digidac1-wm8741-audio` | Red Rocks Audio DigiDAC1 |
+| `dacberry400` | DACBerry 400 |
+| `chipdip-dac` | Chip Dip DAC |
+| `interludeaudio-analog` | Interlude Audio Analog HAT |
+
+</details>
+
+## Command line
+
+Everything on the page is a subcommand of `odioctl`, run as the odio user over SSH. The privileged ones, `upgrade apply` and `dac set` / `dac unset`, go through `sudo`, which the package's sudoers fragment allows without a password for members of the `odioctl` group.
+
+```bash
+odioctl upgrade check                       # compare state.json with the published manifest
+sudo odioctl upgrade apply                  # what Apply now and odio-upgrade.service run
+odioctl components list                     # roles and features with their status
+odioctl components disable branding         # recorded in state.json, applied on the next upgrade
+odioctl dac list                            # the board catalog
+sudo odioctl dac set hifiberry-dacplus-std  # then reboot
+sudo odioctl dac unset
+```
+
+To track an odios pre-release instead of the published latest, pass `--version pr-84` to `upgrade check` and `upgrade apply`, or set `ODIOCTL_ODIOS_VERSION=pr-84` in `/etc/default/odioctl`, which both the daily timer and the settings page read. Only a release tag is accepted there, never a URL: it is interpolated into a GitHub release path for odios and nothing else. See [CI/CD](/community/ci-cd/#odios-releases) for how PRs get published as `pr-<N>` pre-releases.
+
+<details>
+<summary>Full synopsis and exit codes</summary>
+
+```
+odioctl upgrade check  [--version TAG] [--state PATH] [--output PATH]
+odioctl upgrade apply  [--version V] [--state PATH] [--dry-run] [--force] [--reinstall] [--progress|--no-progress]
+odioctl upgrade verify [--state PATH] [--expected-version TAG]
+odioctl pwa-url
+odioctl components [--state PATH] list [--json] | enable NAME | disable NAME
+odioctl dac list [--json] | status [--json] | set ID [--dry-run] | unset
+odioctl web [--bind 0.0.0.0] [--port 8021] [--state PATH] [--config PATH]
+```
+
+| Command | Exit codes |
+|---|---|
+| `upgrade check` | 0 up to date, 1 upgrades available, 2 error |
+| `upgrade apply` | 0 upgraded or nothing to do, 1 `install.sh` failed, 2 error |
+| `upgrade verify` | 0 valid, 1 invalid, 2 `state.json` missing |
+
+`apply` re-runs `install.sh` from the target release with the opt-outs derived from `state.json`, and skips roles whose version did not move. `--reinstall` re-runs every role in full. Only the current `state.json` schema is accepted, nodes installed before 2026.5 need a fresh [install](/operations/installation/).
+
+</details>
+
+<details>
+<summary>Under the hood</summary>
+
+- **What the package ships.** The `odioctl` binary, user units for the daily check, the upgrade run and the settings page, and `/etc/sudoers.d/odioctl`. odios enables `odio-check-upgrade.timer` and `odioctl-web.socket` for the target user. The socket holds port 8021 from boot and starts `odioctl web` on the first connection, so restarting the service never drops a request.
+- **Who runs what.** The page runs as the odio user. It edits `state.json` directly, which is why `/var/lib/odio` is group-writable by `odio` since 2026.9.0b1, and reaches `config.txt` through `sudo -n odioctl dac …`.
+- **Two groups on purpose.** `odio` grants access to `state.json` and holds the installing user too. `odioctl` grants passwordless root for exactly three things: `upgrade apply --progress`, `dac set <id>` with one sudoers line per catalog id, and `dac unset`. The fragment is generated from the DAC catalog, and CI fails when the two drift. A group that grants reads must not also grant root.
+- **The cache.** `/var/cache/odio/upgrades.json` is rewritten by the check and after every component toggle. odio-api and the SSH MOTD read it, see the [upgrade API](/api/upgrade/) for its contract.
+
+</details>

@@ -39,6 +39,7 @@ export const sidebar = [
 	{
 		label: 'Operations',
 		items: [
+			{ label: 'Settings', slug: 'operations/settings' },
 			{ label: 'Upgrade', slug: 'operations/upgrade' },
 			{ label: 'Power management', slug: 'operations/power' },
 			{ label: 'APT repository', slug: 'operations/apt-repository' },
