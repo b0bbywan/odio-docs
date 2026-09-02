@@ -1,6 +1,6 @@
 ---
 title: How to upgrade odio and check for releases
-description: Apply odio upgrades from Home Assistant or the web UI, or from the command line with the odio-upgrade helper. Pin a release tag, opt out of roles in state.json.
+description: Apply odio upgrades from Home Assistant, the web UI, the settings page, or the command line with odioctl. Pin a release tag, opt out of roles and features.
 howto: true
 ---
 
@@ -23,6 +23,8 @@ In [Home Assistant](/control/home-assistant/), the node carries a native **Firmw
 
 Both reflect whatever the node's detector reports and trigger the same units, see the [upgrade API](/api/upgrade/) for the contract behind them.
 
+Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), the node's [settings page](/operations/settings/#upgrade) on port 8021 shows the same check result, with the roles that would move, and an **Apply now** button that starts the same unit. It is also where components get enabled or disabled ahead of a run, see [below](#opt-out-of-a-role-or-feature).
+
 ## Check for upgrades from the command line
 
 Each node shows its update status in the MOTD when you SSH in:
@@ -34,9 +36,12 @@ The notice lists the overall version bump and the roles whose version actually c
 A systemd user timer (`odio-check-upgrade.timer`) reruns the check daily. Run it on demand to see the result on stdout:
 
 ```
-odio@raspodio:~ $ odio-upgrade check
-Upgrades available: dev-8e978895 → 2026.5.0b1
+odio@raspodio:~ $ odioctl upgrade check
+Upgrades available: 2026.7.0rc2 → 2026.9.0b1
+  upgrade: 2026.7.0rc2 → 2026.9.0b1
 ```
+
+The check is the [odioctl](/operations/settings/#command-line) binary since 2026.9.0b1; earlier releases shipped it as the `odio-upgrade check` script.
 
 Or trigger the user unit, with the result landing in the user journal:
 
@@ -54,18 +59,19 @@ systemctl --user start odio-upgrade.service
 
 It re-runs the installer with the feature selection from the previous run. Since [2026.5.0b1](https://github.com/b0bbywan/odios/pull/56), it only re-runs the roles that actually changed in the target release ([smart upgrade](https://github.com/b0bbywan/odios/issues/54)), bringing most upgrades down to a handful of roles.
 
-For flags, call the script directly:
+For flags, call odioctl directly. Applying needs root, which the `odioctl` group gets without a password:
 
 ```bash
-odio-upgrade apply                           # same as the unit
-odio-upgrade apply --version 2026.5.0b1      # pin a release tag
-odio-upgrade apply --dry-run --force         # print the derived env, no changes
+sudo odioctl upgrade apply                          # same as the unit
+sudo odioctl upgrade apply --version 2026.9.0b1     # pin a release tag
+sudo odioctl upgrade apply --dry-run --force        # print the invocation, no changes
+sudo odioctl upgrade apply --reinstall              # re-run every role, not only the ones that moved
 ```
 
-Open PRs are published as `pr-<N>` pre-releases (see [CI/CD](/community/ci-cd/#odios-releases)), so testing a PR before merge is the same call:
+Open PRs are published as `pr-<N>` pre-releases (see [CI/CD](/community/ci-cd/#odios-releases)), so testing a PR before merge is the same call. To keep a node on that pre-release for the daily check and the settings page too, set `ODIOCTL_ODIOS_VERSION=pr-84` in `/etc/default/odioctl`:
 
 ```bash
-odio-upgrade apply --version pr-52
+sudo odioctl upgrade apply --version pr-84
 ```
 
 The installer is idempotent and safe to re-run. When a config file has been locally modified, it creates a `<config>.bak` before applying changes; if the file ends up identical, no backup is kept (Bluetooth, MPD, mpd-discplayer, odio-api, PipeWire, shairport-sync, spotifyd, upmpdcli).
@@ -84,21 +90,36 @@ Pin a release tag:
 curl -fsSL https://github.com/b0bbywan/odios/releases/download/2026.5.0b1/install.sh | ODIOS_VERSION=2026.5.0b1 bash
 ```
 
-If the node was installed before 2026.4.2b1, it lacks the `odio-upgrade` helper. Each release ships it as a standalone asset, so it can run before being installed:
+A node installed before 2026.9.0b1 still carries the `odio-upgrade` script. Run it once, `odio-upgrade apply` or the unit above: that run installs the `odioctl` package, moves the units and sudoers over, and removes the script. From then on, everything on this page applies.
+
+A node installed before 2026.4.2b1 has no helper at all. Releases up to [2026.7.0rc2](https://github.com/b0bbywan/odios/releases/tag/2026.7.0rc2) ship it as a standalone asset, so it can run before being installed and take the same migration path:
 
 ```bash
-curl -fsSL https://odio.love/upgrade -o /tmp/odio-upgrade
+curl -fsSL https://github.com/b0bbywan/odios/releases/download/2026.7.0rc2/odio_upgrade.py -o /tmp/odio-upgrade
 chmod +x /tmp/odio-upgrade
 /tmp/odio-upgrade
 ```
 
-The next run finds the helper installed in `/usr/local/bin` and the state file at `/var/lib/odio/state.json`.
-
 ## Opt out of a role or feature
 
-`odio-upgrade` is opt-out: only entries listed in `state.json` map to `INSTALL_*=N`. Everything else, including roles or features added in a later release, is installed.
+Upgrades are opt-out: only entries listed in `state.json` map to `INSTALL_*=N`. Everything else, including roles or features added in a later release, is installed.
 
-Edit `/var/lib/odio/state.json` and add the entry to the matching `_excluded` list, for example to keep `branding` and `upnpwebradios` off:
+Toggle components from the [settings page](/operations/settings/#components) or the command line, for example to keep `branding` and `upnpwebradios` off:
+
+```bash
+odioctl components list
+odioctl components disable branding
+odioctl components disable upnpwebradios
+```
+
+Disabling keeps the component installed but stops updating it, nothing is removed. `enable` opts back in. Either way the change only takes effect on the next run:
+
+```bash
+sudo odioctl upgrade apply --dry-run --force   # print the derived INSTALL_* flags
+sudo odioctl upgrade apply
+```
+
+Under the hood, the toggle adds the entry to the matching `_excluded` list in `/var/lib/odio/state.json`, which you can still edit by hand:
 
 ```diff
    "roles_excluded": [
@@ -111,21 +132,12 @@ Edit `/var/lib/odio/state.json` and add the entry to the matching `_excluded` li
    ]
 ```
 
-Verify and apply:
-
-```bash
-odio-upgrade apply --dry-run --force   # print the derived INSTALL_* flags
-odio-upgrade apply
-```
-
-Removing an entry opts back in.
-
 <details>
 <summary>State files behind the upgrade flow</summary>
 
 Three files back the detection and upgrade flow:
 
-- **Local state** — `/var/lib/odio/state.json`, written by the installer after each successful run and read by `odio-upgrade apply`. Tracks the odios version, install mode, target user, per-role versions, opt-in features, explicit opt-outs, and a `release_history` of the last odios versions installed on this node. The file is `0640 root:odio`:
+- **Local state** — `/var/lib/odio/state.json`, written by the installer after each successful run and read by `odioctl upgrade apply`. Tracks the odios version, install mode, target user, per-role versions, opt-in features, explicit opt-outs, and a `release_history` of the last odios versions installed on this node. The file is `0660 root:odio` since 2026.9.0b1, so the settings page can edit it as the odio user:
 
   ```json
   {
@@ -163,7 +175,7 @@ Three files back the detection and upgrade flow:
 
 - **Published manifest** — [odio.love/manifest.json](https://odio.love/manifest.json), generated by CI on each release with the same shape. Each role version is the last odios release that touched that role.
 
-- **Check result** — `/var/cache/odio/upgrades.json`, written by `odio-upgrade check` (the daily timer's job) and read by the MOTD:
+- **Check result** — `/var/cache/odio/upgrades.json`, written by `odioctl upgrade check` (the daily timer's job, and again after every component toggle) and read by the MOTD and odio-api:
 
   ```json
   {
