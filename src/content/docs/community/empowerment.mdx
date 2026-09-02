@@ -15,7 +15,7 @@ odio installs in one command, updates in one command, and works out of the box. 
 
 It's DevOps thinking ported to multimedia. Your streamer isn't a precious appliance you tiptoe around, it's a reproducible host: cheap to rebuild, safe to poke at, boring to restore. Same philosophy that runs production infrastructure, applied to the box that plays your music.
 
-The odio user's home directory is tiny, a handful of kilobytes. Two folders hold your customizations, `~/.config` and `~/.cache`, plus `/boot/config.txt` for DAC overlays and overclocking. Back those up, and you can wipe the whole system, reflash, and be back where you were in minutes.
+The odio user's home directory is tiny, a handful of kilobytes. Two folders hold your customizations, `~/.config` and `~/.cache`, plus `/boot/firmware/config.txt` for the DAC overlay (managed from the [settings page](/operations/settings/#dac)) and overclocking. Back those up, and you can wipe the whole system, reflash, and be back where you were in minutes.
 
 Which means you can actually try things. Install an [extension](/operations/extensions/), listed or not. Poke at a systemd unit. Tweak a software config file. Most of them should hold basic documentation and unused config options to explore. If you break it and can't fix it, you reflash and move on, a little sharper than before.
 
