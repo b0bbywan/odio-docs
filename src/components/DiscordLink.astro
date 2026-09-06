@@ -1,0 +1,26 @@
+---
+/**
+ * Discord invite link, same mechanism as Footer.astro on odio.love.
+ *
+ * The invite code comes from the PUBLIC_DISCORD_INVITE env var (set on Vercel)
+ * and the URL is assembled client-side, so neither the repo nor the shipped
+ * HTML contains a harvestable invite string. Renders nothing when the env var
+ * is unset, so a local build without it stays valid.
+ */
+const code = import.meta.env.PUBLIC_DISCORD_INVITE ?? '';
+---
+
+{code && <a href="#" data-d={code} class="js-discord"><slot>Discord</slot></a>}
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('a.js-discord').forEach((a) => {
+    const code = a.dataset.d;
+    if (!code) return;
+    // .join() survives minification; a `'disc' + 'ord'` concatenation gets folded
+    // straight back into a literal, which is what the split was there to avoid.
+    a.href = `https://${['disc', 'ord', '.gg'].join('')}/${code}`;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.removeAttribute('data-d');
+  });
+</script>
