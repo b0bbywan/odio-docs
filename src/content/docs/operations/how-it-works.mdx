@@ -35,6 +35,17 @@ When you commit to PulseAudio, every audio application must output to it directl
 
 odio ships without equalizer or volume normalization, I don't use them and prefer a clean, unprocessed signal. If there is demand and concrete proposals, this could be considered ([open an issue](https://github.com/b0bbywan/odios/issues)). You can also set up your own as an [extension](/operations/extensions)
 
+### Mono output
+
+odio outputs stereo. For a single speaker, PulseAudio's `module-remap-sink` mixes both channels down into a mono sink placed on top of your DAC. To try it, from an SSH session as the odio user:
+
+```bash
+pactl load-module module-remap-sink master=@DEFAULT_SINK@ sink_name=mono channels=1 channel_map=mono sink_properties=device.description=Mono
+pactl set-default-sink mono
+```
+
+The **Mono** sink also shows up under **Audio Server → Default Sink** in the [embedded web UI](/control/embedded-ui/), where you can switch between it and the stereo output like any other sink. The module does not survive a reboot. A small script and a user unit that load it at boot, and restore stereo when stopped, are on [odios#86](https://github.com/b0bbywan/odios/discussions/86), opened by [@langmario](https://github.com/langmario) for a DigiAMP+ driving one speaker, which also tracks a mono/stereo toggle in odio-api.
+
 ### PipeWire
 
 [PipeWire](https://pipewire.org/) is the future of Linux audio. It provides lower latency, better device management, and full PulseAudio compatibility via `pipewire-pulse`. From the outside, nothing changes, all existing clients keep working.
