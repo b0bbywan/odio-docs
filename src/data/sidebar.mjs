@@ -16,6 +16,7 @@ export const sidebar = [
 			{ label: 'Embedded web UI', slug: 'control/embedded-ui' },
 			{ label: 'Application', slug: 'control/pwa' },
 			{ label: 'Home Assistant', slug: 'control/home-assistant' },
+			{ label: 'Local screen', slug: 'control/local-screen' },
 			{ label: 'Python library (pyodio)', slug: 'control/pyodio' },
 		],
 	},

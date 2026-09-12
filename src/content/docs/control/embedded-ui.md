@@ -21,6 +21,8 @@ http://<hostname>.local:8018/ui
 
 No installation, no account. If you can reach your node on the network, you can control it.
 
+The same UI can also be shown on a display wired to the node itself, with no desktop environment installed — see [local screen](/control/local-screen/).
+
 ## Features
 
 The embedded UI provides the same controls as the application: playback, volume, Bluetooth, services, and power management. For a multi-node setup or an installable app experience, see the [odio application](/control/pwa/).
