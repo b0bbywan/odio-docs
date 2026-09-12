@@ -64,8 +64,11 @@ function assetKey(name, tag) {
   //  - odios assets went from `odios-…` to `odio-…` (the binary is `odio`);
   //  - the upgrade helper went from `odio-upgrade` to `odio_upgrade.py`;
   //  - mpDris2 tarballs were lowercased to `mpdris2-…`;
-  //  - spotifyd ships a default/full/slim flavor per arch, folded together.
+  //  - spotifyd ships a default/full/slim flavor per arch, folded together;
+  //  - a few packages were built from a release candidate and kept the `.rc.1`
+  //    suffix in their filename while the tag was final (odio-api v0.8.0).
   return key
+    .replace(/\{v\}[.\-_~](?:rc|alpha|beta|pre)[.\-_]?\d*/i, '{v}')
     .replace(/^odios([-.])/, 'odio$1')
     .replace(/^odio-upgrade$/, 'odio_upgrade.py')
     .replace(/^mpDris2/, 'mpdris2')
