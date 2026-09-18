@@ -32,7 +32,7 @@ The top section mirrors the daily check run by `odio-check-upgrade.timer`: no ch
 
 ## Components
 
-Components are the roles odios installs (PulseAudio, Bluetooth, MPD, CD player, AirPlay, Spotify Connect, Qobuz Connect, Snapcast, UPnP / DLNA, odio-api, Branding) and the features that plug into a role (myMPD under MPD, Tidal, Qobuz and Web radios under UPnP / DLNA). They are grouped as Audio, Playback, Streaming and System, each with a status chip: **Installed**, **Disabled**, or **Will install on next upgrade** when the role is not on this node yet.
+Components are the roles odios installs (PulseAudio, Bluetooth, MPD, CD player, AirPlay, Spotify Connect, Qobuz Connect, Snapcast, UPnP / DLNA, odio-api, Branding, the [local screen](/control/local-screen/)) and the features that plug into a role (myMPD under MPD, Tidal, Qobuz and Web radios under UPnP / DLNA). They are grouped as Audio, Playback, Streaming and System, each with a status chip: **Installed**, **Disabled**, or **Will install on next upgrade** when the role is not on this node yet.
 
 The button on the row only records the choice in `/var/lib/odio/state.json`: Enable, Disable, or Skip on a component that would install on the next upgrade. Nothing is installed or removed until the next upgrade run: enabling installs the component then, disabling keeps it installed but stops updating it. Trigger an [upgrade](#upgrade) to apply right away. Base system and Upgrade are infrastructure and cannot be toggled.
 

@@ -1,0 +1,83 @@
+---
+title: How to show the odio UI on a screen wired to your node
+description: Show the embedded UI on a display attached to your odio node with a framebuffer browser, no X server and no desktop. Enable it, screen sizing, engine limits.
+howto: true
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The [embedded web UI](/control/embedded-ui/) is meant to be opened from another machine. It can also be shown on a screen wired to the node itself, a small panel on a Raspberry Pi for instance, without installing a desktop.
+
+A framebuffer browser draws straight onto `/dev/fb0`, so there is no X server, no Wayland compositor and no window manager in the picture. It is not free, though: the engine is still Chromium and it brings the Qt stack with it. What you save is the display server and the session around it, not the browser. The [debian-fr thread](https://www.debian-fr.org/t/quel-navigateur-internet-faire-tourner-directement-en-framebuffer/92496/6) this approach comes from counted about 30 packages and 185 MB of Qt once installed.
+
+Credit where it is due: that thread worked through the alternatives first (Links2 has no framebuffer driver left, NetSurf renders SVG poorly, Dillo wants X11) before landing on a Qt kiosk build of [Framebuffer-browser](https://github.com/e1z0/Framebuffer-browser), the browser odio uses.
+
+<Aside type="note">
+The local screen arrived in [2026.9.0b2](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b2) and is off by default. It is still experimental and has seen little testing on real screens. If you run it, tell us how it behaves on your board and panel, touch included, in [discussions](https://github.com/b0bbywan/odios/discussions) or as an [issue](https://github.com/b0bbywan/odios/issues).
+</Aside>
+
+## Enable it
+
+The screen is an optional odios component. It needs amd64 or arm64: Raspberry Pi OS armhf ships no QtWebEngine, so the installer does not offer it on a 32-bit system.
+
+- at install, answer yes to `Install display (fbrowser-kiosk)?`, or set `INSTALL_DISPLAY=Y` for a [non-interactive install](https://github.com/b0bbywan/odios/tree/main/installer#non-interactive-automation)
+- on an existing node, enable the **display** row under System on the [settings page](/operations/settings/#components), then apply an [upgrade](/operations/settings/#upgrade)
+
+The component installs the `fbrowser-kiosk` package from [apt.odio.love](/operations/apt-repository/), adds the odio user to the `tty` and `video` groups and enables `odio-screen.service`. That user unit waits for odio-api to serve its UI, then opens `http://localhost:8018/ui` full screen, and restarts along with odio-api. Its definition lives in [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui/blob/main/debian/odio-screen.service), which packages the browser.
+
+The screen is then listed in the Services panel of the [embedded UI](/control/embedded-ui/), where it can be restarted like any other service.
+
+A plain display, with no touch panel and no keyboard, is a perfectly good target. The UI holds an SSE connection to `/ui/events` and swaps its own sections as the node's state changes, so a screen nobody touches still shows what is playing, the volume, and the state of every service.
+
+## Expected journal lines
+
+The journal, followed with `journalctl -f`, shows three lines on every start that look like errors and are not:
+
+```
+This plugin does not support createPlatformOpenGLContext!
+Failed to open tty (Permission denied)
+Could not open config.json
+```
+
+The first is linuxfb having no OpenGL by design: the engine falls back to software rendering and nothing on the page is lost. The second is the linuxfb plugin trying to open `/dev/tty0` to act on the terminal keyboard. A user service has no console to act on, and `/dev/tty0` grants the `tty` group write only, so the open fails whatever groups the user is in. Keyboard and touch input reach the browser through evdev, which reads the input devices directly and never goes near a tty. The third is the URL coming from the command line instead of the browser's own config file, as intended.
+
+## Hide the console cursor
+
+On a screen that never shows anything else, the console cursor is better hidden: add `vt.global_cursor_default=0` to the kernel command line, then reboot.
+
+On a Raspberry Pi, the command line is the single line of `/boot/firmware/cmdline.txt`. Append the option to the end of that line, separated by a space:
+
+```bash
+sudo sed -i '1 s/$/ vt.global_cursor_default=0/' /boot/firmware/cmdline.txt
+```
+
+The file must stay on a single line, which then ends like this:
+
+```
+console=serial0,115200 console=tty1 … vt.global_cursor_default=0
+```
+
+On an amd64 machine booting with GRUB, add the option inside the quotes of `GRUB_CMDLINE_LINUX_DEFAULT` in `/etc/default/grub`. On a default Debian install the line becomes:
+
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet vt.global_cursor_default=0"
+```
+
+then regenerate the GRUB configuration:
+
+```bash
+sudo update-grub
+```
+
+## Screen size
+
+The UI lays out in one column, two from 640px wide, three from 1024px. A 7" panel at 800×480 therefore gets two columns, a 3.5" at 480×320 gets one. Both are usable; the 480px height is the tighter constraint, so expect to scroll.
+
+## Engine limits
+
+The browser is built on QtWebEngine 5.15, which embeds Chromium 87. Several things the modern web takes for granted are missing there: `:where()`, `:is()`, `:has()`, container queries, `oklch()`, `color-mix()`, unprefixed `mask-*`. The failure mode is quiet: a single unknown pseudo-class invalidates a whole CSS rule, and nothing is reported.
+
+Since [odio-api v0.17.2](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.2), odio works around the ones that affect the embedded UI, so the interface renders correctly on that engine. Two cosmetic differences remain for now:
+
+- the volume and seek sliders keep the browser's native blue instead of the gold accent, `accent-color` being a Chromium 93 feature
+- text is rendered at its nominal size, which might be small on a 7" panel held at a distance
