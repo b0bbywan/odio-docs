@@ -139,6 +139,7 @@ See [Bluetooth](/api/bluetooth/) for endpoint details.
 ```yaml
 bluetooth:
   enabled: true
+  powerOnStart: false
   timeout: 5s
   pairingTimeout: 60s
   idleTimeout: 30m
@@ -186,7 +187,7 @@ Class of Device (`0x240428`) breakdown:
 
 This makes the node appear as a standard Bluetooth speaker. Phones and computers will show a headphone icon and route media audio to it.
 
-`AutoEnable=false` keeps the adapter off at boot — power is managed by the API (or Home Assistant).
+`AutoEnable=false` keeps the adapter off at boot — power is managed by the API (or Home Assistant). To have the API power it on when the service starts, set `bluetooth.powerOnStart: true` (since v0.13.1).
 
 After modifying the configuration, restart the Bluetooth service:
 

@@ -73,13 +73,14 @@ Connected output devices route through PulseAudio/PipeWire as a regular output s
 ```yaml
 bluetooth:
   enabled: true
+  powerOnStart: false
   timeout: 5s
   pairingTimeout: 60s
   idleTimeout: 30m
   scanTimeout: 60s
 ```
 
-`idleTimeout` auto-powers down the adapter when no device is connected (`0` to disable). `scanTimeout` auto-stops a scan after the given delay (`0` to disable).
+`powerOnStart` powers on the adapter when the service starts (since v0.13.1, off by default). `idleTimeout` auto-powers down the adapter when no device is connected (`0` to disable). `scanTimeout` auto-stops a scan after the given delay (`0` to disable).
 
 ## System setup
 
