@@ -1,6 +1,6 @@
 ---
 title: How to show the odio UI on a screen wired to your node
-description: Show the embedded UI on a display attached to your odio node with a framebuffer browser, no X server and no desktop. Enable it, screen sizing, engine limits.
+description: Show the embedded UI on a display attached to your odio node with a framebuffer browser, no X server and no desktop. Enable it, screen sizing, Qt 6 engine.
 howto: true
 ---
 
@@ -8,38 +8,30 @@ import { Aside } from '@astrojs/starlight/components';
 
 The [embedded web UI](/control/embedded-ui/) is meant to be opened from another machine. It can also be shown on a screen wired to the node itself, a small panel on a Raspberry Pi for instance, without installing a desktop.
 
-A framebuffer browser draws straight onto `/dev/fb0`, so there is no X server, no Wayland compositor and no window manager in the picture. It is not free, though: the engine is still Chromium and it brings the Qt stack with it. What you save is the display server and the session around it, not the browser. The [debian-fr thread](https://www.debian-fr.org/t/quel-navigateur-internet-faire-tourner-directement-en-framebuffer/92496/6) this approach comes from counted about 30 packages and 185 MB of Qt once installed.
+A framebuffer browser draws straight onto `/dev/fb0`, so there is no X server, no Wayland compositor and no window manager in the picture. It is not free, though: the engine is still Chromium and it brings the Qt stack with it. The odio-kiosk binary itself weighs a few tens of kB (39 kB on amd64, 68 kB on arm64), the rest is QtWebEngine. What you save is the display server and the session around it, not the browser. The [debian-fr thread](https://www.debian-fr.org/t/quel-navigateur-internet-faire-tourner-directement-en-framebuffer/92496/6) this approach comes from counted about 30 packages and 185 MB of Qt once installed.
 
-Credit where it is due: that thread worked through the alternatives first (Links2 has no framebuffer driver left, NetSurf renders SVG poorly, Dillo wants X11) before landing on a Qt kiosk build of [Framebuffer-browser](https://github.com/e1z0/Framebuffer-browser), the browser odio uses.
+Credit where it is due: that thread worked through the alternatives first (Links2 has no framebuffer driver left, NetSurf renders SVG poorly, Dillo wants X11) before landing on a Qt kiosk build of [Framebuffer-browser](https://github.com/e1z0/Framebuffer-browser). odio's browser, [odio-kiosk](https://github.com/b0bbywan/odio-framebuffer-ui), started from it.
 
 <Aside type="note">
-The local screen arrived in [2026.9.0b2](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b2) and is off by default. It is still experimental and has seen little testing on real screens. If you run it, tell us how it behaves on your board and panel, touch included, in [discussions](https://github.com/b0bbywan/odios/discussions) or as an [issue](https://github.com/b0bbywan/odios/issues).
+The local screen arrived in [2026.9.0b2](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b2) and is off by default. It is still experimental and has seen little testing on real screens. [2026.9.0b3](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b3) moves it to [odio-kiosk 2.0.0](https://github.com/b0bbywan/odio-framebuffer-ui/releases/tag/v2.0.0), on Qt 6 and Chromium 122. If you run it, tell us how it behaves on your board and panel, touch included, in [discussions](https://github.com/b0bbywan/odios/discussions) or as an [issue](https://github.com/b0bbywan/odios/issues).
 </Aside>
 
 ## Enable it
 
 The screen is an optional odios component. It needs amd64 or arm64: Raspberry Pi OS armhf ships no QtWebEngine, so the installer does not offer it on a 32-bit system.
 
-- at install, answer yes to `Install display (fbrowser-kiosk)?`, or set `INSTALL_DISPLAY=Y` for a [non-interactive install](https://github.com/b0bbywan/odios/tree/main/installer#non-interactive-automation)
+- at install, answer yes to `Install display (odio-kiosk)?`, or set `INSTALL_DISPLAY=Y` for a [non-interactive install](https://github.com/b0bbywan/odios/tree/main/installer#non-interactive-automation)
 - on an existing node, enable the **display** row under System on the [settings page](/operations/settings/#components), then apply an [upgrade](/operations/settings/#upgrade)
 
-The component installs the `fbrowser-kiosk` package from [apt.odio.love](/operations/apt-repository/), adds the odio user to the `tty` and `video` groups and enables `odio-screen.service`. That user unit waits for odio-api to serve its UI, then opens `http://localhost:8018/ui` full screen, and restarts along with odio-api. Its definition lives in [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui/blob/main/debian/odio-screen.service), which packages the browser.
+The component installs the `odio-kiosk` package from [apt.odio.love](/operations/apt-repository/), adds the odio user to the `tty` and `video` groups and enables the `odio-kiosk@odio.service` user unit. That unit waits for odio-api to serve its UI, then opens `http://localhost:8018/ui` full screen, and restarts along with odio-api. The URL comes from `~/.config/odio-kiosk/odio.conf`, and the tie to odio-api from a drop-in the installer writes next to the unit. The [unit template](https://github.com/b0bbywan/odio-framebuffer-ui/blob/v2.0.0/debian/odio-kiosk@.user.service) ships with the package.
+
+The screen is drawn on `/dev/fb0`. A panel that shows up as another framebuffer is selected with `FB=/dev/fb1` in `odio.conf`. The Qt settings shared by every screen on the node are in `/etc/default/odio-kiosk`, which the package preserves on upgrade.
+
+A node that ran the b2 screen is migrated by the [upgrade](/operations/settings/#upgrade): `fbrowser-kiosk` is replaced by `odio-kiosk`, and the old `odio-screen.service` and its config are removed.
 
 The screen is then listed in the Services panel of the [embedded UI](/control/embedded-ui/), where it can be restarted like any other service.
 
 A plain display, with no touch panel and no keyboard, is a perfectly good target. The UI holds an SSE connection to `/ui/events` and swaps its own sections as the node's state changes, so a screen nobody touches still shows what is playing, the volume, and the state of every service.
-
-## Expected journal lines
-
-The journal, followed with `journalctl -f`, shows three lines on every start that look like errors and are not:
-
-```
-This plugin does not support createPlatformOpenGLContext!
-Failed to open tty (Permission denied)
-Could not open config.json
-```
-
-The first is linuxfb having no OpenGL by design: the engine falls back to software rendering and nothing on the page is lost. The second is the linuxfb plugin trying to open `/dev/tty0` to act on the terminal keyboard. A user service has no console to act on, and `/dev/tty0` grants the `tty` group write only, so the open fails whatever groups the user is in. Keyboard and touch input reach the browser through evdev, which reads the input devices directly and never goes near a tty. The third is the URL coming from the command line instead of the browser's own config file, as intended.
 
 ## Hide the console cursor
 
@@ -73,11 +65,6 @@ sudo update-grub
 
 The UI lays out in one column, two from 640px wide, three from 1024px. A 7" panel at 800×480 therefore gets two columns, a 3.5" at 480×320 gets one. Both are usable; the 480px height is the tighter constraint, so expect to scroll.
 
-## Engine limits
+## Engine
 
-The browser is built on QtWebEngine 5.15, which embeds Chromium 87. Several things the modern web takes for granted are missing there: `:where()`, `:is()`, `:has()`, container queries, `oklch()`, `color-mix()`, unprefixed `mask-*`. The failure mode is quiet: a single unknown pseudo-class invalidates a whole CSS rule, and nothing is reported.
-
-Since [odio-api v0.17.2](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.2), odio works around the ones that affect the embedded UI, so the interface renders correctly on that engine. Two cosmetic differences remain for now:
-
-- the volume and seek sliders keep the browser's native blue instead of the gold accent, `accent-color` being a Chromium 93 feature
-- text is rendered at its nominal size, which might be small on a 7" panel held at a distance
+Since 2026.9.0b3, odio-kiosk is built on Qt 6, which embeds Chromium 122. The b2 screen ran QtWebEngine 5.15 and Chromium 87, on which a single unknown pseudo-class such as `:where()` silently dropped a whole CSS rule. [odio-api v0.17.2](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.2) works around those gaps in the embedded UI. On Chromium 122 they are gone, and the sliders take the gold accent through `accent-color`.

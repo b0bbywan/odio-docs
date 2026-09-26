@@ -4,6 +4,10 @@ description: Turn the odio Pi into an AirPlay 2 receiver with shairport-sync. St
 howto: true
 ---
 
+import { Image } from 'astro:assets';
+
+import airplayUi from '../../../assets/airplay-embedded-ui.png';
+
 Your odio node appears as an AirPlay 2 receiver on your local network via [shairport-sync](https://github.com/mikebrady/shairport-sync). No configuration needed on the client side.
 
 ## Usage
@@ -17,6 +21,10 @@ Works with any app — Apple Music, Spotify, YouTube, podcasts, system audio.
 ## Integration
 
 AirPlay sessions appear as MPRIS players in the odio application and Home Assistant. You can see what's playing and control playback from the UI.
+
+<Image src={airplayUi} alt="odio embedded UI with Shairport Sync as the active media player, showing cover art, track metadata and playback controls" />
+
+Before [2026.9.0b3](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b3), shairport-sync published its MPRIS interface on the system D-Bus, where the odio API does not look, so AirPlay sessions never showed up. [Mykola (@VeeM)](https://github.com/VeeM) tracked it down and moved it to the session bus in [odios#91](https://github.com/b0bbywan/odios/pull/91). Upgrade an existing node to pick up the fix, see [Upgrade](/operations/upgrade/).
 
 In Snapcast mode, AirPlay audio is distributed to all rooms via Snapserver — see [Snapcast setup](/guides/snapcast/).
 
@@ -68,4 +76,4 @@ The odio node appears as an AirPlay sink in your sound settings or `pavucontrol`
 
 ## How it works
 
-shairport-sync runs as a systemd user service, outputting audio to PulseAudio. It registers itself on D-Bus as an MPRIS player, which is how the odio API picks it up and exposes playback controls. The installer handles all of this — D-Bus policies, PulseAudio backend configuration, and service setup.
+shairport-sync runs as a systemd user service, outputting audio to PulseAudio. It registers itself on the user session D-Bus as an MPRIS player, which is how the odio API picks it up and exposes playback controls. The installer handles all of this — D-Bus policies, PulseAudio backend configuration, and service setup.
