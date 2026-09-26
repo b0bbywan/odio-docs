@@ -88,6 +88,14 @@ export const ecosystemProjects = [
     tech: { label: 'Python', color: '#3776AB' },
   },
   {
+    name: 'odio-framebuffer-ui',
+    desc: 'odio-kiosk, the browser behind the local screen. Qt 6 WebEngine drawn straight onto the framebuffer, no X server or compositor, one instance per screen.',
+    short: 'Framebuffer kiosk browser for a local screen',
+    url: 'https://github.com/b0bbywan/odio-framebuffer-ui',
+    live: null,
+    tech: { label: 'C++', color: '#F34B7D' },
+  },
+  {
     name: 'odio-apt-repo',
     desc: 'The apt repository. Fully CI-maintained. Packages are built and published automatically on every release.',
     short: 'apt repository, CI-managed',
