@@ -117,6 +117,7 @@
     "libudev",
     "libpulse",
     "Librespot",
+    "lintian",
     "linuxfb",
     "LMSSERVERIP",
     "logind",
