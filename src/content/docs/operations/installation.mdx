@@ -4,125 +4,158 @@ description: Flash an odio image with Raspberry Pi Imager or run the curl instal
 howto: true
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-odio turns a Raspberry Pi (or any Debian-based system) into a complete audio streamer: Bluetooth speaker, AirPlay 2, Spotify Connect, UPnP/DLNA, multi-room, CD player, USB playback — all running in your user session on standard Debian-based systems.
+Two ways to install odio, same result: same packages, same services, same configuration. On a Raspberry Pi, flash a ready-made image. On an existing Debian 13 (trixie) or Ubuntu system, run the installer.
 
-## Why odio?
+<Aside type="note">odio is still in beta, stable for daily use. If you encounter any issues, please [open an issue](https://github.com/b0bbywan/odios/issues).</Aside>
 
-odio started as a personal setup in 2020 — a Raspberry Pi wired to a stereo amplifier, replacing a pile of dedicated devices with a single board. After years of daily use and iteration, odio packages that setup for anyone to use. Every component is independent and can be set up from scratch individually.
+<Tabs syncKey="install-method">
+<TabItem label="Raspberry Pi (Imager)" icon="seti:image">
 
-The full journey that led to odio is documented on [Medium](https://mathieu-requillart.medium.com/my-ultimate-guide-to-the-raspberry-pi-audio-server-i-wanted-introduction-650020d135e1).
+<Steps>
+
+1. Install and open [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
+
+2. Go to **Options App** → **Content Repository** → **Use custom URL**, and paste this URL:
+
+   ```txt
+   https://odio.love/odio.rpi-imager-manifest
+   ```
+
+3. Select **odio** in the operating system list. It is available for armhf (32-bit) and arm64 (64-bit) boards.
+
+   ![Raspberry Pi Imager showing odio images available for arm64 and armhf architectures](../../../assets/rpi-imager.png)
+
+4. In the Imager settings, configure the hostname, SSH, and WiFi if needed.
+
+   <Aside type="tip">
+   **Pick `odio` as the user.** The odio stack always runs under the `odio` user, and choosing it here wires in the UI-driven upgrade by default. A different user is fine for SSH, and the CLI [upgrade flow](/operations/upgrade/) is independent of the choice.
+   </Aside>
+
+   Ethernet is recommended over WiFi for reliable audio streaming.
+
+5. Flash the SD card, put it in the Pi and power it on. Your Pi boots ready.
+
+6. Open the [web UI](/control/embedded-ui/) from any browser on your network:
+
+   ```txt
+   http://<hostname>.local:8018/ui
+   ```
+
+</Steps>
+
+</TabItem>
+<TabItem label="Debian / Ubuntu (installer)" icon="linux">
+
+<Steps>
+
+1. On an existing Debian 13 (trixie) or Ubuntu system, run:
+
+   ```bash
+   curl -fsSL https://odio.love/install | bash
+   ```
+
+2. The installer runs pre-flight checks (OS, architecture, disk space, dependencies), then asks:
+
+   - which **target user** runs the stack (default: `odio`)
+   - which **optional components** to install: AirPlay, Spotify Connect, Snapcast, DLNA, CD/USB autoplay
+
+3. It downloads a vendored Ansible archive, runs the playbook, and configures everything. Existing config files are backed up before modification.
+
+4. Open the [web UI](/control/embedded-ui/) from any browser on your network:
+
+   ```txt
+   http://<hostname>.local:8018/ui
+   ```
+
+</Steps>
+
+The installer is idempotent, safe to re-run to update or repair. For non-interactive installs (CI, automation), all prompts can be bypassed, see the [installer documentation](https://github.com/b0bbywan/odios/tree/main/installer).
+
+<details>
+<summary>Example installer output</summary>
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║                 odio Streamer Installer                   ║
+╚═══════════════════════════════════════════════════════════╝
+
+Running pre-flight checks...
+✓ OS: debian 13
+✓ Architecture: x86_64
+✓ Python 3.13
+✓ Sudo access available
+✓ Disk space: 7994 MB available in /tmp
+✓ curl available
+✓ Systemd available
+
+Installing python3-jinja2...
+✓ python3-jinja2 installed
+
+Downloading odio archive...
+✓ Archive extracted
+
+Running Ansible playbook...
+
+PLAY [Odio Streamer Installation] **********************************************
+
+...
+
+═══════════════════════════════════════════════════
+  Audio Streaming System - Installation Complete
+═══════════════════════════════════════════════════
+
+Hostname: raspodio
+User: odio
+
+Core services installed:
+  ✓ PulseAudio with network streaming
+  ✓ Bluetooth audio (A2DP sink)
+  ✓ MPD (Music Player Daemon)
+  ✓ Odio API (REST control interface)
+
+Optional services:
+  ✓ MPD disc player
+  ✓ Spotifyd (Spotify Connect)
+  ✓ Shairport Sync (AirPlay)
+  ✓ Snapcast client
+  ✓ UPnP/DLNA renderer
+
+System should already be running !
+Visit http://localhost:8018/ui
+
+═══════════════════════════════════════════════════
+
+Playbook completed in 2m 20s
+
+═══════════════════════════════════════════════════════════
+Installation complete!
+═══════════════════════════════════════════════════════════
+```
+
+</details>
+</TabItem>
+</Tabs>
 
 ## Compatible hardware
 
 | Hardware | Architecture | Install method | Tested on |
 |---|---|---|---|
-| Raspberry Pi B, B+ | armv6l | Flash, curl | Raspberry Pi OS Lite (Trixie) |
-| Raspberry Pi Zero W | armv6l | Flash, curl | — |
-| Raspberry Pi 2 | armv7 | Flash, curl | Raspberry Pi OS Lite (Trixie) |
-| Raspberry Pi 3B+ | armv7 / arm64 | Flash, curl | Raspberry Pi OS Lite (Trixie) |
-| Raspberry Pi 4, 5 | arm64 | Flash, curl | — |
-| Raspberry Pi Zero 2 W | arm64 | Flash, curl | — |
-| Desktop | x86-64 | curl | Debian 13 Gnome |
-| NAS | x86-64 | curl | OpenMediaVault 8 |
+| Raspberry Pi B, B+ | armv6l | Imager, installer | Raspberry Pi OS Lite (Trixie) |
+| Raspberry Pi Zero W | armv6l | Imager, installer | — |
+| Raspberry Pi 2 | armv7 | Imager, installer | Raspberry Pi OS Lite (Trixie) |
+| Raspberry Pi 3B+ | armv7 / arm64 | Imager, installer | Raspberry Pi OS Lite (Trixie) |
+| Raspberry Pi 4, 5 | arm64 | Imager, installer | — |
+| Raspberry Pi Zero 2 W | arm64 | Imager, installer | — |
+| Desktop | x86-64 | installer | Debian 13 Gnome |
+| NAS | x86-64 | installer | OpenMediaVault 8 |
 
-<Aside type="note">odio is still in beta — stable for daily use. If you encounter any issues, please [open an issue](https://github.com/b0bbywan/odios/issues).</Aside>
+For sound output, any DAC HAT supported by the kernel and any USB DAC work, see [DAC and overclocking](#dac-and-overclocking).
 
-## Getting started
-
-Two paths, same result:
-
-- **Flash an image** — use [Raspberry Pi Imager](https://www.raspberrypi.com/software/):
-
-  1. Open Imager → **Options App** → **Content Repository** → **Use custom URL**
-  2. Enter: `https://beta.odio.love/odio.rpi-imager-manifest`
-  3. Select **odio** (available in armhf 32-bit and arm64 64-bit)
-  4. Configure hostname, SSH (& WiFi if needed) in Imager settings, then flash
-
-  > Ethernet is recommended over WiFi for reliable audio streaming.
-
-  The odio stack always runs under the `odio` user. In Imager settings, **pick `odio` as the user** so the UI-driven upgrade is wired in by default. A different user is fine for SSH, and the CLI [upgrade flow](/operations/upgrade/) is independent of the choice.
-
-  Your Pi boots ready.
-
-  ![Raspberry Pi Imager showing odio images available for arm64 and armhf architectures](../../../assets/rpi-imager.png)
-- **Run the installer** — on an existing Debian 13 (trixie) or Ubuntu system:
-
-  ```bash
-  curl -fsSL https://beta.odio.love/install | bash
-  ```
-
-  The installer runs pre-flight checks (OS, architecture, disk space, dependencies), then prompts you to choose a target user (default: `odio`) and which optional components to install (AirPlay, Spotify Connect, Snapcast, DLNA, CD/USB autoplay). It downloads a vendored Ansible archive, runs the playbook, and configures everything. Existing config files are backed up before modification.
-
-  The installer is idempotent, safe to re-run to update or repair.
-
-  For non-interactive installs (CI, automation), all prompts can be bypassed via environment variables — see the [installer documentation](https://github.com/b0bbywan/odios/tree/main/installer).
-
-  <details>
-  <summary>Example installer output</summary>
-
-  ```
-  ╔═══════════════════════════════════════════════════════════╗
-  ║                 odio Streamer Installer                   ║
-  ╚═══════════════════════════════════════════════════════════╝
-
-  Running pre-flight checks...
-  ✓ OS: debian 13
-  ✓ Architecture: x86_64
-  ✓ Python 3.13
-  ✓ Sudo access available
-  ✓ Disk space: 7994 MB available in /tmp
-  ✓ curl available
-  ✓ Systemd available
-
-  Installing python3-jinja2...
-  ✓ python3-jinja2 installed
-
-  Downloading odio archive...
-  ✓ Archive extracted
-
-  Running Ansible playbook...
-
-  PLAY [Odio Streamer Installation] **********************************************
-
-  ...
-
-  ═══════════════════════════════════════════════════
-    Audio Streaming System - Installation Complete
-  ═══════════════════════════════════════════════════
-
-  Hostname: raspodio
-  User: odio
-
-  Core services installed:
-    ✓ PulseAudio with network streaming
-    ✓ Bluetooth audio (A2DP sink)
-    ✓ MPD (Music Player Daemon)
-    ✓ Odio API (REST control interface)
-
-  Optional services:
-    ✓ MPD disc player
-    ✓ Spotifyd (Spotify Connect)
-    ✓ Shairport Sync (AirPlay)
-    ✓ Snapcast client
-    ✓ UPnP/DLNA renderer
-
-  System should already be running !
-  Visit http://localhost:8018/ui
-
-  ═══════════════════════════════════════════════════
-
-  Playbook completed in 2m 20s
-
-  ═══════════════════════════════════════════════════════════
-  Installation complete!
-  ═══════════════════════════════════════════════════════════
-  ```
-
-  </details>
-
-Both paths produce the same stack: same packages, same services, same configuration.
+<Aside type="tip" title="Running odio on something else?">
+A board marked —, another board, a different distribution: if it works (or doesn't), [share your setup in Show and tell](https://github.com/b0bbywan/odios/discussions/categories/show-and-tell). Every report helps fill this table.
+</Aside>
 
 ## Upgrade
 
@@ -130,7 +163,9 @@ The installer is idempotent, re-run it to upgrade an existing installation. Each
 
 ## DAC and overclocking
 
-If you use an external DAC (e.g. HiFiBerry DAC+ Standard), pick it from the [settings page](/operations/settings/#dac) on port 8021 and reboot (since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1)). It writes the `dtoverlay` line to `/boot/firmware/config.txt` and turns the onboard audio off. On older releases, edit the file by hand with the overlay from your DAC manufacturer's documentation.
+Every DAC HAT supported by the Raspberry Pi kernel works with odio, generic I2S DACs included. Pick yours from the [settings page](/operations/settings/#dac) on port 8021 and reboot (since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1)). It writes the `dtoverlay` line to `/boot/firmware/config.txt` and turns the onboard audio off. On older releases, edit the file by hand with the overlay from your DAC manufacturer's documentation.
+
+USB DACs need no configuration: plug one in and it shows up as an output in the PulseAudio section of the [web UI](/control/embedded-ui/).
 
 Overclocking stays a manual edit in the same file:
 
@@ -140,7 +175,7 @@ arm_boost=1
 arm_freq=800
 ```
 
-## What you get
+## Next steps
 
 Once installed, your odio node is controllable from:
 
@@ -152,3 +187,9 @@ Once installed, your odio node is controllable from:
 - **The REST API** — for automation, scripting, or building your own client.
 
 For a deeper look at how the stack is put together, see [How it works](/guides/how-it-works/).
+
+## Why odio?
+
+odio started as a personal setup in 2020 — a Raspberry Pi wired to a stereo amplifier, replacing a pile of dedicated devices with a single board. After years of daily use and iteration, odio packages that setup for anyone to use. Every component is independent and can be set up from scratch individually.
+
+The full journey that led to odio is documented on [Medium](https://mathieu-requillart.medium.com/my-ultimate-guide-to-the-raspberry-pi-audio-server-i-wanted-introduction-650020d135e1).
