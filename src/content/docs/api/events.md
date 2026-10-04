@@ -18,7 +18,9 @@ GET /events
 | `backend` | Only receive events from this backend | `?backend=mpris` |
 | `types` | Only receive these event types | `?types=player.updated,player.added` |
 | `exclude` | Exclude these event types | `?exclude=player.position` |
-| `keepalive` | Keepalive interval | `?keepalive=30s` |
+| `keepalive` | Keepalive interval in seconds, an integer from 10 to 120 (default 30) | `?keepalive=30` |
+
+`server.info` keepalive events are always sent, even when `backend` or `types` filter everything else, and can't be excluded. An invalid parameter makes the server answer `400 Bad Request` instead of opening the stream.
 
 ## Event types
 
