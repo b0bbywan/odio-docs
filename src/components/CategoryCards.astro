@@ -20,7 +20,9 @@ const descriptions = new Map(
 ---
 
 <CardGrid>
-	{group.items.map((item) => (
-		<LinkCard title={item.label} href={`/${item.slug}/`} description={descriptions.get(item.slug)} />
-	))}
+	{group.items.map((item) => {
+		// A nested group (e.g. pyodio's sub-pages) gets one card, pointing at its first page.
+		const slug = item.slug ?? item.items[0].slug;
+		return <LinkCard title={item.label} href={`/${slug}/`} description={descriptions.get(slug)} />;
+	})}
 </CardGrid>
