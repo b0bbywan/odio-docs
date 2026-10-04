@@ -1,0 +1,430 @@
+---
+title: Live state with OdioHub
+description: Connect to an odio node with pyodio's OdioHub, read its live state, react to changes, and control players, tracklists, audio, services, Bluetooth, power, and upgrades.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`OdioHub` is pyodio's high-level API. It fetches a full snapshot of the node, then keeps it in sync through the API's [SSE event stream](/api/events/). Your code reads plain Python attributes, which are always current, and calls methods on the same objects to act on them.
+
+## Connecting
+
+`pyodio.connect()` returns a connection that works both as an async context manager and as an awaitable:
+
+```python
+import pyodio
+
+# Context manager: the hub is closed on exit
+async with pyodio.connect("http://odio.local:8018") as odio:
+    ...
+
+# Awaitable: close it yourself
+odio = await pyodio.connect("http://odio.local:8018")
+try:
+    ...
+finally:
+    await odio.close()
+```
+
+`pyodio.OdioHub` can also be used directly, with `async with OdioHub(...)` or with explicit `await hub.connect()` / `await hub.close()` calls. Both forms accept the same arguments:
+
+| Argument | Default | Description |
+|---|---|---|
+| `base_url` | `"http://localhost:8018"` | Base URL of the odio API |
+| `session` | `None` | An existing `aiohttp.ClientSession` to reuse. pyodio never closes a session it did not create. |
+| `keepalive` | `30` | Keepalive interval requested from the SSE stream, in seconds, between `10` and `120`. The stream is considered dead after `keepalive + 15` seconds of silence. |
+| `request_timeout` | `10.0` | Timeout of each REST request, in seconds |
+
+### What connect does
+
+1. `GET /server` to read the node identity and which [backends](/api/configuration/) are enabled.
+2. A snapshot of every enabled domain: players and their tracklists, audio, services, Bluetooth, power capabilities, upgrade status.
+3. The SSE stream starts in a background task.
+
+If the node is unreachable, `connect()` raises (see [errors](/control/pyodio/client/#errors)) and releases what it opened. Once connected, the hub never raises because of the network: it reconnects on its own.
+
+When `connect()` returns, the snapshot is loaded but the stream is still opening: `odio.connected` is `False` for a short moment. As soon as the stream is up, the hub runs a full resync, like after any reconnect, so listeners already subscribed receive an `UPDATED` for every entity even though nothing changed on the node. If your code only cares about real changes, compare with the previous value rather than relying on the change kind alone.
+
+### Starting without a server
+
+`await hub.start()` starts the event stream without the initial snapshot, and returns immediately even if the node is down. State fills in the first time the stream connects. Until then, `hub.server` raises `OdioError`, and the domains are empty. This is meant for long-running processes that must boot while the node is offline.
+
+```python
+odio = pyodio.OdioHub("http://odio.local:8018")
+await odio.start()
+odio.on_connection_change(lambda up: print("online" if up else "offline"))
+```
+
+## Reconnection and resync
+
+When the stream drops, the hub retries with exponential backoff, from 1 second up to 5 minutes, reset after a successful connection. After every reconnect it re-fetches the whole snapshot before dispatching new events, so nothing missed while offline is lost.
+
+```python
+odio.connected                                 # True while the stream is up
+odio.on_connection_change(lambda up: print(up))  # called with True / False
+```
+
+During an outage, the last known state stays readable. Commands still go out as HTTP requests and raise if the node can't be reached.
+
+The hub also retries when the server *refuses* the stream, for example with a `keepalive` outside `10` to `120`. Nothing is raised in that case: `odio.connected` stays `False` and the reason is only visible in the [logs](#logging).
+
+## Server and backends
+
+```python
+odio.server.hostname        # node hostname
+odio.server.api_version     # odio-api version
+odio.server.os_platform     # OS name
+odio.server.os_version      # OS version
+odio.backends.mpris         # True if the MPRIS backend is enabled
+```
+
+Only the domains whose backend is enabled are populated. On a node with Bluetooth disabled, `odio.bluetooth.devices` stays empty and `odio.bluetooth.powered` is `False`. Check `odio.backends` when your code needs to tell "disabled" apart from "nothing there". The fields are `bluetooth`, `mpris`, `power`, `pulseaudio`, `systemd`, `upgrade` and `zeroconf`.
+
+## Entities
+
+State is exposed as entity objects: `Player`, `AudioClient`, `AudioOutput`, `Service` and `BluetoothDevice`. Collections are read-only mappings keyed by a natural id:
+
+| Collection | Key | Example |
+|---|---|---|
+| `odio.players` | MPRIS bus name | `"org.mpris.MediaPlayer2.spotifyd"` |
+| `odio.audio.clients` | stream name | `"Playback Stream"` |
+| `odio.audio.outputs` | sink name | `"alsa_output.pci-0000_00_1f.3.analog-stereo"` |
+| `odio.services` | `scope/name` | `"user/mpd.service"` |
+| `odio.bluetooth.devices` | MAC address | `"AA:BB:CC:DD:EE:FF"` |
+
+An entity is created once and updated in place: a reference you keep stays valid and keeps reflecting the server. Each entity exposes its raw model as `.state` (`PlayerState`, `ServiceState`, ...) for fields that have no shortcut property, see the [API reference](/control/pyodio/reference/#models).
+
+## Reacting to changes
+
+Every domain with live state has an `on_change(listener)` method. The listener receives a change kind and the object that changed, and the method returns a callable that unsubscribes it.
+
+```python
+def on_player(change: str, player: pyodio.Player) -> None:
+    if change == pyodio.UPDATED and player.is_playing:
+        print(f"Now playing: {player.title} - {player.artist}")
+
+unsubscribe = odio.players.on_change(on_player)
+...
+unsubscribe()
+```
+
+| Domain | Change kinds | Object passed |
+|---|---|---|
+| `odio.players` | `ADDED`, `UPDATED`, `REMOVED`, `POSITION`, `TRACKLIST` | `Player` |
+| `odio.audio` | `ADDED`, `UPDATED`, `REMOVED` | `AudioClient` or `AudioOutput` |
+| `odio.services` | `ADDED`, `UPDATED`, `REMOVED` | `Service` |
+| `odio.bluetooth` | `UPDATED` | the `Bluetooth` domain itself, when the adapter state changes |
+| `odio.bluetooth` | `DISCOVERED`, `UPDATED` | `BluetoothDevice`, when a device first appears, then on every change |
+| `odio.upgrade` | `UPDATED`, `PROGRESS` | the `Upgrade` domain itself |
+
+The constants are importable from `pyodio` (`pyodio.ADDED`, `pyodio.POSITION`, ...) and are plain strings (`"added"`, `"position"`, ...).
+
+Listeners run synchronously in the event loop, after the hub has applied the change, so the state you read inside them is already up to date. They must not block. To run async code in response to a change, schedule it:
+
+```python
+def on_player(change, player):
+    if change == pyodio.ADDED:
+        asyncio.create_task(player.set_volume(0.5))
+```
+
+An exception raised by a listener is [logged](#logging) and does not affect other listeners.
+
+<Aside>
+Changes fire during the initial snapshot too, and after every resync: when you subscribe before the first sync (with `start()`), you receive an `ADDED` for each entity already on the node, and existing entities fire `UPDATED` at every resync.
+</Aside>
+
+### Raw events
+
+`odio.on_event(listener)` receives every SSE event as a `pyodio.OdioEvent` (`type` and JSON-decoded `data`), including `server.info` keepalives and types the hub does not model, such as `power.action`. See the [event types](/api/events/#event-types). Like domain listeners, it runs after the hub has applied the event.
+
+```python
+odio.on_event(lambda event: print(event.type, event.data))
+```
+
+## Players
+
+`odio.players` holds every MPRIS player on the node.
+
+```python
+player = odio.players.find("spotifyd")   # bus name, app name, or identity, case-insensitive
+odio.players.playing                     # list of players currently playing
+
+player.bus_name          # "org.mpris.MediaPlayer2.spotifyd"
+player.app_name          # "spotifyd"
+player.identity          # name the player gives itself
+player.playback_status   # "Playing", "Paused" or "Stopped" (pyodio.PlaybackStatus)
+player.title, player.artist, player.album, player.art_url
+player.metadata          # all metadata, flattened to strings
+player.volume            # 0.0 to 1.0, or None
+player.shuffle           # bool, or None if unsupported
+player.loop_status       # "None", "Track" or "Playlist" (pyodio.LoopStatus), or None
+player.capabilities      # can_play, can_pause, can_go_next, can_go_previous, can_seek, can_control
+```
+
+### Transport
+
+```python
+await player.play()
+await player.pause()
+await player.play_pause()
+await player.stop()
+await player.next()
+await player.previous()
+await player.set_volume(0.5)
+await player.set_shuffle(True)
+await player.set_loop(pyodio.LoopStatus.PLAYLIST)
+```
+
+Commands return once the server has accepted them. The new state arrives shortly after through the event stream, so read it from the entity or wait for the matching `UPDATED` change rather than assuming it right after the call.
+
+### Position
+
+Positions and durations are in **microseconds**, like MPRIS.
+
+```python
+player.position     # current position, or None
+player.duration     # track length, or None
+
+await player.seek(10_000_000)          # 10 s forward (negative to go back)
+await player.set_position(60_000_000)  # jump to 1:00
+```
+
+The server sends position beacons periodically, not continuously. Between beacons, `player.position` is extrapolated from the last known value and the playback rate, so reading it at any time gives the real position, clamped to the track duration. Each beacon fires a `POSITION` change.
+
+`set_position()` sends the current track id along with the position, so the server ignores the command if the track changed in the meantime. Pass `track_id=` to target a specific track.
+
+### Cover art
+
+`player.cover_url` is the URL of the API's cover proxy for this player. The API serves local `file://` artwork itself and redirects to `http(s)://` artwork, so the URL works from any machine, even when the player's own `art_url` is a path on the node. It answers `404` when the player has no artwork. The URL changes whenever the track or its artwork does, so it can be used directly as a cache key or an `<img>` source.
+
+### Removed players
+
+When a player disappears, it is removed from `odio.players` and a `REMOVED` change fires. A reference you kept stays readable: its `available` is `False` and its status is `Stopped`. If the same bus name comes back, it is a new `Player` object.
+
+## Tracklists
+
+Players implementing the MPRIS `TrackList` interface expose their queue. See [which players support it](/api/mpris/#tracklist).
+
+```python
+if player.tracklist_supported:
+    for track in player.tracks:
+        marker = ">" if track == player.current_track else " "
+        print(f"{marker} {track.title} - {track.artist}")
+```
+
+The hub fetches tracklists during the snapshot and keeps them live: every change fires a `TRACKLIST` change on `odio.players`.
+
+| Property | Description |
+|---|---|
+| `player.tracklist_supported` | Whether the player implements `TrackList` |
+| `player.tracks` | List of `Track` (empty if unsupported or not fetched) |
+| `player.current_track` | The `Track` currently playing, or `None` |
+| `player.can_edit_tracks` | Whether tracks can be added and removed |
+| `player.tracklist` | The raw `TracklistState`, or `None` |
+
+A `Track` has `track_id`, `metadata`, and the `title`, `artist`, `album`, `art_url`, `duration` shortcuts.
+
+```python
+await player.go_to(player.tracks[2])                       # play an entry (Track or track id)
+await player.add_track("http://icecast.radiofrance.fr/fip-hifi.aac")  # append
+await player.add_track(uri, after_track=player.current_track, set_as_current=True)
+await player.remove_track(player.tracks[-1])
+await player.refresh_tracklist()                           # force a fetch, returns TracklistState
+```
+
+`go_to()` starts playing the entry, it does not just move a cursor: with MPD, a stopped player starts playing.
+
+`add_track()` and `remove_track()` require `player.can_edit_tracks`. The URI must be absolute, with a scheme (`http://...`, `file:///...`): a bare path such as a library-relative MPD path is rejected with `OdioApiError` 400. When the player declares which schemes it supports, the server also rejects other schemes. With MPD through mpd2mpris, `http` and `https` are accepted, and `file` only when mpd2mpris knows MPD's music directory.
+
+## Audio
+
+`odio.audio` mirrors the PulseAudio or PipeWire server: master volume, per-application streams (clients) and output devices.
+
+```python
+odio.audio.kind             # "pulseaudio" or "pipewire"
+odio.audio.volume           # master volume, 0.0 to 1.0
+odio.audio.muted
+odio.audio.default_output   # AudioOutput, or None
+
+await odio.audio.set_volume(0.4)
+await odio.audio.set_muted(True)
+await odio.audio.toggle_mute()
+```
+
+The master volume and mute follow the default output live.
+
+### Clients and outputs
+
+```python
+for client in odio.audio.clients.values():
+    print(client.name, client.app, client.volume, client.muted, client.corked, client.is_remote)
+    await client.set_volume(0.8)
+    await client.set_muted(False)
+
+for output in odio.audio.outputs.values():
+    print(output.name, output.description, output.volume, output.is_default)
+
+await odio.audio.outputs["alsa_output.usb-dac"].make_default()
+```
+
+- `client.corked` is `True` when the application has paused its stream.
+- `client.is_remote` is `True` when the stream comes from another host, for example a [network audio](/guides/network-audio/) sender.
+- Volumes are between `0.0` and `1.0`. A value out of range raises `ValueError` before any request is sent.
+
+The API can only *toggle* mute. `set_muted(True)` / `set_muted(False)` compares with the live state and toggles only when needed, which makes it safe to call repeatedly. `toggle_mute()` is available on the master, clients and outputs.
+
+## Services
+
+`odio.services` holds the systemd units exposed by the node, keyed by `scope/name`.
+
+```python
+mpd = odio.services.find("mpd.service")               # first match in any scope
+mpd = odio.services.find("mpd.service", scope="user")
+mpd = odio.services["user/mpd.service"]
+
+mpd.name, mpd.scope, mpd.description
+mpd.running
+mpd.enabled
+
+await mpd.restart()
+await mpd.start()
+await mpd.stop()
+await mpd.enable()
+await mpd.disable()
+```
+
+Units in the `system` scope are read-only, the server rejects actions on them. See the [systemd API](/api/systemd/) for which units are exposed.
+
+## Bluetooth
+
+```python
+bt = odio.bluetooth
+bt.powered
+bt.scanning
+bt.pairing_active
+bt.connected_devices      # list of connected BluetoothDevice
+
+await bt.power_up()
+await bt.power_down()
+await bt.pairing_mode()   # make the node discoverable for pairing
+await bt.scan()
+await bt.scan_stop()
+
+for device in bt.devices.values():
+    print(device.address, device.name, device.paired, device.connected)
+
+await bt.devices["AA:BB:CC:DD:EE:FF"].connect()
+await bt.disconnect("AA:BB:CC:DD:EE:FF")
+```
+
+Devices found during a scan are added to `bt.devices` as they appear, each one firing a `DISCOVERED` change. More on pairing and scanning in the [Bluetooth API](/api/bluetooth/).
+
+## Power
+
+```python
+if odio.power.can_reboot:
+    await odio.power.reboot()
+
+if odio.power.can_power_off:
+    await odio.power.power_off()
+```
+
+The capabilities are read at each snapshot and are `False` when the [power backend](/api/power/) is disabled or unavailable.
+
+## Upgrades
+
+```python
+up = odio.upgrade
+up.available            # an upgrade is available
+up.current_version
+up.latest_version
+up.in_progress
+up.progress_percent     # 0 to 100 during a run, or None
+
+await up.check()        # ask the node to look for a new version
+await up.start()        # start the upgrade
+```
+
+`start()` raises `OdioApiError` with status `409` if an upgrade is already running. During a run, each progress step fires a `PROGRESS` change, and the end of the run an `UPDATED` one. When a run succeeds, `available` turns `False` and `current_version` becomes the installed version without waiting for the next check. The full status, including the current step and timestamps, is in `up.status` (an `UpgradeStatus`).
+
+```python
+def on_upgrade(change, up):
+    if up.in_progress:
+        print(f"{up.progress_percent}% {up.status.run.step or ''}")
+    elif up.status.run.state == "failed":
+        print("upgrade failed")
+
+odio.upgrade.on_change(on_upgrade)
+```
+
+## Logging
+
+pyodio logs through the standard `logging` module, on the `pyodio.hub` and `pyodio.sse` loggers. Stream drops and reconnection attempts, with the reason the server gave, are logged at `DEBUG`. Exceptions raised by your listeners are logged at `ERROR` with their traceback.
+
+```python
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("pyodio").setLevel(logging.DEBUG)
+```
+
+When `odio.connected` stays `False`, this is the first thing to turn on:
+
+```
+pyodio.sse DEBUG SSE stream lost (SSE connection refused: HTTP 400: keepalive must be between 10 and 120 seconds), reconnecting in 1s
+```
+
+## Recipes
+
+### Now-playing ticker
+
+```python
+import asyncio
+import pyodio
+
+async def main():
+    async with pyodio.connect("http://odio.local:8018") as odio:
+        while True:
+            for player in odio.players.playing:
+                pos = (player.position or 0) // 1_000_000
+                print(f"{player.app_name}: {player.title} [{pos // 60}:{pos % 60:02d}]")
+            await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+No request is sent in the loop: everything is read from the live state.
+
+### Waiting for a condition
+
+Bridge a change listener to an `asyncio.Event` to wait for something to happen:
+
+```python
+async def wait_for_playback(odio: pyodio.OdioHub) -> pyodio.Player:
+    if odio.players.playing:
+        return odio.players.playing[0]
+    started = asyncio.Event()
+    unsubscribe = odio.players.on_change(lambda change, p: p.is_playing and started.set())
+    try:
+        await started.wait()
+    finally:
+        unsubscribe()
+    return odio.players.playing[0]
+```
+
+### Several nodes
+
+Each hub is independent. Share one `aiohttp.ClientSession` between them:
+
+```python
+async with aiohttp.ClientSession() as session:
+    hubs = [
+        await pyodio.connect(url, session)
+        for url in ("http://livingroom.local:8018", "http://kitchen.local:8018")
+    ]
+    try:
+        ...
+    finally:
+        for hub in hubs:
+            await hub.close()
+```

@@ -17,7 +17,16 @@ export const sidebar = [
 			{ label: 'Application', slug: 'control/pwa' },
 			{ label: 'Home Assistant', slug: 'control/home-assistant' },
 			{ label: 'Local screen', slug: 'control/local-screen' },
-			{ label: 'Python library (pyodio)', slug: 'control/pyodio' },
+			{
+				label: 'Python library (pyodio)',
+				collapsed: true,
+				items: [
+					{ label: 'Overview', slug: 'control/pyodio' },
+					{ label: 'Live state (OdioHub)', slug: 'control/pyodio/hub' },
+					{ label: 'Low-level client', slug: 'control/pyodio/client' },
+					{ label: 'API reference', slug: 'control/pyodio/reference' },
+				],
+			},
 		],
 	},
 	{
