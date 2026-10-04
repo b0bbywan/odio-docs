@@ -1,0 +1,357 @@
+---
+title: pyodio API reference
+description: Complete reference of pyodio's public API, the OdioHub and its domains, live entities, the OdioClient, the SSE stream, models, enums, constants, and exceptions.
+---
+
+Everything listed here is importable from the top-level `pyodio` package. Units follow MPRIS: positions and durations are integers in **microseconds**, volumes are floats between `0.0` and `1.0`. Methods marked `async` are coroutines. This page documents pyodio 0.2.
+
+## Module
+
+### connect
+
+```python
+pyodio.connect(base_url="http://localhost:8018", session=None, *, keepalive=30, request_timeout=10.0)
+```
+
+Creates an [`OdioHub`](#odiohub) and connects it. The result can be awaited (`odio = await pyodio.connect(...)`, close it yourself) or used as an async context manager (closed on exit). Arguments are those of `OdioHub`.
+
+### Constants
+
+| Name | Value | Description |
+|---|---|---|
+| `DEFAULT_BASE_URL` | `"http://localhost:8018"` | Default API URL |
+| `ADDED` | `"added"` | Change kind, an entity appeared |
+| `UPDATED` | `"updated"` | Change kind, an entity or domain changed |
+| `REMOVED` | `"removed"` | Change kind, an entity disappeared |
+| `POSITION` | `"position"` | Change kind, a player position beacon |
+| `TRACKLIST` | `"tracklist"` | Change kind, a player's tracklist changed |
+| `DISCOVERED` | `"discovered"` | Change kind, a Bluetooth device appeared |
+| `PROGRESS` | `"progress"` | Change kind, an upgrade run progressed |
+| `__version__` | | Package version |
+
+## OdioHub
+
+```python
+OdioHub(base_url="http://localhost:8018", session=None, *, keepalive=30, request_timeout=10.0)
+```
+
+Stateful client kept in sync over SSE. See [Live state with OdioHub](/control/pyodio/hub/).
+
+| Parameter | Description |
+|---|---|
+| `base_url` | API base URL |
+| `session` | `aiohttp.ClientSession` to reuse, never closed by pyodio |
+| `keepalive` | SSE keepalive interval in seconds, `10` to `120`. The stream times out after `keepalive + 15` s of silence. |
+| `request_timeout` | REST request timeout in seconds |
+
+| Member | Description |
+|---|---|
+| `async connect() -> OdioHub` | Fetch the snapshot, then start the event stream. Raises and closes the hub if the snapshot fails. |
+| `async start() -> OdioHub` | Start the event stream without waiting for a snapshot |
+| `async close()` | Stop the stream and close the client |
+| `async with` | `connect()` on entry, `close()` on exit |
+| `server: ServerInfo` | Node identity and backends. Raises `OdioError` before the first sync. |
+| `backends: Backends` | Shortcut for `server.backends` |
+| `connected: bool` | Whether the event stream is up |
+| `client: OdioClient` | The underlying REST client |
+| `players: Players` | MPRIS players |
+| `audio: Audio` | Audio server, clients, outputs |
+| `services: Services` | systemd units |
+| `bluetooth: Bluetooth` | Bluetooth adapter and devices |
+| `power: Power` | Power capabilities and actions |
+| `upgrade: Upgrade` | Upgrade status and actions |
+| `on_event(listener) -> unsubscribe` | `listener(event: OdioEvent)` for every SSE event |
+| `on_connection_change(listener) -> unsubscribe` | `listener(connected: bool)` on stream up and down |
+
+## Players
+
+Read-only mapping of `Player` by bus name.
+
+| Member | Description |
+|---|---|
+| `find(name) -> Player \| None` | Look up by bus name, app name or identity, case-insensitive for the last two |
+| `playing: list[Player]` | Players currently playing |
+| `on_change(listener) -> unsubscribe` | `listener(change, player)`, changes `ADDED`, `UPDATED`, `REMOVED`, `POSITION`, `TRACKLIST` |
+| mapping protocol | `players[bus_name]`, `in`, `len()`, `keys()`, `values()`, `items()` |
+
+### Player
+
+| Property | Type | Description |
+|---|---|---|
+| `bus_name` | `str` | MPRIS bus name, `org.mpris.MediaPlayer2.<app>` |
+| `app_name` | `str` | Bus name without the MPRIS prefix |
+| `identity` | `str` | Name the player reports |
+| `available` | `bool` | `False` once the player is removed |
+| `playback_status` | `str` | A `PlaybackStatus` value |
+| `is_playing` | `bool` | Available and playing |
+| `title`, `artist`, `album`, `art_url` | `str \| None` | From metadata |
+| `metadata` | `dict[str, str]` | All metadata, flattened to strings |
+| `duration` | `int \| None` | Track length, µs |
+| `position` | `int \| None` | Position in µs, extrapolated while playing, clamped to `duration` |
+| `volume` | `float \| None` | Player volume |
+| `shuffle` | `bool \| None` | Shuffle state |
+| `loop_status` | `str \| None` | A `LoopStatus` value |
+| `capabilities` | `PlayerCapabilities` | What the player supports |
+| `cover_url` | `str` | Cover proxy URL, changes with the track and artwork |
+| `tracklist_supported` | `bool` | Implements MPRIS `TrackList` |
+| `tracklist` | `TracklistState \| None` | Raw tracklist |
+| `tracks` | `list[Track]` | Tracklist entries, empty if none |
+| `current_track` | `Track \| None` | Entry matching the current track id |
+| `can_edit_tracks` | `bool` | Tracks can be added and removed |
+| `state` | `PlayerState` | Raw model |
+
+| Method | Description |
+|---|---|
+| `async play()`, `pause()`, `play_pause()`, `stop()`, `next()`, `previous()` | Transport |
+| `async seek(offset: int)` | Relative seek, µs, negative to go back |
+| `async set_position(position: int, track_id: str \| None = None)` | Absolute position, µs. `track_id` defaults to the current track. |
+| `async set_volume(volume: float)` | Player volume |
+| `async set_loop(loop: str)` | `"None"`, `"Track"` or `"Playlist"` |
+| `async set_shuffle(shuffle: bool)` | Shuffle on or off |
+| `async refresh_tracklist() -> TracklistState` | Fetch and cache the tracklist |
+| `async go_to(track: Track \| str)` | Play a tracklist entry |
+| `async add_track(uri: str, *, after_track: Track \| str \| None = None, set_as_current: bool = False)` | Add an absolute URI, appended by default |
+| `async remove_track(track: Track \| str)` | Remove a tracklist entry |
+
+## Audio
+
+| Member | Description |
+|---|---|
+| `kind: str` | `"pulseaudio"` or `"pipewire"` |
+| `volume: float \| None` | Master volume, follows the default output |
+| `muted: bool \| None` | Master mute, follows the default output |
+| `default_output: AudioOutput \| None` | The default sink |
+| `clients: Mapping[str, AudioClient]` | Application streams by name |
+| `outputs: Mapping[str, AudioOutput]` | Output devices by sink name |
+| `server: AudioServerState \| None` | Raw master state from the last snapshot |
+| `async set_volume(volume: float)` | Master volume. `ValueError` out of `[0, 1]`. |
+| `async toggle_mute()` | Toggle master mute |
+| `async set_muted(muted: bool)` | Reach a master mute state, toggling only if needed |
+| `on_change(listener) -> unsubscribe` | `listener(change, client_or_output)`, changes `ADDED`, `UPDATED`, `REMOVED` |
+
+### AudioClient
+
+| Member | Description |
+|---|---|
+| `name: str` | Stream name, the key in `audio.clients` |
+| `app: str` | Application name |
+| `volume: float`, `muted: bool` | Stream volume and mute |
+| `corked: bool` | Paused by the application |
+| `is_remote: bool` | Stream comes from another host than the node |
+| `state: AudioClientState` | Raw model |
+| `async set_volume(volume)`, `toggle_mute()`, `set_muted(muted)` | Stream volume and mute |
+
+### AudioOutput
+
+| Member | Description |
+|---|---|
+| `name: str` | Sink name, the key in `audio.outputs` |
+| `description: str` | Human-readable name |
+| `volume: float`, `muted: bool` | Output volume and mute |
+| `is_default: bool` | Default output |
+| `state: AudioOutputState` | Raw model |
+| `async set_volume(volume)`, `toggle_mute()`, `set_muted(muted)` | Output volume and mute |
+| `async make_default()` | Make it the default output |
+
+## Services
+
+Read-only mapping of `Service` by `scope/name`.
+
+| Member | Description |
+|---|---|
+| `find(name, scope=None) -> Service \| None` | Look up by unit name, optionally in one scope |
+| `on_change(listener) -> unsubscribe` | `listener(change, service)`, changes `ADDED`, `UPDATED`, `REMOVED` |
+
+### Service
+
+| Member | Description |
+|---|---|
+| `name: str`, `scope: str` | Unit name and `ServiceScope` value |
+| `running: bool`, `enabled: bool` | Unit state |
+| `description: str` | Unit description |
+| `state: ServiceState` | Raw model |
+| `async start()`, `stop()`, `restart()`, `enable()`, `disable()` | Lifecycle, `user` scope only |
+
+## Bluetooth
+
+| Member | Description |
+|---|---|
+| `powered: bool`, `scanning: bool`, `pairing_active: bool` | Adapter state, `False` when unknown |
+| `devices: Mapping[str, BluetoothDevice]` | Known and discovered devices by MAC |
+| `connected_devices: list[BluetoothDevice]` | Connected devices |
+| `state: BluetoothState \| None` | Raw adapter model |
+| `async power_up()`, `power_down()` | Adapter power |
+| `async pairing_mode()` | Make the node discoverable for pairing |
+| `async scan()`, `scan_stop()` | Device discovery |
+| `async connect(address)`, `disconnect(address)` | Connect or disconnect a device by MAC |
+| `on_change(listener) -> unsubscribe` | `listener(UPDATED, bluetooth)` on adapter changes, `listener(DISCOVERED \| UPDATED, device)` on devices |
+
+### BluetoothDevice
+
+| Member | Description |
+|---|---|
+| `address: str`, `name: str` | MAC address and name |
+| `paired: bool`, `connected: bool` | Device state |
+| `state: BluetoothDeviceState` | Raw model, with `bonded` and `trusted` |
+| `async connect()`, `disconnect()` | Connect or disconnect this device |
+
+## Power
+
+| Member | Description |
+|---|---|
+| `can_reboot: bool`, `can_power_off: bool` | Capabilities, `False` when unknown |
+| `capabilities: PowerCapabilities \| None` | Raw model |
+| `async reboot()`, `power_off()` | Power actions |
+
+## Upgrade
+
+| Member | Description |
+|---|---|
+| `available: bool` | An upgrade is available |
+| `current_version: str`, `latest_version: str` | Versions, empty when unknown |
+| `in_progress: bool` | A run is in progress |
+| `progress_percent: int \| None` | Run progress |
+| `status: UpgradeStatus \| None` | Raw model, with the current run in `status.run` |
+| `async check()` | Look for a new version |
+| `async start()` | Start the upgrade, `OdioApiError` 409 if already running |
+| `on_change(listener) -> unsubscribe` | `listener(UPDATED \| PROGRESS, upgrade)` |
+
+## OdioClient
+
+```python
+OdioClient(base_url="http://localhost:8018", session=None, *, request_timeout=10.0)
+```
+
+Stateless REST client. The full method list, with the request each one sends, is on the [low-level client](/control/pyodio/client/#endpoints) page.
+
+| Member | Description |
+|---|---|
+| `base_url: str` | Base URL without trailing slash |
+| `session: aiohttp.ClientSession` | Session in use, created on first access if none was given |
+| `async close()` | Close the session if the client created it |
+| `async with` | Closes on exit |
+
+## Event stream
+
+### OdioEvent
+
+Dataclass with `type: str` (event type, such as `player.updated`) and `data` (the JSON-decoded payload, or the raw string if it is not JSON).
+
+### stream_events
+
+```python
+pyodio.stream_events(client, *, types=None, backends=None, exclude=None, keepalive=30) -> AsyncIterator[OdioEvent]
+```
+
+Yields events from `GET /events` until the connection drops, without reconnecting. Raises `OdioTimeoutError` or `OdioConnectionError`.
+
+### EventStream
+
+```python
+EventStream(client, *, types=None, backends=None, exclude=None, keepalive=30, on_connected=None)
+```
+
+| Member | Description |
+|---|---|
+| `async start()` | Start the background task, no-op if running |
+| `async stop()` | Stop it, and mark the stream disconnected |
+| `connected: bool` | Whether the stream is up |
+| `add_event_listener(listener) -> unsubscribe` | `listener(event: OdioEvent)` |
+| `add_connection_listener(listener) -> unsubscribe` | `listener(connected: bool)` |
+
+`on_connected` is a coroutine function awaited on every connection, before events are dispatched.
+
+## Models
+
+Dataclasses returned by `OdioClient` and held in each entity's `state`. All parse with `Model.from_dict(data)`, ignoring unknown keys and defaulting missing ones. Datetimes are `datetime` objects, `None` when absent.
+
+### ServerInfo
+
+`hostname`, `os_platform`, `os_version`, `api_sw`, `api_version: str`, `backends: Backends`.
+
+### Backends
+
+`bluetooth`, `mpris`, `power`, `pulseaudio`, `systemd`, `upgrade`, `zeroconf: bool`.
+
+### PowerCapabilities
+
+`reboot`, `power_off: bool`.
+
+### PlayerState
+
+| Field | Type |
+|---|---|
+| `bus_name`, `identity` | `str` |
+| `playback_status` | `str` |
+| `loop_status` | `str \| None` |
+| `shuffle` | `bool \| None` |
+| `volume`, `rate` | `float \| None` |
+| `position` | `int \| None`, µs as last reported |
+| `position_updated_at` | `datetime \| None` |
+| `metadata` | `dict[str, str]` |
+| `capabilities` | `PlayerCapabilities` |
+| `tracklist_supported` | `bool` |
+
+Properties: `app_name`, `is_playing`, `title`, `artist`, `album`, `art_url`, `track_id`, `duration`.
+
+### PlayerCapabilities
+
+`can_play`, `can_pause`, `can_go_next`, `can_go_previous`, `can_seek`, `can_control: bool`.
+
+### TracklistState and Track
+
+`TracklistState`: `can_edit_tracks: bool`, `tracks: list[Track]`.
+
+`Track`: `track_id: str` (MPRIS object path), `metadata: dict[str, str]`, properties `title`, `artist`, `album`, `art_url`, `duration`.
+
+### AudioSnapshot and AudioServerState
+
+`AudioSnapshot`: `kind: str`, `clients: list[AudioClientState]`, `outputs: list[AudioOutputState]`.
+
+`AudioServerState`: `kind`, `default_sink: str`, `volume: float`, `muted: bool`.
+
+### AudioClientState
+
+`id: int`, `name`, `app: str`, `muted: bool`, `volume: float`, `corked: bool`, `backend`, `binary`, `user`, `host: str`, `props: dict[str, str]`.
+
+### AudioOutputState
+
+`id: int`, `name`, `description`, `nick: str`, `muted: bool`, `volume: float`, `state: str`, `default: bool`, `driver`, `active_port: str`, `is_network: bool`, `props: dict[str, str]`.
+
+### ServiceState
+
+`name`, `scope`, `active_state: str`, `running`, `enabled`, `exists: bool`, `description`, `url: str`. Property `key`, `"scope/name"`.
+
+### BluetoothState and BluetoothDeviceState
+
+`BluetoothState`: `powered`, `discoverable`, `pairable`, `pairing_active: bool`, `pairing_until: datetime | None`, `scanning: bool`, `known_devices: list[BluetoothDeviceState]`.
+
+`BluetoothDeviceState`: `address`, `name: str`, `paired`, `bonded`, `trusted`, `connected: bool`.
+
+### UpgradeStatus and UpgradeRunState
+
+`UpgradeStatus`: `current`, `latest: str`, `upgrade_available: bool`, `checked_at: datetime | None`, `extra: dict`, `run: UpgradeRunState`, `can_check`, `can_upgrade: bool`.
+
+`UpgradeRunState`: `state: str` (an `UpgradeRunStateValue`), `origin: str`, `percent: int | None`, `step: str | None`, `started_at`, `finished_at: datetime | None`. Property `running`.
+
+## Enums
+
+String enums, comparable with plain strings.
+
+| Enum | Values |
+|---|---|
+| `PlaybackStatus` | `PLAYING = "Playing"`, `PAUSED = "Paused"`, `STOPPED = "Stopped"` |
+| `LoopStatus` | `NONE = "None"`, `TRACK = "Track"`, `PLAYLIST = "Playlist"` |
+| `ServiceScope` | `SYSTEM = "system"`, `USER = "user"` |
+| `UpgradeRunStateValue` | `IDLE = "idle"`, `RUNNING = "running"`, `FAILED = "failed"` |
+
+## Exceptions
+
+| Exception | Base | Raised when |
+|---|---|---|
+| `OdioError` | `Exception` | Base class, also raised when reading `OdioHub.server` before the first sync |
+| `OdioConnectionError` | `OdioError` | The server can't be reached, or the stream is lost |
+| `OdioTimeoutError` | `OdioConnectionError` | A request times out, or the stream misses its keepalive |
+| `OdioApiError` | `OdioError` | The server answers with an HTTP error. Attributes `status: int`, `message: str`. |
+
+See [error handling](/control/pyodio/client/#errors).

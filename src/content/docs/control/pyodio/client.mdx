@@ -1,0 +1,204 @@
+---
+title: pyodio low-level client
+description: pyodio's OdioClient, a stateless typed REST client with one method per odio API endpoint, plus the raw SSE event stream and the error hierarchy.
+---
+
+`OdioClient` is a stateless, typed REST client with one method per [odio API](/api/overview/) endpoint. It keeps nothing in memory: every call is an HTTP request, read methods return dataclasses from `pyodio`, and actions return `None` once the server has accepted them. Use it for one-shot scripts, CLIs, or when you want to manage state yourself. For a live mirror of the node, use [`OdioHub`](/control/pyodio/hub/), which is built on this client.
+
+```python
+from pyodio import OdioClient
+
+async with OdioClient("http://odio.local:8018") as client:
+    info = await client.get_server_info()
+    players = await client.get_players()
+    if players:
+        await client.player_play_pause(players[0].bus_name)
+```
+
+## Construction
+
+```python
+OdioClient(base_url="http://localhost:8018", session=None, *, request_timeout=10.0)
+```
+
+| Argument | Description |
+|---|---|
+| `base_url` | Base URL of the odio API. A trailing slash is ignored. |
+| `session` | An existing `aiohttp.ClientSession` to reuse, for example Home Assistant's shared session. Without it, the client creates its own on first use. |
+| `request_timeout` | Timeout of each request in seconds. Service actions use 15 seconds. |
+
+`close()`, or leaving the `async with` block, closes the session only if the client created it. A session you passed in stays open and remains yours to close.
+
+Inside an `OdioHub`, the client is available as `hub.client`.
+
+## Endpoints
+
+Path parameters (bus names, sink names, unit names, track ids) are URL-encoded for you. Names follow the [API reference](/api/overview/) for each backend.
+
+### Server and power
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_server_info()` | `GET /server` | `ServerInfo` |
+| `get_power_capabilities()` | `GET /power` | `PowerCapabilities` |
+| `reboot()` | `POST /power/reboot` | `None` |
+| `power_off()` | `POST /power/power_off` | `None` |
+
+### Players
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_players()` | `GET /players` | `list[PlayerState]` |
+| `player_play(bus_name)` | `POST /players/{player}/play` | `None` |
+| `player_pause(bus_name)` | `POST /players/{player}/pause` | `None` |
+| `player_play_pause(bus_name)` | `POST /players/{player}/play_pause` | `None` |
+| `player_stop(bus_name)` | `POST /players/{player}/stop` | `None` |
+| `player_next(bus_name)` | `POST /players/{player}/next` | `None` |
+| `player_previous(bus_name)` | `POST /players/{player}/previous` | `None` |
+| `player_seek(bus_name, offset)` | `POST /players/{player}/seek` | `None` |
+| `player_set_position(bus_name, position, track_id=None)` | `POST /players/{player}/position` | `None` |
+| `player_set_volume(bus_name, volume)` | `POST /players/{player}/volume` | `None` |
+| `player_set_loop(bus_name, loop)` | `POST /players/{player}/loop` | `None` |
+| `player_set_shuffle(bus_name, shuffle)` | `POST /players/{player}/shuffle` | `None` |
+| `player_cover_url(bus_name, *, art_url=None, track_id=None)` | none, builds the URL of `GET /players/{player}/cover` | `str` |
+
+`offset` and `position` are in microseconds. `loop` is `"None"`, `"Track"` or `"Playlist"` (`pyodio.LoopStatus`). With `track_id`, `player_set_position()` is ignored server-side if that track is no longer playing. The `art_url` and `track_id` arguments of `player_cover_url()` only add cache-busting query parameters, so the URL changes with the artwork.
+
+### Tracklists
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_player_tracklist(bus_name)` | `GET /players/{player}/tracklist` | `TracklistState` |
+| `player_tracklist_goto(bus_name, track_id)` | `POST /players/{player}/tracklist/goto/{trackid}` | `None` |
+| `player_tracklist_add(bus_name, uri, *, after_track=None, set_as_current=False)` | `POST /players/{player}/tracklist/add` | `None` |
+| `player_tracklist_remove(bus_name, track_id)` | `POST /players/{player}/tracklist/remove/{trackid}` | `None` |
+
+`track_id` is the full MPRIS track object path, or only its last segment. Without `after_track`, the track is appended at the end. These routes answer `404` on players without [tracklist support](/api/mpris/#tracklist).
+
+### Audio
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_audio()` | `GET /audio` | `AudioSnapshot` |
+| `get_audio_server()` | `GET /audio/server` | `AudioServerState` |
+| `get_audio_clients()` | `GET /audio/clients` | `list[AudioClientState]` |
+| `get_audio_outputs()` | `GET /audio/outputs` | `list[AudioOutputState]` |
+| `set_master_volume(volume)` | `POST /audio/server/volume` | `None` |
+| `toggle_master_mute()` | `POST /audio/server/mute` | `None` |
+| `set_client_volume(name, volume)` | `POST /audio/clients/{name}/volume` | `None` |
+| `toggle_client_mute(name)` | `POST /audio/clients/{name}/mute` | `None` |
+| `set_output_volume(name, volume)` | `POST /audio/outputs/{name}/volume` | `None` |
+| `toggle_output_mute(name)` | `POST /audio/outputs/{name}/mute` | `None` |
+| `set_default_output(name)` | `POST /audio/outputs/{name}/default` | `None` |
+
+Volumes are between `0.0` and `1.0`: the audio volume methods raise `ValueError` on anything else, before sending a request. Mute can only be toggled, the hub's `set_muted()` builds on these toggles.
+
+`get_audio()` returns clients and outputs in one call. On servers without `GET /audio`, it falls back to the individual endpoints, and an endpoint missing there yields an empty list.
+
+### Services
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_services()` | `GET /services` | `list[ServiceState]` |
+| `service_action(scope, unit, action)` | `POST /services/{scope}/{unit}/{action}` | `None` |
+| `service_start(scope, unit)` | `POST /services/{scope}/{unit}/start` | `None` |
+| `service_stop(scope, unit)` | `POST /services/{scope}/{unit}/stop` | `None` |
+| `service_restart(scope, unit)` | `POST /services/{scope}/{unit}/restart` | `None` |
+| `service_enable(scope, unit)` | `POST /services/{scope}/{unit}/enable` | `None` |
+| `service_disable(scope, unit)` | `POST /services/{scope}/{unit}/disable` | `None` |
+
+`action` is one of `start`, `stop`, `restart`, `enable`, `disable`, anything else raises `ValueError`. The server answers `403` for `system` units, which are read-only, and `GET /services` answers `404` when no unit is configured.
+
+### Bluetooth
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_bluetooth()` | `GET /bluetooth` | `BluetoothState` |
+| `get_bluetooth_devices()` | `GET /bluetooth/devices` | `list[BluetoothDeviceState]` |
+| `bluetooth_power_up()` | `POST /bluetooth/power_up` | `None` |
+| `bluetooth_power_down()` | `POST /bluetooth/power_down` | `None` |
+| `bluetooth_pairing_mode()` | `POST /bluetooth/pairing_mode` | `None` |
+| `bluetooth_scan()` | `POST /bluetooth/scan` | `None` |
+| `bluetooth_scan_stop()` | `POST /bluetooth/scan/stop` | `None` |
+| `bluetooth_connect(address)` | `POST /bluetooth/connect` | `None` |
+| `bluetooth_disconnect(address)` | `POST /bluetooth/disconnect` | `None` |
+
+### Upgrades
+
+| Method | Request | Returns |
+|---|---|---|
+| `get_upgrade()` | `GET /upgrade` | `UpgradeStatus`, or `None` if the server returns no status |
+| `upgrade_check()` | `POST /upgrade/check` | `None` |
+| `upgrade_start()` | `POST /upgrade/start` | `None`, raises `OdioApiError` with status `409` if a run is in progress |
+
+## Event stream
+
+pyodio reads the API's [SSE stream](/api/events/) at two levels below the hub.
+
+### stream_events
+
+`pyodio.stream_events()` is an async generator yielding `OdioEvent` objects (`type`, and `data` decoded from JSON) until the connection drops. It does not reconnect.
+
+```python
+async with OdioClient("http://odio.local:8018") as client:
+    async for event in pyodio.stream_events(client, backends=["mpris"], exclude=["player.position"]):
+        print(event.type, event.data)
+```
+
+| Argument | Default | Description |
+|---|---|---|
+| `client` | | The `OdioClient` whose URL and session are used |
+| `types` | `None` | Only receive these event types |
+| `backends` | `None` | Only receive events from these backends |
+| `exclude` | `None` | Drop these event types. `server.info` can't be excluded. |
+| `keepalive` | `30` | Keepalive interval requested from the server, in seconds, between `10` and `120` |
+
+Keepalive `server.info` events are yielded too, so you can track liveness: the server always sends them, even when `types` or `backends` filter everything else. An invalid filter or keepalive makes the server refuse the stream with a 400, raised as `OdioConnectionError` with the server's reason in the message. When `keepalive + 15` seconds pass without any data, the generator raises `OdioTimeoutError`. Any other failure, including the server refusing the stream, raises `OdioConnectionError`.
+
+### EventStream
+
+`pyodio.EventStream` supervises `stream_events()`: it runs it in a background task, reconnects with exponential backoff (1 second up to 5 minutes, reset after a successful connection), and dispatches events to listeners. It has the same filtering arguments, plus `on_connected`, a coroutine function awaited each time the stream connects or reconnects, before any event is dispatched. It is the place to fetch a fresh snapshot, which is what `OdioHub` does.
+
+```python
+async def resync() -> None:
+    players = await client.get_players()
+    ...
+
+stream = pyodio.EventStream(client, backends=["mpris"], on_connected=resync)
+stream.add_event_listener(lambda event: print(event.type))
+stream.add_connection_listener(lambda up: print("connected" if up else "disconnected"))
+await stream.start()
+...
+await stream.stop()
+```
+
+`add_event_listener()` and `add_connection_listener()` return an unsubscribe callable. Listeners are plain functions called in the event loop: they must not block, and an exception they raise is logged without stopping the stream. `stream.connected` tells whether the stream is currently up. A stream the server refuses is retried like a dropped one, the reason is logged at `DEBUG` on the `pyodio.sse` logger (see [logging](/control/pyodio/hub/#logging)). `start()` does nothing if the stream is already running.
+
+## Errors
+
+Every exception pyodio raises for a server or network problem derives from `pyodio.OdioError`:
+
+```
+OdioError
+├── OdioConnectionError     server unreachable, connection or stream lost
+│   └── OdioTimeoutError    request timed out, or no keepalive on the stream
+└── OdioApiError            the server answered with an HTTP error
+```
+
+`OdioApiError` carries the HTTP `status` and the server's plain-text `message`:
+
+```python
+try:
+    await odio.upgrade.start()
+except pyodio.OdioApiError as err:
+    if err.status == 409:
+        print("An upgrade is already running")
+    else:
+        raise
+except pyodio.OdioConnectionError:
+    print("Node unreachable")
+```
+
+Since `OdioTimeoutError` is a subclass of `OdioConnectionError`, catching the latter covers both. Invalid arguments caught client-side, a volume out of range or an unknown service action, raise the standard `ValueError` instead.
+
+Reading `OdioHub.server` before the hub has synced raises a plain `OdioError`.
