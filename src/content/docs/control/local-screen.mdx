@@ -23,7 +23,7 @@ The screen is an optional odios component. It needs amd64 or arm64: Raspberry Pi
 - at install, answer yes to `Install display (fbrowser-kiosk)?`, or set `INSTALL_DISPLAY=Y` for a [non-interactive install](https://github.com/b0bbywan/odios/tree/main/installer#non-interactive-automation)
 - on an existing node, enable the **display** row under System on the [settings page](/operations/settings/#components), then apply an [upgrade](/operations/settings/#upgrade)
 
-The component installs the `fbrowser-kiosk` package from [apt.odio.love](/operations/apt-repository/), adds the odio user to the `tty` and `video` groups and enables `odio-screen.service`. That user unit waits for odio-api to serve its UI, then opens `http://localhost:8018/ui` full screen, and restarts along with odio-api. Its definition lives in [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui/blob/main/debian/odio-screen.service), which packages the browser.
+The component installs the `fbrowser-kiosk` package from [apt.odio.love](/operations/apt-repository/), adds the odio user to the `tty` and `video` groups and enables `odio-screen.service`. That user unit waits for odio-api to serve its UI, then opens `http://localhost:8018/ui` full screen, and restarts along with odio-api.
 
 The screen is then listed in the Services panel of the [embedded UI](/control/embedded-ui/), where it can be restarted like any other service.
 
