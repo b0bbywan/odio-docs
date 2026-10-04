@@ -54,7 +54,7 @@ const { sublist, nested } = Astro.props;
 										{entry.label}
 									</a>
 								) : (
-									<span class="large">{entry.label}</span>
+									<span class={nested ? 'subgroup' : 'large'}>{entry.label}</span>
 								)}
 								{entry.badge && (
 									<Badge variant={entry.badge.variant} class={entry.badge.class} text={entry.badge.text} />
@@ -95,15 +95,25 @@ const { sublist, nested } = Astro.props;
 			color: var(--sl-color-white);
 		}
 
+		/* Top-level sections in odio green, set apart from the pages below them. */
+		summary .large {
+			color: var(--sl-color-accent-high);
+		}
+
 		.group-link {
 			display: inline;
 			padding: 0;
 			text-decoration: none;
-			color: var(--sl-color-white);
 		}
 		.group-link:hover,
 		.group-link:focus {
-			color: var(--sl-color-text-accent);
+			color: var(--sl-color-white);
+		}
+
+		/* A group nested in a section: green like sections, sized like the pages. */
+		.subgroup {
+			font-weight: 600;
+			color: var(--sl-color-accent-high);
 		}
 
 		.top-level > li + li {
@@ -169,7 +179,8 @@ const { sublist, nested } = Astro.props;
 			.large {
 				font-size: var(--sl-text-base);
 			}
-			a {
+			a,
+			.subgroup {
 				font-size: var(--sl-text-sm);
 			}
 		}
