@@ -177,3 +177,20 @@ html.sl-locked body {
 
 .screenshot-lightbox .sl-prev { left: 0.5rem; }
 .screenshot-lightbox .sl-next { right: 0.5rem; }
+
+/* Homepage call-to-action buttons */
+.cta-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	align-items: center;
+}
+.cta-buttons .sl-link-button.primary {
+	background-color: var(--sl-color-accent-high);
+	border-color: var(--sl-color-accent-high);
+	color: var(--sl-color-black);
+	font-weight: 600;
+}
+.cta-buttons .sl-link-button.primary:hover {
+	filter: brightness(1.1);
+}
