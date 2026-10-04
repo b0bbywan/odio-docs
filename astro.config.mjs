@@ -38,6 +38,7 @@ export default defineConfig({
 				favicon: '/favicon.svg',
 				lastUpdated: true,
 				customCss: ['./src/styles/custom.css'],
+				expressiveCode: { themes: ['starlight-dark'] },
 				head: [
 					{ tag: 'script', attrs: { src: '/screenshot-lightbox.js', defer: true } },
 				],
@@ -45,6 +46,8 @@ export default defineConfig({
 					SocialIcons: './src/components/SocialIcons.astro',
 					Head: './src/components/Head.astro',
 					Sidebar: './src/components/Sidebar.astro',
+					ThemeProvider: './src/components/ThemeProvider.astro',
+					ThemeSelect: './src/components/ThemeSelect.astro',
 				},
 			social: [
 					{ icon: 'heart', label: 'odio.love', href: 'https://odio.love' },
