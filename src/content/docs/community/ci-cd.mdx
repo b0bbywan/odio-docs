@@ -85,7 +85,7 @@ Pull requests to odios run the same matrix against a `pr-<N>` pre-release instea
 </figure>
 </div>
 
-All of it lands on a single [GitHub Release](https://github.com/b0bbywan/odios/releases). The URLs users hit, `beta.odio.love/install`, `/manifest.json`, and `/odio.rpi-imager-manifest`, are 307 redirects served by the [odio.love](https://github.com/b0bbywan/odio.love) Astro site on Vercel, pointing at `github.com/b0bbywan/odios/releases/latest/download/<asset>`. The URLs stay stable across releases, so `curl -fsSL https://beta.odio.love/install | bash` never needs updating. Pinning a specific version means calling the GitHub URL with the tag directly, as shown in [Upgrade](/operations/upgrade/).
+All of it lands on a single [GitHub Release](https://github.com/b0bbywan/odios/releases). The URLs users hit, `odio.love/install`, `/manifest.json`, and `/odio.rpi-imager-manifest`, are 307 redirects served by the [odio.love](https://github.com/b0bbywan/odio.love) Astro site on Vercel, pointing at `github.com/b0bbywan/odios/releases/latest/download/<asset>`. The URLs stay stable across releases, so `curl -fsSL https://odio.love/install | bash` never needs updating. Pinning a specific version means calling the GitHub URL with the tag directly, as shown in [Upgrade](/operations/upgrade/).
 
 ## PWA and Home Assistant
 
