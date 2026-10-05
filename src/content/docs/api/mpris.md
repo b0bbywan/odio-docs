@@ -13,7 +13,38 @@ The MPRIS backend auto-discovers every MPRIS-compatible player (Spotify, VLC, Fi
 GET /players
 ```
 
-Returns all active players with their current state: playback status, track metadata, volume, shuffle, loop mode, position, and whether the player exposes a [tracklist](#tracklist).
+Returns all active players with their current state: playback status, track metadata, volume, shuffle, loop mode, position, and whether the player exposes a [tracklist](#tracklist):
+
+```json
+[
+  {
+    "bus_name": "org.mpris.MediaPlayer2.mpd",
+    "identity": "Music Player Daemon",
+    "playback_status": "Stopped",
+    "loop_status": "None",
+    "volume": 1,
+    "position_updated_at": "2026-09-22T18:59:08.21841652+02:00",
+    "rate": 1,
+    "metadata": {
+      "mpris:artUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bc/56/4c/bc564c0b-b7ce-1250-5bab-91301e96ed02/3663729372383_cover.jpg/600x600bb.jpg",
+      "mpris:trackid": "/org/mpris/MediaPlayer2/Track/3",
+      "xesam:album": "La Grosse Radio Reggae - Dub Dancehall Roots - From Paris - www.LaGrosseRadio.com",
+      "xesam:title": "Ryon - Ma France A Nous"
+    },
+    "capabilities": {
+      "can_play": true,
+      "can_pause": true,
+      "can_go_next": false,
+      "can_go_previous": true,
+      "can_seek": false,
+      "can_control": true
+    },
+    "tracklist_supported": true
+  }
+]
+```
+
+`bus_name` is the `{player}` used in every route below. Metadata values are all strings, `mpris:length` and `position` are in microseconds. `loop_status`, `shuffle`, `volume`, `position` and `rate` are omitted when the player doesn't report them (or when they hold their zero value).
 
 ### Playback control
 
