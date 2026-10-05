@@ -6,6 +6,7 @@
 // the caret still toggles the <details>, clicking the label navigates.
 import { Icon, Badge } from '@astrojs/starlight/components';
 import SidebarRestorePoint from '@astrojs/starlight/components/SidebarRestorePoint.astro';
+import SidebarGroupIcon from './SidebarGroupIcon.astro';
 
 const groupLinks = {
 	'Getting Started': '/operations/installation/',
@@ -51,10 +52,14 @@ const { sublist, nested } = Astro.props;
 							<span class="group-label">
 								{groupLinks[entry.label] ? (
 									<a class="large group-link" href={groupLinks[entry.label]}>
+										<SidebarGroupIcon label={entry.label} />
 										{entry.label}
 									</a>
 								) : (
-									<span class={nested ? 'subgroup' : 'large'}>{entry.label}</span>
+									<span class={nested ? 'subgroup' : 'large'}>
+										<SidebarGroupIcon label={entry.label} />
+										{entry.label}
+									</span>
 								)}
 								{entry.badge && (
 									<Badge variant={entry.badge.variant} class={entry.badge.class} text={entry.badge.text} />
@@ -100,10 +105,26 @@ const { sublist, nested } = Astro.props;
 			color: var(--sl-color-accent-high);
 		}
 
-		.group-link {
-			display: inline;
+		.group-link,
+		.subgroup {
+			display: inline-flex;
+			align-items: center;
 			padding: 0;
 			text-decoration: none;
+		}
+
+		/* Section icon: a quieter grey than the green label, brightening on hover. */
+		.group-label :global(.group-icon) {
+			width: 1.1em;
+			height: 1.1em;
+			flex-shrink: 0;
+			margin-inline-end: 0.5em;
+			color: var(--sl-color-gray-3);
+			transition: color 0.15s ease-in-out;
+		}
+		.group-link:hover :global(.group-icon),
+		.group-link:focus :global(.group-icon) {
+			color: var(--sl-color-white);
 		}
 		.group-link:hover,
 		.group-link:focus {
