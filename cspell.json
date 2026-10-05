@@ -286,7 +286,11 @@
     "Pisound",
     "pisound",
     "soundcard",
-    "qbzd"
+    "qbzd",
+    "voterpublic",
+    "cifs",
+    "automount",
+    "nofail"
   ],
   "ignorePaths": [
     "node_modules",
