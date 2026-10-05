@@ -1,0 +1,26 @@
+---
+// Icon shown before a sidebar group label, looked up by label in sidebar-icons.mjs.
+// Renders nothing for groups without an entry.
+import { Icon } from '@astrojs/starlight/components';
+import { groupIcons } from './sidebar-icons.mjs';
+
+const icon = groupIcons[Astro.props.label];
+---
+
+{
+	icon && !icon.startsWith('<') ? (
+		<Icon name={icon} class="group-icon" />
+	) : icon && (
+		<svg
+			class="group-icon"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			aria-hidden="true"
+			set:html={icon}
+		/>
+	)
+}
