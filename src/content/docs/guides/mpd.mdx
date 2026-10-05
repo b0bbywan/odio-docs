@@ -19,7 +19,7 @@ odio is designed as a streamer, not a library manager. A large music database on
 
 By default, MPD only maintains a lightweight local database for [CD](/guides/audio-cd/) and [USB](/guides/usb-flashdrives/) playback via [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer).
 
-If you want library browsing, [two options](#using-a-nas-library) are available: an NFS mount, or MPD running on the NAS.
+If you want library browsing, [two options](#using-a-nas-library) are available: mounting the NAS share (NFS or SMB), or MPD running on the NAS.
 
 ## Playback controls
 
@@ -109,6 +109,57 @@ mpc update
 ```
 
 The files are browsable from any MPD client. Simple, but the scan runs on the Pi and gets slow over NFS for large collections, the exact problem odio sidesteps by default.
+
+### Mount the share over SMB
+
+If NFS permissions on the NAS are a hassle, an SMB (Windows) share works the same way and needs nothing beyond a read-only user on the NAS side. This setup was contributed by [@voterpublic](https://github.com/voterpublic) in [discussion #85](https://github.com/b0bbywan/odios/discussions/85), running on a Raspberry Pi 3B+ with a Synology NAS.
+
+On the NAS, create a user with read-only access to your music folder, and make sure SMB is enabled in its file services. On Synology, both live in the Control Panel.
+
+On the odio node, install the SMB client:
+
+```bash
+sudo apt update
+sudo apt install cifs-utils
+```
+
+Store the NAS credentials in a file only root can read:
+
+```bash
+sudo nano /etc/odio-smb.credentials
+```
+
+```
+username=your_nas_user
+password=your_nas_password
+```
+
+```bash
+sudo chmod 600 /etc/odio-smb.credentials
+```
+
+Then mount the share under `/media/USB`, replacing `<NAS_IP>` and `<Music>` with your NAS address and share name:
+
+```bash
+sudo mkdir -p /media/USB/<Music>
+sudo mount -t cifs //<NAS_IP>/<Music> /media/USB/<Music> -o credentials=/etc/odio-smb.credentials,vers=3.0,uid=1000,gid=1000
+```
+
+`uid` and `gid` make the files owned by the user odio runs as, run `id` as that user if yours isn't `1000`.
+
+To survive reboots, add an `/etc/fstab` entry. `x-systemd.automount` mounts the share on first access, and `nofail` lets the node boot even when the NAS is off:
+
+```
+//<NAS_IP>/<Music>  /media/USB/<Music>  cifs  credentials=/etc/odio-smb.credentials,vers=3.0,uid=1000,gid=1000,x-systemd.automount,nofail  0  0
+```
+
+Then trigger a database update:
+
+```bash
+mpc update
+```
+
+The same tradeoff as NFS applies: the scan runs on the Pi.
 
 ### Run MPD on the NAS
 

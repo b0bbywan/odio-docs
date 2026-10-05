@@ -13,7 +13,7 @@ A NAS is where your music library lives. odio doesn't try to replace it, it uses
 
 ## Music library
 
-Mount your NAS music folder into MPD's music directory via NFS, trigger a database update with `mpc update`, and browse your library from any [MPD client](/guides/mpd/). Playback goes through the odio node's audio output.
+Mount your NAS music folder into MPD's music directory via [NFS](/guides/mpd/#mount-the-share-over-nfs) or [SMB](/guides/mpd/#mount-the-share-over-smb), trigger a database update with `mpc update`, and browse your library from any [MPD client](/guides/mpd/). Playback goes through the odio node's audio output.
 
 Alternatively, serve the library over UPnP/DLNA (see [DLNA server](#dlna-server-minidlna) below) and browse it from any control point, directing playback to the odio node acting as a [DLNA renderer](/guides/dlna/).
 
