@@ -123,14 +123,26 @@ systemd:
   user:
     - name: mpd.service
       url: ":8080"
+      open: self
     - name: shairport-sync.service
     - name: snapclient.service
       url: "http://<snapserver>:1780"
+      open: panel
     - name: spotifyd.service
     - name: upmpdcli.service
 ```
 
 Since odio-api v0.12.0, each whitelist entry is a map with a `name` and an optional `url`. The URL is exposed on the [/services](/api/systemd/) response so clients (the [embedded UI](/control/embedded-ui/), [PWA](/control/pwa/), Home Assistant) can render a direct link, which is how myMPD shows up alongside `mpd.service` on installs that ship it.
+
+Since [v0.17.4](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.4), an optional `open` tells clients where to open that URL:
+
+| `open` | Behavior in the embedded UI |
+|---|---|
+| `tab` (default) | New browser tab |
+| `panel` | Panel over the dashboard, a side panel on larger screens and a bottom sheet on phones |
+| `self` | Current tab, replacing the dashboard |
+
+`open` only applies to an entry with a `url`: without one it is ignored with a warning. An unknown value also logs a warning and falls back to `tab`. The resolved value is exposed as `open` on [/services](/api/systemd/#list-services).
 
 ### Bluetooth
 
