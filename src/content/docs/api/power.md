@@ -12,10 +12,16 @@ The odio installer auto-detects whether the user has permission to reboot/power-
 ### Capabilities
 
 ```
-GET /power/
+GET /power
 ```
 
-Returns which power actions are available.
+Returns which power actions are available:
+
+```json
+{ "power_off": true, "reboot": true }
+```
+
+A disabled action answers `403 Forbidden`.
 
 ### Actions
 

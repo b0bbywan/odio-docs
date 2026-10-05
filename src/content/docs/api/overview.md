@@ -29,7 +29,26 @@ Disabling a backend removes all its routes from the API.
 GET /server
 ```
 
-Returns enabled backends and server metadata.
+Returns enabled backends and server metadata:
+
+```json
+{
+  "hostname": "raspodio",
+  "os_platform": "linux/arm",
+  "os_version": "Raspbian GNU/Linux 13 (trixie)",
+  "api_sw": "odio-api",
+  "api_version": "v0.17.4",
+  "backends": {
+    "bluetooth": true,
+    "mpris": true,
+    "power": true,
+    "pulseaudio": true,
+    "systemd": true,
+    "upgrade": true,
+    "zeroconf": true
+  }
+}
+```
 
 ## Real-time events
 

@@ -18,18 +18,37 @@ Enabled when Bluetooth is installed on the node.
 GET /bluetooth
 ```
 
-Returns adapter state (powered, pairing and scan state) and the `known_devices` list. Each device carries `paired`, `bonded`, `trusted`, and `connected` flags, so a bonded speaker and a freshly scanned one share the same shape:
+Returns adapter state (powered, pairing and scan state) and the `known_devices` list:
 
 ```json
 {
-  "address": "AA:BB:CC:DD:EE:FF",
-  "name": "JBL Go 3",
-  "paired": true,
-  "bonded": true,
-  "trusted": true,
-  "connected": true
+  "powered": true,
+  "discoverable": false,
+  "pairable": false,
+  "pairing_active": false,
+  "scanning": false,
+  "known_devices": [
+    {
+      "address": "AA:BB:CC:DD:EE:01",
+      "name": "Pixel 6a",
+      "paired": true,
+      "bonded": true,
+      "trusted": true,
+      "connected": false
+    },
+    {
+      "address": "AA:BB:CC:DD:EE:02",
+      "name": "JBL Go 3",
+      "paired": true,
+      "bonded": true,
+      "trusted": true,
+      "connected": false
+    }
+  ]
 }
 ```
+
+`pairing_until` is only present while pairing mode is active, `known_devices` only when the adapter knows at least one device. Each device carries `paired`, `bonded`, `trusted`, and `connected` flags, so a bonded speaker and a freshly scanned one share the same shape.
 
 `bonded` (since odio-api v0.14.0) means the node still holds the device's pairing key, so it can reconnect without re-pairing. `connected` is the live link state.
 
