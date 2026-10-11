@@ -10,7 +10,7 @@ import snapcastNasMpdSource from '../../../assets/snapcast-nas-mpd-source.png';
 import snapcastClientMpris from '../../../assets/snapcast-client-mpris.png';
 import snapcastNasGoLibrespot from '../../../assets/snapcast-nas-go-librespot.png';
 import snapcastClientGoLibrespot from '../../../assets/snapcast-client-go-librespot.png';
-import snapcastClientLibrespot from '../../../assets/snapcast-client-librespot.png';
+import snapcastClientMetaLibrespot from '../../../assets/snapcast-client-meta-librespot.png';
 import snapcastSpotifyConnectCast from '../../../assets/snapcast-spotify-connect-cast.png';
 import snapcastSpotifyControllerMpris from '../../../assets/snapcast-spotify-controller-mpris.png';
 
@@ -67,8 +67,8 @@ The bridge appears on D-Bus as `org.mpris.MediaPlayer2.snapcast` and is picked u
 		<figcaption>Pi client, go-librespot stream: same propagation path, this time fed by `meta_go-librespot.py`.</figcaption>
 	</figure>
 	<figure>
-		<Image src={snapcastClientLibrespot} alt="odio UI on a Raspberry Pi client: the Media Players panel shows Snapcast client with the generic Spotify logo and a track title only, no artist or cover art" />
-		<figcaption>Pi client, librespot stream: only the track title reaches snapclientmpris, no artist or cover art (librespot's built-in metadata path is sparser than the control-script one).</figcaption>
+		<Image src={snapcastClientMetaLibrespot} alt="odio UI on a Raspberry Pi client: the Media Players panel shows Snapcast client with cover art, artist, track title, and album, and Snapcast client active in the Services panel" />
+		<figcaption>Pi client, librespot stream with [snapcast-meta-librespot](/guides/use-case-nas/#spotify-streams-librespot-go-librespot): artist, album, and cover art reach the room.</figcaption>
 	</figure>
 	<figure>
 		<Image src={snapcastSpotifyConnectCast} alt="Spotify desktop app with the Connect panel open: SnapSpotHD is the selected target at the top, with SnapSpot, raspodio, and other devices listed below; the footer reads Playing on SnapSpotHD" />
@@ -76,7 +76,7 @@ The bridge appears on D-Bus as `org.mpris.MediaPlayer2.snapcast` and is picked u
 	</figure>
 	<figure>
 		<Image src={snapcastSpotifyControllerMpris} alt="odio UI on the controlling desktop: the Media Players panel shows Spotify with full cover art, track title, artist, album, and transport controls; the Services panel lists MPD and PipeWire PulseAudio" />
-		<figcaption>Controller side, odio UI: the Spotify desktop app keeps its own rich MPRIS surface alive on the host that's casting, so the controlling node sees full metadata even when the snapclient rooms (above) only get sparse data from librespot.</figcaption>
+		<figcaption>Controller side, odio UI: the Spotify desktop app keeps its own rich MPRIS surface alive on the host that's casting, so the controlling node sees full metadata even when the snapclient rooms only get the track title, as with snapserver's built-in `librespot://` source.</figcaption>
 	</figure>
 </div>
 
