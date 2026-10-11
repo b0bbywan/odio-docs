@@ -1,6 +1,6 @@
 ---
 title: How to manage your odio nodes from one app
-description: Manage all your odio nodes from one installable web app. Add nodes by host or IP, each card shows name, architecture, odio-api version, and connection status.
+description: 'Manage all your odio nodes from one installable web app: scan your network or add nodes by address, see what plays on each one, control playback and power.'
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -63,8 +63,8 @@ On first launch, click **+ Add Instance** and enter the host/IP, port (default 8
 		<figcaption>Add Instance form: host, port, optional label</figcaption>
 	</figure>
 	<figure>
-		<Image src={pwaInstances} alt="Six configured odio nodes showing name, architecture, odio-api version, IP address, and connection status, with one showing a missing-CORS-headers warning" />
-		<figcaption>Six nodes configured, including one with a missing-CORS-headers warning</figcaption>
+		<Image src={pwaInstances} alt="Six odio nodes in two columns, each card showing name, architecture, odio-api version and address. Four show what is playing with its cover, one of them with a progress bar and previous, pause and next buttons, another with a tab per player. The last card reads Server unreachable. Add Instance and Scan network buttons sit below the list" />
+		<figcaption>Six nodes: the ones playing first, the unreachable one last</figcaption>
 	</figure>
 </div>
 
@@ -104,6 +104,14 @@ Limits:
 - Only nodes that allow the PWA's origin are listed. Hosts that answer on the port without allowing it are counted apart, next to the origin to add to their [`api.cors.origins`](/api/configuration/#cors).
 
 How a connected network is told from one that isn't is described in the [odio-pwa README](https://github.com/b0bbywan/odio-pwa#network-scan).
+
+## Node cards
+
+Since [v0.6.0](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.6.0), the card of an online node shows its active [MPRIS](/api/mpris/) player: cover, title, artist and album, a progress bar, and previous / play-pause / next. Click the cover to zoom it. When several players are active, tabs switch between them. Since [v0.7.0](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.7.0), only the commands the player supports are shown, and the progress bar only for players that can seek.
+
+A power icon in the card header powers the node off, after a confirmation, when its [power backend](/api/power/) allows it.
+
+Nodes that are playing are listed first, then paused ones, then idle ones, unreachable ones last. The order is settled when the list is shown or on **Refresh all**, so a card never moves while you are using the list.
 
 ## Open a node by URL
 
