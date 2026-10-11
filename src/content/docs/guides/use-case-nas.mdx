@@ -211,7 +211,7 @@ The `controlscript=meta_mpd.py` parameter wires snapserver to MPD's metadata ove
 
 Two Spotify Connect daemons work as Snapcast sources. Pick whichever fits, or run both in parallel as separate streams.
 
-**[Librespot](https://github.com/librespot-org/librespot)** is what Snapcast has always supported, simple to install. Only the track title is propagated to snapserver, no artist or cover art, and librespot doesn't expose its own MPRIS interface on the NAS. When the controller is a Spotify desktop or phone app, that app keeps its own rich MPRIS surface on its host, so any other odio node running on the controlling host sees the full metadata (see the carousel on the [Snapcast page](/guides/snapcast/#mpris-integration-snapclientmpris)).
+**[Librespot](https://github.com/librespot-org/librespot)** is what Snapcast has always supported, simple to install. With snapserver's built-in `librespot://` source, only the track title is propagated to snapserver, no artist or cover art, and librespot doesn't expose its own MPRIS interface on the NAS. When the controller is a Spotify desktop or phone app, that app keeps its own rich MPRIS surface on its host, so any other odio node running on the controlling host sees the full metadata (see the carousel on the [Snapcast page](/guides/snapcast/#mpris-integration-snapclientmpris)).
 
 Install via Cargo:
 
@@ -236,6 +236,15 @@ Snapserver source line:
 [stream]
 source = librespot:///usr/local/bin/librespot?name=SpotifyHD&devicename=SnapSpotHD&bitrate=320&volume=100&normalize=false
 ```
+
+For full metadata, [snapcast-meta-librespot](https://github.com/b0bbywan/snapcast-meta-librespot) is a control script fed by librespot's `--onevent` hook: title, artists, album, cover and duration reach every room, and the title no longer changes about 30 seconds early, when librespot preloads the next track. Copy `meta_librespot.py` to `/usr/share/snapserver/plug-ins/` and declare the stream as a `process://` source, the `librespot://` type would keep overwriting the metadata:
+
+```ini
+[stream]
+source = process:///usr/local/bin/librespot?name=SpotifyHD&sampleformat=44100:16:2&wd_timeout=7800&params=--name%20SnapSpotHD%20--bitrate%20320%20--backend%20pipe%20--initial-volume%20100%20--verbose%20--onevent%20/usr/share/snapserver/plug-ins/meta_librespot.py&controlscript=meta_librespot.py
+```
+
+With `controlscriptparams=--mpris` appended, the script also publishes a read-only MPRIS player on the NAS's session bus, so [go-odio-api on the NAS](#go-odio-api-on-the-nas) shows what plays there. It needs `python3-dbus-fast`. Playback is still driven from the Spotify app, librespot has no control API. The [README](https://github.com/b0bbywan/snapcast-meta-librespot#readme) lists the requirements and limits, among them one librespot stream per snapserver.
 
 **[go-librespot](https://github.com/devgianlu/go-librespot)** is a Go rewrite of the Spotify Connect daemon that exposes a local REST API for playback state and metadata. Paired with snapserver's `meta_go-librespot.py` control script (shipped in `/usr/share/snapserver/plug-ins/` [since 0.33](https://github.com/snapcast/snapcast/blob/master/changelog.md#version-0330)), it delivers full track metadata to every room. Pre-built binaries are on the [go-librespot releases page](https://github.com/devgianlu/go-librespot/releases):
 
