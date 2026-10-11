@@ -5,7 +5,7 @@ description: The Zeroconf backend advertises the node on the local network over 
 
 The Zeroconf backend advertises the node on the local network via mDNS/DNS-SD as `_http._tcp.local.` (instance `odio-api`).
 
-This lets native clients like Home Assistant discover nodes automatically — no manual IP entry. Web applications cannot use Zeroconf (browsers don't have access to UDP multicast), which is why the [odio application](/control/pwa/) requires manual configuration.
+This lets native clients like Home Assistant discover nodes automatically — no manual IP entry. Web applications cannot use Zeroconf (browsers don't have access to UDP multicast), which is why the [odio application](/control/pwa/) takes nodes by address or [scans the network](/control/pwa/#network-scan) for them.
 
 ## Endpoints
 
