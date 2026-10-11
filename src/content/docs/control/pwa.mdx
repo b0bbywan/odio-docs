@@ -14,6 +14,10 @@ import pwaCardCorsError from '../../../assets/pwa-card-cors-error.webp';
 import pwaEmpty from '../../../assets/pwa-empty.png';
 import pwaAddInstance from '../../../assets/pwa-add-instance.png';
 import pwaInstances from '../../../assets/pwa-instances.png';
+import pwaScanForm from '../../../assets/pwa-scan-form.png';
+import pwaScanProgress from '../../../assets/pwa-scan-progress.png';
+import pwaScanResults from '../../../assets/pwa-scan-results.png';
+import pwaScanBlocked from '../../../assets/pwa-scan-blocked.png';
 
 The [odio application](https://pwa.odio.love) is a web app that lets you manage all your odio nodes from one place. Install it from your browser on your phone or desktop.
 
@@ -25,7 +29,7 @@ The application loads each node's [embedded web UI](/control/embedded-ui/) in an
 
 1. Open [pwa.odio.love](https://pwa.odio.love) in your browser.
 2. Tap "Install" or "Add to Home Screen" when prompted.
-3. Add your nodes by hostname or IP.
+3. Add your nodes by hostname or IP, or [scan your network](#network-scan) for them.
 
 **Browser support.** On mobile, installation works on Chrome, Edge, Safari, and Firefox. On some browsers like DuckDuckGo, the option is in the three-dot menu. On desktop, Chrome and Edge can install the app; Firefox and Safari desktop hit browser-level restrictions on [LAN access](#lan-access).
 
@@ -45,13 +49,13 @@ The application loads each node's [embedded web UI](/control/embedded-ui/) in an
 
 ## Adding nodes
 
-A web app cannot perform mDNS/Zeroconf discovery — browsers don't have access to UDP multicast. That's why you need to add your nodes manually by hostname or IP.
+A web app cannot perform mDNS/Zeroconf discovery, browsers don't have access to UDP multicast. Add your nodes by hostname or IP, or [scan the network](#network-scan) for them.
 
 On first launch, click **+ Add Instance** and enter the host/IP, port (default 8018), and an optional label for your node. Add as many as you have, each card shows the node name, architecture, odio-api version, and connection status. Click **Connect** to open the node's interface.
 
 <div class="screenshot-carousel wide">
 	<figure>
-		<Image src={pwaEmpty} alt="odio application first launch — no instances configured, with an Add Instance button" />
+		<Image src={pwaEmpty} alt="odio application on first launch: no instances configured, with Add Instance and Scan network buttons" />
 		<figcaption>First launch, no instances yet</figcaption>
 	</figure>
 	<figure>
@@ -64,7 +68,42 @@ On first launch, click **+ Add Instance** and enter the host/IP, port (default 8
 	</figure>
 </div>
 
-A CIDR-based subnet scanner is tracked in [odio-pwa#12](https://github.com/b0bbywan/odio-pwa/issues/12) as a workaround for the missing mDNS. Contributions welcome, a nice entry point for frontend devs who want to try Svelte.
+### Network scan
+
+Since [v0.7.0](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.7.0), **Scan network** probes every host of a target and lists the nodes that answer, each with an **Add** button, plus **Add all**. The target is an IP or hostname, or a network with its mask (`192.168.1.0/24` or `192.168.1.0/255.255.255.0`), up to a /22.
+
+A browser can't read its own IP, so with the target left empty the app works out where to look:
+
+1. If a node of your list is online and was added by IP, its /24 is scanned straight away.
+2. Otherwise around forty networks are checked: the /24 of the nodes of your list that are offline, then the defaults of common routers, ISP boxes and hotspots.
+3. If none of them is connected, the rest of `192.168.0.0/16` is swept.
+
+<div class="screenshot-carousel wide">
+	<figure>
+		<Image src={pwaScanForm} alt="Scan network dialog with an optional Target field, a hint on the accepted formats, a Port field set to 8018, and Scan and Cancel buttons" />
+		<figcaption>The target is optional, the port defaults to 8018</figcaption>
+	</figure>
+	<figure>
+		<Image src={pwaScanProgress} alt="Scan network dialog while scanning with no target: Network found 192.168.1.0/24, a progress bar at 99 of 254 hosts, four nodes already listed with an Add button each, and a Stop button" />
+		<figcaption>No target: the network is found, then scanned, and nodes show up as they answer</figcaption>
+	</figure>
+	<figure>
+		<Image src={pwaScanResults} alt="Scan network dialog once done: 4 instances found, 254 hosts scanned on 192.168.1.0/24, four nodes with an Add button each, and Add all, Scan again and Close buttons" />
+		<figcaption>Done: add the nodes one by one or all at once</figcaption>
+	</figure>
+	<figure>
+		<Image src={pwaScanBlocked} alt="Scan network dialog once done: 2 instances found, then a warning that 4 other hosts answer on port 8018 but don't allow this origin, with the origin to add to api.cors.origins and a Copy button" />
+		<figcaption>Hosts that answer without allowing the origin are counted, next to the origin to add</figcaption>
+	</figure>
+</div>
+
+Limits:
+
+- Only directly connected networks are found, one behind another router has to be entered by hand.
+- `10.0.0.0/8` and `172.16.0.0/12` are too large to sweep, only a few known defaults are checked there.
+- Only nodes that allow the PWA's origin are listed. Hosts that answer on the port without allowing it are counted apart, next to the origin to add to their [`api.cors.origins`](/api/configuration/#cors).
+
+How a connected network is told from one that isn't is described in the [odio-pwa README](https://github.com/b0bbywan/odio-pwa#network-scan).
 
 ## Open a node by URL
 
@@ -84,7 +123,7 @@ The application surfaces the situations described below directly in the UI so yo
 
 ### Unsupported browser banner
 
-When the PWA detects Firefox or Safari desktop on an HTTPS context (the combinations that cannot reach LAN nodes at all), it shows a persistent banner pointing back at this guide and disables the **+ Add Instance** button. There is nothing useful those browsers can do without switching browser or [self-hosting over HTTP](#multiple-nodes-no-install-self-host-over-http).
+When the PWA detects Firefox or Safari desktop on an HTTPS context (the combinations that cannot reach LAN nodes at all), it shows a persistent banner pointing back at this guide and disables the **+ Add Instance** and **Scan network** buttons. There is nothing useful those browsers can do without switching browser or [self-hosting over HTTP](#multiple-nodes-no-install-self-host-over-http).
 
 <div class="screenshot-carousel wide">
 	<figure>
