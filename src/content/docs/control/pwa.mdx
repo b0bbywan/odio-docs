@@ -148,7 +148,9 @@ When a probe fails for an existing node, the card re-probes with `mode: 'no-cors
 | --- | --- | --- |
 | *Server unreachable* | red | The server is down, or the request was blocked at the network layer. |
 | *Server reachable: missing CORS headers* | amber | The request round-tripped but the response lacks `Access-Control-Allow-Origin`. Add the PWA's origin to [`api.cors.origins`](/api/configuration/#cors). |
-| *Browser blocked (mixed content)* | amber | Both probes failed on an HTTPS PWA, so a browser-level mixed-content block is the most likely cause. Use Chrome 142+ with LNA granted, or self-host over HTTP. |
+| *Browser blocked (mixed content)* | amber | Both probes failed on Firefox or Safari desktop over HTTPS, for a node that isn't on loopback: the browser blocks the request as mixed content. Use Chrome 142+ with LNA granted, or self-host over HTTP. |
+
+Since [v0.5.5](https://github.com/b0bbywan/odio-pwa/releases/tag/v0.5.5), *Browser blocked* is only reported where the browser does block: on Chrome, Edge and mobile browsers, a node that doesn't answer is *Server unreachable*.
 
 The amber messages embed a link to the relevant docs section so you can jump straight from the card.
 
