@@ -130,4 +130,30 @@ Set `logLevel` back to `info` once the keys are found.
 
 ## Infrared remotes
 
-The kernel decodes infrared itself, and needs the keymap of your remote loaded to turn its codes into key names. `ir-keytable` lists the receiver, loads a keymap and, with `-t`, shows the keys as they are received. Without the right keymap, the receiver is handled but its key presses produce nothing.
+On a Raspberry Pi, a receiver wired to a GPIO needs the `gpio-ir` overlay. `odioctl` writes it to `/boot/firmware/config.txt` for the pin you give it:
+
+```bash
+sudo odioctl input ir set 25    # then reboot
+odioctl input status
+sudo odioctl input ir unset     # then reboot
+```
+
+The [settings page](/operations/settings/) offers the same choice in its Infrared receiver section, below the DAC.
+
+There is no default pin, it is always given. The overlay's own default, GPIO 18, is the bit clock of an I2S [DAC](/operations/settings/#dac), so odioctl refuses it along with the other pins a DAC needs: GPIO 2 and 3 (I2C) and GPIO 18 to 21 (I2S). The pins it accepts, in BCM numbering, are the rest of the header:
+
+```
+4 5 6 7 8 9 10 11 12 13 14 15 16 17 22 23 24 25 26 27
+```
+
+<Aside type="caution">
+The list is the same whatever the DAC. A HAT may use some of these pins for itself, or come with an IR header already wired to one of them: check its documentation before picking one.
+</Aside>
+
+On a system without odioctl, add the line to `config.txt` yourself, with the pin after `gpio_pin`:
+
+```
+dtoverlay=gpio-ir,gpio_pin=25
+```
+
+The kernel decodes infrared itself, and needs the keymap of your remote loaded to turn its codes into key names, which odioctl leaves to you. `ir-keytable` lists the receiver, loads a keymap and, with `-t`, shows the keys as they are received. Without the right keymap, the receiver is handled but its key presses produce nothing.
