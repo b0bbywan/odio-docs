@@ -161,7 +161,7 @@ sudo usermod -aG input <username>
 
 Then reboot. The group only applies to a new user session, restarting odio-api is not enough. Until then, devices are listed as `denied` and a warning is logged.
 
-An infrared receiver also needs its kernel keymap loaded for the remote in use, see `ir-keytable`.
+An infrared receiver also needs its kernel keymap loaded for the remote in use, see `ir-keytable`. On a Raspberry Pi with an I2S DAC, it must also be wired to [a pin other than GPIO 18](/control/remote/#wiring-to-the-gpio-header). Buttons wired to the header need the `gpio-key` overlay, see [push buttons](/control/remote/#push-buttons).
 
 ## Security
 

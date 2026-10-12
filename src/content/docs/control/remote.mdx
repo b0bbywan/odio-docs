@@ -128,6 +128,63 @@ input:
 
 Set `logLevel` back to `info` once the keys are found.
 
-## Infrared remotes
+## Wiring to the GPIO header
+
+On a Raspberry Pi, an infrared receiver or push buttons wired to the GPIO header need an overlay in `/boot/firmware/config.txt`, one line each, then a reboot. odio-api picks them up from there, nothing else to configure.
+
+<Aside type="note">
+For now these lines are a manual edit. odioctl will write them for you soon, from the command line and the [settings page](/operations/settings/).
+</Aside>
+
+Pins are given in BCM numbering, and always given: the overlays' own defaults collide with a DAC. With an I2S [audio HAT](/operations/settings/#audio-hat), keep clear of GPIO 2 and 3 (I2C) and GPIO 18 to 21 (I2S), which leaves:
+
+```
+4 5 6 7 8 9 10 11 12 13 14 15 16 17 22 23 24 25 26 27
+```
+
+<Aside type="caution">
+A HAT may use some of these pins for itself, or come with an IR header already wired to one of them: check its documentation before picking one.
+</Aside>
+
+### Infrared receiver
+
+The `gpio-ir` overlay, with the pin after `gpio_pin`:
+
+```ini
+dtoverlay=gpio-ir,gpio_pin=25
+```
+
+Its default pin, GPIO 18, is the bit clock of an I2S DAC.
 
 The kernel decodes infrared itself, and needs the keymap of your remote loaded to turn its codes into key names. `ir-keytable` lists the receiver, loads a keymap and, with `-t`, shows the keys as they are received. Without the right keymap, the receiver is handled but its key presses produce nothing.
+
+### Push buttons
+
+The `gpio-key` overlay, once per button, with its pin after `gpio` and the key it sends after `keycode`:
+
+```ini
+dtoverlay=gpio-key,gpio=17,keycode=164
+dtoverlay=gpio-key,gpio=27,keycode=163
+dtoverlay=gpio-key,gpio=22,keycode=115,autorepeat
+dtoverlay=gpio-key,gpio=23,keycode=114,autorepeat
+```
+
+Wire each button between its pin and ground: the overlay turns the pin's pull-up on and reads a press as the pin going low. `autorepeat` lets a held button repeat, which odio acts on for volume, fast forward and rewind.
+
+The key codes are the kernel's [input event codes](https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h), as numbers. The media keys odio handles by default:
+
+| Code | Key |
+|---|---|
+| 164 | Play/pause |
+| 207 | Play |
+| 119 | Pause |
+| 166 | Stop |
+| 163 | Next |
+| 165 | Previous |
+| 208 | Fast forward |
+| 168 | Rewind |
+| 115 | Volume up |
+| 114 | Volume down |
+| 113 | Mute |
+
+Any other code can be [bound to an action](#bind-other-keys). Always give both parameters: the overlay defaults to GPIO 3, an I2C pin, and to code 116, the power key.
