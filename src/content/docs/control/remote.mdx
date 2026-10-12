@@ -1,0 +1,133 @@
+---
+title: How to control odio with a remote control
+description: Drive an odio node with an infrared remote, the TV remote over HDMI-CEC, GPIO buttons, or a Bluetooth or USB remote. Enable it, add a device, bind keys.
+howto: true
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A remote can drive the node directly, with no application or browser in between: a key press becomes play/pause, next, volume or mute on the active player and the default output. The [odio API](/api/overview/) reads the remote itself, through its [input backend](/api/input/).
+
+<Aside type="note">
+Remote controls arrive with odio-api [v0.18.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.18.0) and have seen little testing on real remotes so far. If you try one, tell us how it behaves in [discussions](https://github.com/b0bbywan/odios/discussions) or as an [issue](https://github.com/b0bbywan/odios/issues).
+</Aside>
+
+## What works
+
+| Remote | How it is picked up |
+|---|---|
+| Infrared receiver (`gpio-ir`, MCE USB receiver) | Automatically |
+| TV remote over HDMI-CEC | With `input.cec`, which the odio installer turns on |
+| GPIO buttons (`gpio-keys`) | Automatically |
+| Bluetooth or USB remote | [By name](#add-a-bluetooth-or-usb-remote) |
+
+Media keys need no configuration: play/pause, play, pause, stop, next, previous, fast forward, rewind, volume up, volume down and mute. Any other key can be [bound to an action](#bind-other-keys).
+
+## Enable it
+
+On a headless odio node, remote controls are enabled by default: there is nothing to do. The installer also puts the odio user in the `input` group, which reading a remote requires.
+
+On a node with a graphical desktop they are off. Enable them in a [drop-in](/api/configuration/#drop-in-overrides), for example `~/.config/odio-api/conf.d/50-input.yml`:
+
+```yaml
+input:
+  enabled: true
+  cec: true        # only for the TV remote over HDMI-CEC
+```
+
+then restart the API:
+
+```bash
+systemctl --user restart odio-api
+```
+
+The same drop-in with `enabled: false` turns them off on a headless node, and `cec: false` alone leaves the HDMI-CEC adapter out. For a standalone go-odio-api, see the [system setup](/api/input/#system-setup).
+
+Infrared receivers and GPIO buttons are handled from there. HDMI-CEC has its own switch, `cec`, because a Raspberry Pi always has the adapter, listed as `vc4-hdmi`, whether a TV is plugged in or not. With it on, a TV that forwards its remote keys over CEC can drive odio.
+
+<Aside type="caution">
+A handled device is grabbed: its keys reach odio only, no longer the console, the desktop or another application such as Kodi.
+</Aside>
+
+## Check the devices
+
+`GET /input` lists what is handled:
+
+```bash
+curl http://localhost:8018/input
+```
+
+```json
+{
+  "devices": [
+    { "path": "/dev/input/event0", "name": "vc4-hdmi", "kind": "cec", "state": "active" }
+  ],
+  "bindings": [
+    { "key": "KEY_MUTE", "action": "volume.mute" },
+    { "key": "KEY_PLAYPAUSE", "action": "player.playpause" }
+  ]
+}
+```
+
+A device in state `active` is being read. `denied` means the user running the API cannot read the device, see the [system setup](/api/input/#system-setup). A remote that is not listed at all is not picked up automatically, and has to be added by name.
+
+## Add a Bluetooth or USB remote
+
+These remotes look like any keyboard to the system, so odio only handles the ones you name. Find the name with the remote plugged in or connected:
+
+```bash
+grep -H . /sys/class/input/event*/device/name
+```
+
+```
+/sys/class/input/event0/device/name:vc4-hdmi
+/sys/class/input/event2/device/name:Logitech K400
+```
+
+Add it to the drop-in, then restart the API:
+
+```yaml
+input:
+  enabled: true
+  devices:
+    - "Logitech K400"
+```
+
+The whole name must match, case aside. Some remotes show up as several devices, for instance one for the regular keys and a `Consumer Control` one for the media keys: list each one you need.
+
+A remote that is unplugged, or a Bluetooth remote that goes to sleep, is picked up again when it comes back, without a restart.
+
+<Aside type="caution">
+The grab covers the whole device. A keyboard with a built-in touchpad that you list here no longer types or moves the pointer anywhere else, which matters if it also drives a [local screen](/control/local-screen/).
+</Aside>
+
+## Bind other keys
+
+To find what a key is called, set `logLevel: debug` in the drop-in, restart the API and follow its log while pressing the key:
+
+```bash
+journalctl --user -u odio-api -f
+```
+
+```
+[input] unmapped KEY_RED (gpio_ir_recv)
+```
+
+Then bind it:
+
+```yaml
+input:
+  enabled: true
+  bindings:
+    - { key: KEY_POWER, action: power.poweroff }
+    - { key: KEY_RED, action: service.restart, unit: mpd.service }
+    - { key: KEY_MUTE, action: none }
+```
+
+`none` unmaps a default key. A `service.*` action needs a `unit` from the [systemd whitelist](/api/configuration/#systemd-opt-in-whitelist-required), `power.*` needs the [power backend](/api/power/) enabled, and `bluetooth.*` the [Bluetooth backend](/api/bluetooth/). The full list of actions is in the [input reference](/api/input/#actions).
+
+Set `logLevel` back to `info` once the keys are found.
+
+## Infrared remotes
+
+The kernel decodes infrared itself, and needs the keymap of your remote loaded to turn its codes into key names. `ir-keytable` lists the receiver, loads a keymap and, with `-t`, shows the keys as they are received. Without the right keymap, the receiver is handled but its key presses produce nothing.

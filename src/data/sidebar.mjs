@@ -17,6 +17,7 @@ export const sidebar = [
 			{ label: 'Application', slug: 'control/pwa' },
 			{ label: 'Home Assistant', slug: 'control/home-assistant' },
 			{ label: 'Local screen', slug: 'control/local-screen' },
+			{ label: 'Remote controls', slug: 'control/remote' },
 			{
 				label: 'Python library (pyodio)',
 				collapsed: true,
@@ -81,6 +82,7 @@ export const sidebar = [
 			{ label: 'Systemd', slug: 'api/systemd' },
 			{ label: 'Bluetooth', slug: 'api/bluetooth' },
 			{ label: 'Power', slug: 'api/power' },
+			{ label: 'Input', slug: 'api/input' },
 			{ label: 'Upgrades', slug: 'api/upgrade' },
 			{ label: 'Zeroconf', slug: 'api/zeroconf' },
 			{ label: 'SSE Events', slug: 'api/events' },
