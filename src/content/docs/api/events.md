@@ -36,5 +36,7 @@ GET /events
 | `service.updated` | systemd | Unit state change |
 | `bluetooth.updated` | bluetooth | Adapter or device state change |
 | `power.action` | power | Reboot or power-off triggered |
+| `input.key` | input | A bound [remote key](/api/input/#events) was pressed or released |
+| `input.updated` | input | Remote added, removed, or changed state |
 | `upgrade.info` | upgrade | Detector status changed, or upgrade run lifecycle |
 | `upgrade.progress` | upgrade | Live progress line from a running upgrade |

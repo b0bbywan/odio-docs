@@ -137,9 +137,12 @@ Downloads the PulseAudio authentication cookie — useful for setting up network
 pulseaudio:
   enabled: true
   serve_cookie: true
+  volumeStep: 0.05
 ```
 
 `serve_cookie` exposes `GET /audio/cookie` — save the downloaded cookie on your client as `~/.config/pulse/cookie` with `600` permissions to enable network audio streaming.
+
+`volumeStep` is how far a [remote](/api/input/) moves the default output on `volume.up` and `volume.down`, from `0.01` to `1`. Since [v0.18.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.18.0).
 
 ## How it works
 

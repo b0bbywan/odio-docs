@@ -251,6 +251,27 @@ polkit.addRule(function(action, subject) {
 
 On desktop systems with a graphical session, this rule is not needed — logind already grants these permissions.
 
+### Input (remote controls)
+
+See [Input](/api/input/) for devices, bindings and actions. Since [v0.18.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.18.0).
+
+```yaml
+input:
+  enabled: true
+  devices:
+    - "flirc.tv flirc"
+  bindings:
+    - { key: KEY_POWER, action: power.poweroff }
+```
+
+<Aside type="tip">The [odio installer](https://github.com/b0bbywan/odios) adds the user to the group and enables the backend on headless nodes. The step below is only needed when installing go-odio-api standalone.</Aside>
+
+The user running odio must belong to the `input` group, and the node must be rebooted for the group to apply:
+
+```bash
+sudo usermod -aG input <username>
+```
+
 ### Zeroconf / mDNS
 
 See [Zeroconf](/api/zeroconf/) for details. Requires `bind` to be set to a real network interface.
