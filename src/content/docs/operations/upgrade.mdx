@@ -112,7 +112,7 @@ odioctl components disable branding
 odioctl components disable upnpwebradios
 ```
 
-Disabling keeps the component installed but stops updating it, nothing is removed. `enable` opts back in. Either way the change only takes effect on the next run:
+Since [2026.10.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.10.0b1), disabling turns the component off: the run stops and disables its services and stops updating it, its packages stay in place. `enable` opts back in. Either way the change only takes effect on the next run:
 
 ```bash
 sudo odioctl upgrade apply --dry-run --force   # print the derived INSTALL_* flags
