@@ -17,7 +17,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odioctl',
-    desc: 'System control for a node: upgrades, components, DAC overlay, and the settings page on port 8021. One static Go binary, stdlib only.',
+    desc: 'System control for a node: upgrades, components, DAC overlay, and the settings page in the web UI. One static Go binary.',
     short: 'Settings page and CLI',
     url: 'https://github.com/b0bbywan/odioctl',
     live: null,

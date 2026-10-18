@@ -1,26 +1,26 @@
 ---
 title: How to configure an odio node from the settings page
-description: Manage an odio node from its settings page on port 8021, apply upgrades, enable or disable components, pick the audio HAT. All of it is also odioctl CLI.
+description: Manage an odio node from its settings page in the embedded web UI, apply upgrades, enable or disable components, pick the audio HAT. All of it is also odioctl CLI.
 howto: true
 ---
 
-Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), odio serves a settings page on port 8021. Behind it is [odioctl](https://github.com/b0bbywan/odioctl). It replaces the former `odio-upgrade.py` script, and it is meant to grow as needs come. For now it covers applying upgrades, enabling or disabling components, selecting the audio HAT and rebooting after one, and the Qobuz Connect and Tidal logins. What gets pulled into it versus left on the command line follows the [configuration philosophy](/operations/how-it-works/#configuration-philosophy): bring your case to [discussions](https://github.com/b0bbywan/odios/discussions).
+Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), odio serves a settings page, at `/ui/admin/` on the [embedded web UI](/control/embedded-ui/) since [2026.10.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.10.0b1), on port 8021 before. Behind it is [odioctl](https://github.com/b0bbywan/odioctl). It replaces the former `odio-upgrade.py` script, and it is meant to grow as needs come. For now it covers applying upgrades, enabling or disabling components, selecting the audio HAT and rebooting after one, and the Qobuz Connect and Tidal logins. What gets pulled into it versus left on the command line follows the [configuration philosophy](/operations/how-it-works/#configuration-philosophy): bring your case to [discussions](https://github.com/b0bbywan/odios/discussions).
 
 ## Access
 
 ```
-http://<ip>:8021
+http://<ip>:8018/ui/admin/
 ```
 
 Or via Zeroconf (mDNS):
 
 ```
-http://<hostname>.local:8021
+http://<hostname>.local:8018/ui/admin/
 ```
 
-The [embedded web UI](/control/embedded-ui/) links to it from the gear icon in its header, since [odio-api v0.17.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.0). odios sets the [`api.ui.admin`](/api/configuration/#api-server) key for that.
+The gear icon in the header of the [embedded web UI](/control/embedded-ui/) opens it. odio-api proxies the page from a Unix socket, `$XDG_RUNTIME_DIR/odioctl-web.sock`, which odios sets as its [`api.ui.adminSocket`](/api/configuration/#api-server) key; odioctl itself listens on no port.
 
-There is no authentication, the same LAN trust model as odio-api: anyone who can reach the port can act on the node. Every form carries a per-process token, so a page on another site cannot drive the node through your browser. The port is held by a systemd user socket, `odioctl-web.socket`, on all interfaces. To keep it on loopback, override its `ListenStream` with a [drop-in](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Description).
+There is no authentication, the same LAN trust model as odio-api: anyone who can reach the API can act on the node. Every form carries a per-process token, so a page on another site cannot drive the node through your browser. To narrow who reaches it, narrow odio-api's [`bind`](/api/configuration/#network-binding).
 
 The page follows the node live: every section subscribes to an event stream and re-renders itself, so a toggle, an upgrade run or an audio HAT change shows up on every open page without a reload.
 
@@ -166,7 +166,7 @@ odioctl upgrade verify [--state PATH] [--expected-version TAG]
 odioctl pwa-url
 odioctl components [--state PATH] list [--json] | enable NAME | disable NAME
 odioctl dac list [--json] | status [--json] | set ID [--dry-run] | unset
-odioctl web [--bind 0.0.0.0] [--port 8021] [--state PATH] [--config PATH]
+odioctl web [--bind 0.0.0.0] [--port 8021] [--socket PATH] [--systemd-only] [--ui-url URL] [--state PATH] [--config PATH]
 ```
 
 | Command | Exit codes |
@@ -182,7 +182,7 @@ odioctl web [--bind 0.0.0.0] [--port 8021] [--state PATH] [--config PATH]
 <details>
 <summary>Under the hood</summary>
 
-- **What the package ships.** The `odioctl` binary, user units for the daily check, the upgrade run and the settings page, and `/etc/sudoers.d/odioctl`. odios enables `odio-check-upgrade.timer` and `odioctl-web.socket` for the target user. The socket holds port 8021 from boot and starts `odioctl web` on the first connection, so restarting the service never drops a request.
+- **What the package ships.** The `odioctl` binary, user units for the daily check, the upgrade run and the settings page, and `/etc/sudoers.d/odioctl`. odios enables `odio-check-upgrade.timer` and `odioctl-web-proxy.socket` for the target user. The socket holds `odioctl-web.sock` from boot and starts `odioctl web` on the first connection, so restarting the service never drops a request. `odioctl-web.socket`, port 8021, still ships: an upgrade from 2026.9 disables it, and enabling it again serves the page on that port too.
 - **Who runs what.** The page runs as the odio user. It edits `state.json` directly, which is why `/var/lib/odio` is group-writable by `odio` since 2026.9.0b1, and reaches `config.txt` through `sudo -n odioctl dac …`.
 - **Two groups on purpose.** `odio` grants access to `state.json` and holds the installing user too. `odioctl` grants passwordless root for exactly three things: `upgrade apply --progress`, `dac set <id>` with one sudoers line per catalog id, and `dac unset`. The fragment is generated from the DAC catalog, and CI fails when the two drift. A group that grants reads must not also grant root.
 - **The cache.** `/var/cache/odio/upgrades.json` is rewritten by the check and after every component toggle. odio-api and the SSH MOTD read it, see the [upgrade API](/api/upgrade/) for its contract.
