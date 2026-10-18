@@ -1,10 +1,10 @@
 ---
 title: How to configure an odio node from the settings page
-description: Manage an odio node from its settings page on port 8021, apply upgrades, enable or disable components, pick the DAC overlay. All of it is also odioctl CLI.
+description: Manage an odio node from its settings page on port 8021, apply upgrades, enable or disable components, pick the audio HAT. All of it is also odioctl CLI.
 howto: true
 ---
 
-Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), odio serves a settings page on port 8021. Behind it is [odioctl](https://github.com/b0bbywan/odioctl). It replaces the former `odio-upgrade.py` script, and it is meant to grow as needs come. For now it covers applying upgrades, enabling or disabling components, selecting the DAC overlay and rebooting after one, and the Qobuz Connect and Tidal logins. What gets pulled into it versus left on the command line follows the [configuration philosophy](/operations/how-it-works/#configuration-philosophy): bring your case to [discussions](https://github.com/b0bbywan/odios/discussions).
+Since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1), odio serves a settings page on port 8021. Behind it is [odioctl](https://github.com/b0bbywan/odioctl). It replaces the former `odio-upgrade.py` script, and it is meant to grow as needs come. For now it covers applying upgrades, enabling or disabling components, selecting the audio HAT and rebooting after one, and the Qobuz Connect and Tidal logins. What gets pulled into it versus left on the command line follows the [configuration philosophy](/operations/how-it-works/#configuration-philosophy): bring your case to [discussions](https://github.com/b0bbywan/odios/discussions).
 
 ## Access
 
@@ -22,9 +22,9 @@ The [embedded web UI](/control/embedded-ui/) links to it from the gear icon in i
 
 There is no authentication, the same LAN trust model as odio-api: anyone who can reach the port can act on the node. Every form carries a per-process token, so a page on another site cannot drive the box through your browser. The port is held by a systemd user socket, `odioctl-web.socket`, on all interfaces. To keep it on loopback, override its `ListenStream` with a [drop-in](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Description).
 
-The page follows the node live: every section subscribes to an event stream and re-renders itself, so a toggle, an upgrade run or a DAC change shows up on every open page without a reload.
+The page follows the node live: every section subscribes to an event stream and re-renders itself, so a toggle, an upgrade run or an audio HAT change shows up on every open page without a reload.
 
-![The full settings page of an odio node: the Upgrade section reporting up to date with the outcome of the last run under it, the Components section listing roles and features grouped as Audio, Playback, Streaming and System, each row carrying an Installed chip and a Disable button, with a Log in to Qobuz button under Qobuz Connect and a Log in to Tidal button under Tidal, and the DAC section with the board picker set to onboard audio](../../../assets/settings-page.webp)
+![The full settings page of an odio node: the Upgrade section reporting up to date, the Components section listing roles and features grouped as Audio, Playback, Streaming and System, each row ending in a check mark or a lock, with Log in to Qobuz under Qobuz Connect and Qobuz and Log in to Tidal under Tidal, and the Audio HAT section with the HiFiBerry DAC+ standard picked, a line reading current: hifiberry-dacplus-std, managed by odioctl, and a hint that USB DACs are picked as the default sink](../../../assets/settings-page.webp)
 
 ## Upgrade
 
@@ -38,15 +38,28 @@ The button on the row only records the choice in `/var/lib/odio/state.json`: Ena
 
 Tidal and Qobuz Connect carry a login button on their row, once the component is installed. It runs the sign-in helper on the node and opens its output in a dialog, with a link valid for five minutes to complete the login from your browser; the row then carries a **Done** chip. See the [Tidal](/guides/tidal-qobuz/#tidal-in-the-nodes-library-upmpdcli-plugin) and [Qobuz Connect](/guides/qobuz-connect/) guides for what comes after.
 
-## DAC
+## Audio HAT
 
-This section needs a `config.txt`; on anything but a Raspberry Pi it says so and offers nothing. Pick the board from the list and click **Apply**. odioctl writes one marked block at the end of `/boot/firmware/config.txt`, with the onboard audio turned off and the board's `dtoverlay` line, and comments out any audio line it recognizes elsewhere in the file with an `#odioctl-disabled:` prefix. A copy of the original is kept once as `config.txt.odioctl.bak`. The change takes effect after a reboot: odioctl leaves a `/run/odioctl/reboot-required` flag, and the page carries a banner with a **Reboot now** button, which confirms first, until the node comes back.
+This section needs a `config.txt`; on anything but a Raspberry Pi it says so and offers nothing. Pick the board from the list and click **Apply**, which stays greyed out until one is picked. odioctl writes one marked block at the top of `/boot/firmware/config.txt`, ahead of the file's own overlays:
 
-**Reset** removes the block and restores the commented lines. An overlay odioctl does not know is left untouched and reported under the picker, whether a line is audio is not something to guess at.
+```ini
+# BEGIN odioctl dac -- managed block, edit with `odioctl dac`
+[all]
+dtoverlay=
+dtparam=audio=off
+dtoverlay=hifiberry-dacplus-std
+# END odioctl dac
+```
+
+Since [2026.10.0b2](https://github.com/b0bbywan/odios/releases/tag/2026.10.0b2), the empty `dtoverlay=` stops the firmware from loading the overlay a HAT's EEPROM names, so the board picked here is the only one loaded. `dtparam=audio=off` turns the Pi's own audio off. Any audio line odioctl recognizes elsewhere in the file is commented out with an `#odioctl-disabled:` prefix. A copy of the original is kept once as `config.txt.odioctl.bak`. The change takes effect after a reboot: odioctl leaves a `/run/odioctl/reboot-required` flag, and the page carries a banner with a **Reboot now** button, which confirms first, until the node comes back.
+
+**Reset** removes the block and restores the commented lines: that is also how to go back to the Pi's own audio (3.5mm jack / HDMI), which is not an entry of the list. A block odioctl 0.4.0 wrote for onboard audio is still read, and the page offers Reset for it. An overlay odioctl does not know is left untouched, whether a line is audio is not something to guess at.
+
+USB DACs need none of this: pick one under **Audio Server › Default Sink** in the [web UI](/control/embedded-ui/).
 
 Overclocking stays a manual edit, outside the managed block, see [Installation](/operations/installation/#dac-and-overclocking).
 
-![The DAC section of the settings page with the board list dropped down, showing a not configured placeholder, the onboard audio entry, two generic I2S entries and the HiFiBerry and IQaudIO ranges, each with its id in parentheses, above the Apply and Reset buttons and a line reading current: onboard, managed by odioctl](../../../assets/settings-dac-picker.webp)
+![The Audio HAT section of the settings page with the board list dropped down, showing a pick an audio HAT placeholder, two generic I2S entries and the HiFiBerry and IQaudIO ranges, each with its id in parentheses, above a line reading no audio HAT: the Pi's own audio](../../../assets/settings-dac-picker.webp)
 
 <details>
 <summary>Supported boards</summary>
@@ -55,7 +68,6 @@ The id column is what `odioctl dac set` takes. Missing yours? Open an issue on [
 
 | Id | Board |
 |---|---|
-| `onboard` | Onboard audio (3.5mm jack / HDMI) |
 | `i2s-dac` | Generic passive I2S DAC (Pi as clock master) |
 | `i2s-master-dac` | Generic I2S DAC acting as clock master |
 | `hifiberry-dac` | HiFiBerry DAC / DAC+ Light / DAC+ Zero / MiniAmp / PCM5102 |
@@ -129,7 +141,7 @@ odioctl components list                     # roles and features with their stat
 odioctl components disable branding         # recorded in state.json, applied on the next upgrade
 odioctl dac list                            # the board catalog
 sudo odioctl dac set hifiberry-dacplus-std  # then reboot
-sudo odioctl dac unset
+sudo odioctl dac unset                      # back to the Pi's own audio, then reboot
 ```
 
 To track an odios pre-release instead of the published latest, pass `--version pr-84` to `upgrade check` and `upgrade apply`, or set `ODIOCTL_ODIOS_VERSION=pr-84` in `/etc/default/odioctl`, which both the daily timer and the settings page read. Only a release tag is accepted there, never a URL: it is interpolated into a GitHub release path for odios and nothing else. See [CI/CD](/community/ci-cd/#odios-releases) for how PRs get published as `pr-<N>` pre-releases.
