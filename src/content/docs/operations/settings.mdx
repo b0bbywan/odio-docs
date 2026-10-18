@@ -20,7 +20,7 @@ http://<hostname>.local:8021
 
 The [embedded web UI](/control/embedded-ui/) links to it from the gear icon in its header, since [odio-api v0.17.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.0). odios sets the [`api.ui.admin`](/api/configuration/#api-server) key for that.
 
-There is no authentication, the same LAN trust model as odio-api: anyone who can reach the port can act on the node. Every form carries a per-process token, so a page on another site cannot drive the box through your browser. The port is held by a systemd user socket, `odioctl-web.socket`, on all interfaces. To keep it on loopback, override its `ListenStream` with a [drop-in](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Description).
+There is no authentication, the same LAN trust model as odio-api: anyone who can reach the port can act on the node. Every form carries a per-process token, so a page on another site cannot drive the node through your browser. The port is held by a systemd user socket, `odioctl-web.socket`, on all interfaces. To keep it on loopback, override its `ListenStream` with a [drop-in](https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#Description).
 
 The page follows the node live: every section subscribes to an event stream and re-renders itself, so a toggle, an upgrade run or an audio HAT change shows up on every open page without a reload.
 
