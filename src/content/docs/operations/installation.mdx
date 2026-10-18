@@ -163,7 +163,7 @@ The installer is idempotent, re-run it to upgrade an existing installation. Each
 
 ## DAC and overclocking
 
-Every DAC HAT supported by the Raspberry Pi kernel works with odio, generic I2S DACs included. Pick yours from the [settings page](/operations/settings/#dac) on port 8021 and reboot (since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1)). It writes the `dtoverlay` line to `/boot/firmware/config.txt` and turns the onboard audio off. On older releases, edit the file by hand with the overlay from your DAC manufacturer's documentation.
+Every DAC HAT supported by the Raspberry Pi kernel works with odio, generic I2S DACs included. Pick yours from the [settings page](/operations/settings/#audio-hat) on port 8021 and reboot (since [2026.9.0b1](https://github.com/b0bbywan/odios/releases/tag/2026.9.0b1)). It writes the `dtoverlay` line to `/boot/firmware/config.txt` and turns the onboard audio off. On older releases, edit the file by hand with the overlay from your DAC manufacturer's documentation.
 
 USB DACs need no configuration: plug one in and it shows up as an output in the PulseAudio section of the [web UI](/control/embedded-ui/).
 
