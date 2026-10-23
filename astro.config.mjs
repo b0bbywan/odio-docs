@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
 import preact from '@astrojs/preact';
 import { lastmodFor } from './src/lib/git-lastmod.mjs';
-import { sidebar } from './src/data/sidebar.mjs';
+import { starlightSidebar } from './src/data/sidebar.mjs';
 import { unified } from '@astrojs/markdown-remark';
 import remarkGfm from 'remark-gfm';
 
@@ -54,7 +54,7 @@ export default defineConfig({
 					{ icon: 'comment', label: 'Forum', href: 'https://github.com/b0bbywan/odios/discussions' },
 					{ icon: 'github', label: 'GitHub', href: 'https://github.com/b0bbywan/odios' },
 				],
-			sidebar,
+			sidebar: starlightSidebar,
 		}),
 		// Declaring @astrojs/sitemap ourselves makes Starlight skip its own bundled
 		// one, so we can add a per-page <lastmod> from each doc's git history.
