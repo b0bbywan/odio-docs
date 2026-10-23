@@ -194,3 +194,37 @@ html.sl-locked body {
 .cta-buttons .sl-link-button.primary:hover {
 	filter: brightness(1.1);
 }
+
+/* 404 page: a disc drawn like the logo's rings, with one track missing.
+   The rings stay still; only the missing segment spins, and the disc jolts
+   every few seconds like a skipping CD. */
+.disc-404 {
+	width: min(260px, 60vw);
+	height: auto;
+	overflow: visible;
+	animation: disc-404-skip 4s infinite;
+}
+.disc-404__hole {
+	fill: var(--sl-color-bg);
+}
+.disc-404__spin {
+	transform-box: view-box;
+	transform-origin: 120px 120px;
+	animation: disc-404-spin 3s linear infinite;
+}
+@keyframes disc-404-spin {
+	to { transform: rotate(360deg); }
+}
+@keyframes disc-404-skip {
+	0%, 68%, 80%, 100% { transform: none; }
+	70% { transform: translate(-4px, 2px) rotate(-2deg); }
+	73% { transform: translate(4px, -2px) rotate(1.5deg); }
+	76% { transform: translate(-1px, 1px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.disc-404,
+	.disc-404__spin {
+		animation: none;
+	}
+}

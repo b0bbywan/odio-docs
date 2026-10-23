@@ -1,0 +1,70 @@
+---
+title: Track not found
+description: This page isn't in the odio docs. Head back to the start, browse the guides, or search.
+template: splash
+editUrl: false
+lastUpdated: false
+pagefind: false
+hero:
+  title: Track 404
+  tagline: We read the table of contents twice. This page isn't on the disc.
+  image:
+    html: |
+      <svg class="disc-404" viewBox="0 0 240 240" role="img" aria-label="A disc with one track missing: track 404">
+        <defs>
+          <linearGradient id="d404-outer" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3a8010" />
+            <stop offset="0.5" stop-color="#7ec828" />
+            <stop offset="1" stop-color="#c8f060" />
+          </linearGradient>
+          <linearGradient id="d404-mid" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1e6020" />
+            <stop offset="1" stop-color="#8be030" />
+          </linearGradient>
+          <linearGradient id="d404-inner" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2a7030" />
+            <stop offset="1" stop-color="#5ab820" />
+          </linearGradient>
+          <radialGradient id="d404-hub" cx="62%" cy="68%" r="65%">
+            <stop offset="0" stop-color="#60c820" />
+            <stop offset="0.6" stop-color="#1a5808" />
+            <stop offset="1" stop-color="#040e00" />
+          </radialGradient>
+        </defs>
+        <circle cx="120" cy="126" r="114" fill="#071a08" />
+        <circle cx="120" cy="120" r="108" fill="url(#d404-outer)" />
+        <circle cx="120" cy="120" r="94" fill="#081808" />
+        <circle cx="120" cy="120" r="87" fill="url(#d404-mid)" />
+        <circle cx="120" cy="120" r="73" fill="#071208" />
+        <circle cx="120" cy="120" r="66" fill="url(#d404-inner)" />
+        <circle cx="120" cy="120" r="52" fill="#061008" />
+        <circle cx="120" cy="120" r="40" fill="url(#d404-hub)" stroke="rgba(0,0,0,0.8)" stroke-width="4" />
+        <circle class="disc-404__hole" cx="120" cy="120" r="9" />
+        <g class="disc-404__spin">
+          <circle cx="120" cy="120" r="80" fill="none" stroke="#081808" stroke-width="15" stroke-dasharray="78 425" />
+          <path d="M199.8 125.58 A80 80 0 0 1 169.25 183.04" fill="none" stroke="#5ab81e" stroke-opacity="0.6" stroke-width="1.5" stroke-dasharray="3 5" stroke-linecap="round" />
+        </g>
+      </svg>
+  actions:
+    - text: Back to the start
+      link: /
+      icon: left-arrow
+      variant: primary
+    - text: Browse the guides
+      link: /guides/
+      icon: open-book
+      variant: minimal
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+## Where to next?
+
+<CardGrid>
+	<LinkCard title="Install odio" description="Turn a Raspberry Pi or Debian box into a streamer." href="/operations/installation/" />
+	<LinkCard title="Features" description="Every source odio plays, at a glance." href="/features/" />
+	<LinkCard title="Audio sources" description="Bluetooth, AirPlay, Spotify, DLNA, CD, USB, webradios…" href="/guides/" />
+	<LinkCard title="Ask on the forum" description="Can't find it? Someone has probably wondered too." href="https://github.com/b0bbywan/odios/discussions" />
+</CardGrid>
+
+Looking for something specific? Press <kbd>Ctrl</kbd> <kbd>K</kbd> to search the docs. If a link on this site brought you here, it's our fault: [open an issue](https://github.com/b0bbywan/odio-docs/issues/new) and we'll fix it.
