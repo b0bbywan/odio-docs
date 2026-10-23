@@ -14,20 +14,33 @@ import {
 	OG_IMAGE_HEIGHT,
 	type BreadcrumbItem,
 } from '../data/seo';
+import { groupLinks } from '../data/sidebar.mjs';
 
 type SidebarLink = { type: 'link'; label: string; href: string; isCurrent: boolean };
 type SidebarGroup = { type: 'group'; label: string; entries: SidebarEntry[] };
 type SidebarEntry = SidebarLink | SidebarGroup;
 
+// Google wants a URL on every breadcrumb level except the last, but a sidebar
+// group has no page of its own: each level links to the group's landing page.
 function findBreadcrumbTrail(
 	items: readonly SidebarEntry[],
 	parents: BreadcrumbItem[] = [],
 ): BreadcrumbItem[] | null {
 	for (const item of items) {
 		if (item.type === 'group') {
-			const sub = findBreadcrumbTrail(item.entries, [...parents, { label: item.label }]);
+			const href = (groupLinks as Record<string, string>)[item.label];
+			const trail = href ? [...parents, { label: item.label, href }] : parents;
+			const sub = findBreadcrumbTrail(item.entries, trail);
 			if (sub) return sub;
 		} else if (item.isCurrent) {
+			// The group's landing page is this page: merge the two levels.
+			// "Use Cases > Overview" becomes "Use Cases", but
+			// "Getting Started > Installation" keeps the page's own name.
+			const group = parents.at(-1);
+			if (group?.href === item.href) {
+				const label = item.label === 'Overview' ? group.label : item.label;
+				return [...parents.slice(0, -1), { label, href: item.href }];
+			}
 			return [...parents, { label: item.label, href: item.href }];
 		}
 	}

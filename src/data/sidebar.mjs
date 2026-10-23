@@ -12,6 +12,7 @@ export const sidebar = [
 	},
 	{
 		label: 'Control',
+		link: '/control/',
 		items: [
 			{ label: 'Embedded web UI', slug: 'control/embedded-ui' },
 			{ label: 'Application', slug: 'control/pwa' },
@@ -32,6 +33,7 @@ export const sidebar = [
 	},
 	{
 		label: 'Features',
+		link: '/features/',
 		items: [
 			{ label: 'Bluetooth', slug: 'guides/bluetooth' },
 			{ label: 'Bluetooth output', slug: 'guides/bluetooth-output' },
@@ -50,6 +52,7 @@ export const sidebar = [
 	},
 	{
 		label: 'Operations',
+		link: '/operations/',
 		items: [
 			{ label: 'Settings', slug: 'operations/settings' },
 			{ label: 'Upgrade', slug: 'operations/upgrade' },
@@ -105,6 +108,7 @@ export const sidebar = [
 	},
 	{
 		label: 'Community',
+		link: '/community/',
 		items: [
 			{ label: 'Get involved', slug: 'community/get-involved' },
 			{ label: 'Activity', slug: 'community/activity' },
@@ -115,3 +119,30 @@ export const sidebar = [
 		],
 	},
 ];
+
+// A group's landing page: its `link` if it has a category summary page,
+// otherwise its first page (an Overview, or Installation for Getting Started).
+// Starlight groups can't carry a link, so the sidebar (SidebarSublist.astro)
+// uses this map to make group headers clickable, and the breadcrumb JSON-LD
+// (Head.astro) uses it to give each group level a URL.
+function collectGroupLinks(items, links = {}) {
+	for (const item of items) {
+		if (!item.items) continue;
+		links[item.label] = item.link ?? `/${firstSlug(item.items)}/`;
+		collectGroupLinks(item.items, links);
+	}
+	return links;
+}
+
+function firstSlug(items) {
+	const first = items[0];
+	return first.slug ?? firstSlug(first.items);
+}
+
+export const groupLinks = collectGroupLinks(sidebar);
+
+// The sidebar as Starlight accepts it: its schema rejects the extra `link` key.
+const stripLinks = (items) =>
+	items.map(({ link, ...item }) => (item.items ? { ...item, items: stripLinks(item.items) } : item));
+
+export const starlightSidebar = stripLinks(sidebar);

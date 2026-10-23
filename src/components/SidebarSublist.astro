@@ -7,18 +7,7 @@
 import { Icon, Badge } from '@astrojs/starlight/components';
 import SidebarRestorePoint from '@astrojs/starlight/components/SidebarRestorePoint.astro';
 import SidebarGroupIcon from './SidebarGroupIcon.astro';
-
-const groupLinks = {
-	'Getting Started': '/operations/installation/',
-	'Control': '/control/',
-	'Features': '/features/',
-	'Operations': '/operations/',
-	'Use Cases': '/guides/use-cases/',
-	'API': '/api/overview/',
-	'MPD Disc Player': '/disc-player/overview/',
-	'Audio Notifications': '/notify/overview/',
-	'Community': '/community/',
-};
+import { groupLinks } from '../data/sidebar.mjs';
 
 // Recursively check whether a group contains the current page (to keep it open).
 function containsCurrent(entries) {
@@ -50,7 +39,7 @@ const { sublist, nested } = Astro.props;
 					<details open={containsCurrent(entry.entries) || !entry.collapsed}>
 						<summary>
 							<span class="group-label">
-								{groupLinks[entry.label] ? (
+								{!nested && groupLinks[entry.label] ? (
 									<a class="large group-link" href={groupLinks[entry.label]}>
 										<SidebarGroupIcon label={entry.label} />
 										{entry.label}
