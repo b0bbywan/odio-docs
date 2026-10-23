@@ -20,6 +20,10 @@ The local screen arrived in [2026.9.0b2](https://github.com/b0bbywan/odios/relea
 
 The screen is an optional odios component. It needs amd64 or arm64: Raspberry Pi OS armhf ships no QtWebEngine, so the installer does not offer it on a 32-bit system.
 
+<Aside type="caution">
+Read [Security](#security) before pointing the screen at anything other than odio's UI.
+</Aside>
+
 - at install, answer yes to `Install display (odio-kiosk)?`, or set `INSTALL_DISPLAY=Y` for a [non-interactive install](https://github.com/b0bbywan/odios/tree/main/installer#non-interactive-automation)
 - on an existing node, enable the **display** row under System on the [settings page](/operations/settings/#components), then apply an [upgrade](/operations/settings/#upgrade)
 
@@ -68,3 +72,16 @@ The UI lays out in one column, two from 640px wide, three from 1024px. A 7" pane
 ## Engine
 
 Since 2026.9.0b3, odio-kiosk is built on Qt 6, which embeds Chromium 122. The b2 screen ran QtWebEngine 5.15 and Chromium 87, on which a single unknown pseudo-class such as `:where()` silently dropped a whole CSS rule. [odio-api v0.17.2](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.17.2) works around those gaps in the embedded UI. On Chromium 122 they are gone, and the sliders take the gold accent through `accent-color`.
+
+## Security
+
+odio-kiosk runs on Debian's QtWebEngine 6.8.2: Chromium 122 with security fixes up to Chromium 132 (January 2025). [Debian doesn't ship security updates for it](https://salsa.debian.org/debian/debian-security-support/-/blob/master/security-support.deb13): it considers QtWebEngine safe only for displaying trusted content, not for general web browsing. The kiosk therefore misses every Chromium fix since, including flaws known to be exploited in the wild.
+
+Two things limit the risk:
+
+- the kiosk runs as the odio user with Chromium's sandbox enabled, so a malicious page stays confined unless it also exploits a sandbox escape;
+- by default it only opens odio's own UI on `localhost` and the services the dashboard links to.
+
+Keep it that way: point `URL` only at pages you trust, and keep the node on a trusted network.
+
+For the background, see the [October 2026 security note](https://github.com/b0bbywan/odios/discussions/104).
