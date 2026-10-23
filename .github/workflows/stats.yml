@@ -33,7 +33,8 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
+          check-latest: true
           cache: npm
 
       - run: npm ci
