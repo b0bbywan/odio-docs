@@ -75,7 +75,7 @@ Since 2026.9.0b3, odio-kiosk is built on Qt 6, which embeds Chromium 122. The b2
 
 ## Security
 
-odio-kiosk runs on Debian's QtWebEngine 6.8.2: Chromium 122 with security fixes up to Chromium 132 (January 2025). [Debian doesn't ship security updates for it](https://salsa.debian.org/debian/debian-security-support/-/blob/master/security-support.deb13): it considers QtWebEngine safe only for displaying trusted content, not for general web browsing. The kiosk therefore misses every Chromium fix since, including flaws known to be exploited in the wild.
+odio-kiosk runs on Debian's QtWebEngine 6.8.2: Chromium 122 with security fixes up to Chromium 132 (January 2025). [Debian doesn't ship security updates for it](https://salsa.debian.org/debian/debian-security-support/-/blob/master/security-support.deb13): it considers QtWebEngine safe only for displaying trusted content, not for general web browsing. The kiosk therefore misses every Chromium fix since, including flaws known to be exploited in the wild. Since [odio-kiosk 2.0.1](https://github.com/b0bbywan/odio-framebuffer-ui/releases/tag/v2.0.1), it also distrusts certificate authorities that Chrome or Debian have dropped, such as eMudhra in October 2026, which QtWebEngine's built-in list would otherwise still trust.
 
 Two things limit the risk:
 
