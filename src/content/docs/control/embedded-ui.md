@@ -37,6 +37,12 @@ Since [odio-api v0.16.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0
 
 ![Embedded web UI with the Media Players card showing the MPD queue instead of the cover: four rows with a remove cross each, the playing one highlighted in green, transport controls below, next to the Bluetooth, Audio Server, and Services panels](../../../assets/embedded-ui-tracklist.webp)
 
+### Default Sink
+
+The **Default Sink** dropdown of the Audio Server card picks the output every source plays through. A USB DAC shows up there once plugged in, no setup needed. So do a paired [Bluetooth speaker](/guides/bluetooth-output/#selecting-the-sink), the [Mono sink](/operations/how-it-works/#mono-output) and, on a desktop node, the [network sink](/guides/use-case-desktop/) of another odio node.
+
+![Embedded web UI of a node named rpi3 with a Panasonic USB Audio 2 Analog Stereo output as the Default Sink in the Audio Server card, volume at 100%, no active media players, and the PulseAudio, MPD, Spotifyd and upmpdcli services running](../../../assets/embedded-ui-usb-dac.webp)
+
 ## How it works
 
 The UI is built with HTMX and Tailwind CSS, compiled into the Go binary via `go embed`. No build step, no CDN, no external requests — everything is served from the binary itself, 100% local.
