@@ -12,7 +12,7 @@ When a router integration (UniFi, Fritz!Box, and others) already tracks the node
 | Entity | Description |
 |---|---|
 | `media_player.odio_remote_<hostname>` | The node itself, see [receiver](#receiver) |
-| `binary_sensor.odio_remote_<hostname>_connection_status` | Whether the real-time stream to the node is connected (diagnostic) |
+| `binary_sensor.odio_remote_<hostname>_connection` | Whether the real-time stream to the node is connected (diagnostic) |
 
 ## Audio (PulseAudio / PipeWire)
 
@@ -86,6 +86,12 @@ Both are disabled by default on go-odio-api. See [power management](/operations/
 ## Firmware
 
 `update.odio_remote_<hostname>_firmware` tracks the installed and latest odio version, offers an **Install** button when the node allows it, and shows progress during the upgrade. See [upgrading from Home Assistant](/operations/upgrade/#from-home-assistant-and-the-web-ui).
+
+## Entity categories
+
+Entities that configure the node rather than play audio are in the **configuration** category: power off, reboot, the Bluetooth power and scan switches, the pairing button, and the pair select. The connection and pairing active binary sensors are **diagnostic**.
+
+These entities are listed under their own sections on the device page and left out of auto-generated dashboards and voice assistants by default. They work in automations, scripts, and dashboards you build yourself like any other entity.
 
 ## Data updates
 
