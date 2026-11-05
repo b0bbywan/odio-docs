@@ -1,0 +1,97 @@
+---
+title: Home Assistant entities for odio
+description: Every entity odio-ha creates, backend by backend, the receiver, MPRIS players, remote audio clients, services, Bluetooth, power and firmware, and how they stay in sync.
+---
+
+Each odio node is one Home Assistant device, named **Odio Remote (hostname)**. All its entities belong to that device. Entities only exist for the backends the node reports: a backend disabled in the [go-odio-api configuration](/api/configuration/) creates nothing in Home Assistant.
+
+When a router integration (UniFi, Fritz!Box, and others) already tracks the node, odio-ha picks up its MAC address and the device page shows the network link.
+
+## Always present
+
+| Entity | Description |
+|---|---|
+| `media_player.odio_remote_<hostname>` | The node itself, see [receiver](#receiver) |
+| `binary_sensor.odio_remote_<hostname>_connection_status` | Whether the real-time stream to the node is connected (diagnostic) |
+
+## Audio (PulseAudio / PipeWire)
+
+### Receiver
+
+The main media player represents the node's audio stack.
+
+- **State**: `playing` when any audio client or MPRIS player is playing, `idle` otherwise, `off` while the node is disconnected.
+- **Volume and mute**: the node's default output.
+- **Source list**: the node's audio outputs. Selecting a source changes the **default output**, it does not switch inputs. odio has no exclusive source: every source can play at the same time.
+
+### Other audio entities
+
+| Entity | Description |
+|---|---|
+| `sensor.odio_remote_<hostname>_default_output` | Current default output, with its attributes (name, volume, mute, state, driver, …) |
+| `media_player.odio_remote_<hostname>_<client>` | One per remote audio client, such as a desktop [streaming to the node over the network](/guides/network-audio/): per-client volume and mute |
+
+Remote clients come and go with their streams. A client that disconnects turns `off`.
+
+## MPRIS players
+
+One media player per [MPRIS](/api/mpris/) application on the node: Spotify, VLC, Firefox, MPD through mpd2mpris, Shairport Sync, a phone connected over Bluetooth, and any other MPRIS source. Players appear as soon as the application starts.
+
+- Transport controls, seek, volume, shuffle and repeat, when the player supports them.
+- Metadata and album art, local covers included.
+- Live position.
+
+### Queue
+
+Players that implement the MPRIS `TrackList` interface (see [who implements it](/api/mpris/#who-implements-it)) expose their queue through Home Assistant's media surfaces:
+
+- **Media browser**: lists the queue. Picking a track jumps to it.
+- **Play media with enqueue**: `add` appends, `next` and `play` insert after the current track, `replace` clears the queue first. Text-to-speech and local media sources are accepted.
+- **Clear playlist**: empties the queue.
+
+Enqueue and clear only appear when the player allows queue edits.
+
+## Services (systemd)
+
+| Entity | Description |
+|---|---|
+| `switch.odio_remote_<hostname>_<service>` | Start and stop a whitelisted user service |
+| `media_player.odio_remote_<hostname>_<service>` | Created for services [mapped](/control/home-assistant/mapping/) to an existing Home Assistant media player |
+
+System units are read-only and get no switch.
+
+## Bluetooth
+
+| Entity | Description |
+|---|---|
+| `switch.odio_remote_<hostname>_bluetooth_power` | Turn the adapter on or off |
+| `button.odio_remote_<hostname>_bluetooth_pairing` | Make the node discoverable for 60 seconds, so a phone can [pair with it](/guides/bluetooth/) |
+| `binary_sensor.odio_remote_<hostname>_bluetooth_pairing_active` | Pairing mode is active (diagnostic) |
+| `sensor.odio_remote_<hostname>_bluetooth_connected_device` | Name of the connected device |
+| `switch.odio_remote_<hostname>_bluetooth_scan` | Search for nearby [Bluetooth speakers and headphones](/guides/bluetooth-output/) |
+| `select.odio_remote_<hostname>_bluetooth_pair` | Pair one of the devices found by the scan. Available while unpaired devices are in range. |
+| `switch.odio_remote_<hostname>_bluetooth_device_<address>` | One per paired speaker or headphones: on to connect, off to disconnect |
+
+A connected speaker becomes an audio output, so it shows up in the receiver's source list. A speaker that is removed from the paired list becomes unavailable instead of disappearing.
+
+## Power
+
+| Entity | Description |
+|---|---|
+| `button.odio_remote_<hostname>_power_off` | Shut down the node |
+| `button.odio_remote_<hostname>_reboot` | Reboot the node |
+
+Both are disabled by default on go-odio-api. See [power management](/operations/power/).
+
+## Firmware
+
+`update.odio_remote_<hostname>_firmware` tracks the installed and latest odio version, offers an **Install** button when the node allows it, and shows progress during the upgrade. See [upgrading from Home Assistant](/operations/upgrade/#from-home-assistant-and-the-web-ui).
+
+## Data updates
+
+odio-ha does not poll. It takes one snapshot of the node at startup, then follows the node's [real-time event stream](/api/events/) (Server-Sent Events): every change pushes to Home Assistant immediately.
+
+- The node sends a keepalive at a set interval (30 seconds by default, see [options](/control/home-assistant/mapping/#sse-keepalive)). Without any event for that interval plus 15 seconds, the connection counts as lost.
+- After a lost connection, odio-ha reconnects automatically, waiting from 1 second up to 5 minutes between attempts, and resyncs the full state on every reconnect.
+- If the node is down when Home Assistant starts, entities come up from the last known data and go live on the first connection.
+- When a server upgrade or configuration change adds or removes a backend, odio-ha notices it on reconnect and reloads to create or remove the matching entities.

@@ -16,7 +16,17 @@ export const sidebar = [
 		items: [
 			{ label: 'Embedded web UI', slug: 'control/embedded-ui' },
 			{ label: 'Application', slug: 'control/pwa' },
-			{ label: 'Home Assistant', slug: 'control/home-assistant' },
+			{
+				label: 'Home Assistant',
+				collapsed: true,
+				items: [
+					{ label: 'Overview', slug: 'control/home-assistant' },
+					{ label: 'Entities', slug: 'control/home-assistant/entities' },
+					{ label: 'Options and mapping', slug: 'control/home-assistant/mapping' },
+					{ label: 'Examples', slug: 'control/home-assistant/examples' },
+					{ label: 'Troubleshooting', slug: 'control/home-assistant/troubleshooting' },
+				],
+			},
 			{ label: 'Local screen', slug: 'control/local-screen' },
 			{ label: 'Remote controls', slug: 'control/remote' },
 			{
