@@ -1,0 +1,54 @@
+---
+title: odio-ha troubleshooting and known limitations
+description: What odio-ha cannot do, and how to fix a node that is not discovered, missing entities, unavailable entities, or a device without its network link in Home Assistant.
+---
+
+## Known limitations
+
+- **Backends are configured on the node only.** Enabling audio, services, Bluetooth, power or upgrade happens in the [go-odio-api configuration](/api/configuration/). Home Assistant reflects what the node exposes and has no toggle for it, on purpose: exposing the configuration over the API would be a security risk.
+- **Local audio clients are not exposed.** Only clients streaming from another machine get a media player, to avoid name collisions with the node's own players.
+- **Unmapped services and clients are basic.** Without a [mapping](/control/home-assistant/mapping/#entity-mapping), they only offer volume, mute, and a playing or idle state.
+- **One entity per MPRIS application.** Several instances of the same application, such as two Chrome windows playing, share one media player.
+- **The queue is partial.** Home Assistant has no queue state on media players, so odio-ha maps the MPRIS queue onto the media browser, enqueue and clear playlist. Removing or moving a single track is not possible from Home Assistant. Only players implementing `TrackList` have a queue, see [who implements it](/api/mpris/#who-implements-it).
+- **A node is identified by its API URL.** If the node's IP address changes, it is discovered as a new node. Use [Reconfigure](/control/home-assistant/mapping/#changing-the-api-url) on the existing entry instead of adding it again.
+- **Power off is one-way.** Home Assistant can shut a node down, not turn it back on. See [power management](/operations/power/) for smart plug setups.
+
+## Troubleshooting
+
+### The node is not discovered
+
+- Check that the [Zeroconf backend](/api/zeroconf/) is enabled. It is disabled automatically when the API only listens on loopback.
+- mDNS does not cross subnets or VLANs without a reflector. Home Assistant and the node must be on the same network segment.
+- Add the node manually with its API URL, `http://<ip>:8018` with the default port.
+
+### "Cannot connect to API"
+
+- Check that go-odio-api is running on the node and listening on an address Home Assistant can reach, not only on loopback.
+- Open `http://<ip>:8018/server` from the Home Assistant host to test the connection.
+
+### Entities are missing
+
+Each group of entities depends on a backend enabled on the node, see [entities](/control/home-assistant/entities/). After enabling a backend, restart go-odio-api: odio-ha detects the change on reconnect and reloads by itself.
+
+Power buttons only appear when power off and reboot are allowed on the node, both are disabled by default.
+
+### Entities are unavailable
+
+The connection to the node is lost: the **Connection** binary sensor is off and the receiver is `off`. odio-ha keeps retrying, from every second up to every 5 minutes, and resyncs everything once the node answers again.
+
+### The device page has no network link
+
+odio-ha reads the node's MAC address from a router integration's device trackers. Without a router integration tracking the node's IP address, the link is missing. Everything else works.
+
+### Enable debug logs
+
+Add this to `configuration.yaml` and restart Home Assistant:
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.odio_remote: debug
+```
+
+Then reproduce the problem and attach the log to an [issue](https://github.com/b0bbywan/odio-ha/issues).

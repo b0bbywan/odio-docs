@@ -1,0 +1,145 @@
+---
+title: odio-ha automation examples
+description: Home Assistant automations built on odio-ha entities, to power an amplifier with playback, react to a computer starting or stopping, and speak on the node.
+---
+
+These automations use the [entities](/control/home-assistant/entities/) of three example nodes: `raspodio`, the streamer driving the amplifier, plus an `htpc` and a `desktop` running [go-odio-api](/api/overview/). Replace the hostnames and the non-odio entities (lights, covers, alarm, amplifier switch) with your own.
+
+## Power the amplifier with playback
+
+The [receiver](/control/home-assistant/entities/#receiver) counts the audio streams playing on the node in its `playing_clients` attribute: MPD, Spotify, AirPlay, Bluetooth, a desktop [streaming over the network](/guides/network-audio/), anything that outputs sound. A paused stream doesn't count.
+
+The first automation turns the amplifier on once a stream has played for 2 minutes, so short sounds don't wake it. The second turns it off after 15 minutes without any stream.
+
+```yaml
+- alias: Amplifier on with playback
+  triggers:
+    - trigger: numeric_state
+      entity_id: media_player.odio_remote_raspodio
+      attribute: playing_clients
+      above: 0
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: switch.amplifier
+      state: "off"
+  actions:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.amplifier
+
+- alias: Amplifier off when idle
+  triggers:
+    - trigger: numeric_state
+      entity_id: media_player.odio_remote_raspodio
+      attribute: playing_clients
+      below: 1
+      for:
+        minutes: 15
+  conditions:
+    - condition: state
+      entity_id: switch.amplifier
+      state: "on"
+  actions:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.amplifier
+```
+
+`switch.amplifier` stands for whatever powers the amplifier, such as a smart plug.
+
+## Lights on when the HTPC starts
+
+The connection binary sensor turns on when Home Assistant reaches the node's [event stream](/api/events/), so when the machine is up and go-odio-api runs. On an [HTPC](/guides/use-case-htpc/), it means the HTPC was just switched on.
+
+```yaml
+- alias: HTPC lights
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.odio_remote_htpc_connection
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: cover.living_room
+      state: closed
+  actions:
+    - action: light.turn_on
+      target:
+        entity_id: light.living_room
+```
+
+## Morning routine when the desktop starts
+
+Starting the desktop in the morning disarms the night alarm, turns the amplifier on and plays a spoken message on the speakers. The message goes to the MPD [MPRIS player](/control/home-assistant/entities/#mpris-players) of the streamer, which accepts text-to-speech through its [queue](/control/home-assistant/entities/#queue).
+
+```yaml
+- alias: Morning routine
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.odio_remote_desktop_connection
+      from: "off"
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: person.resident
+      state: home
+  actions:
+    - if:
+        - condition: state
+          entity_id: alarm_control_panel.home
+          state: armed_night
+      then:
+        - action: alarm_control_panel.alarm_disarm
+          target:
+            entity_id: alarm_control_panel.home
+    - action: switch.turn_on
+      target:
+        entity_id: switch.amplifier
+    - action: tts.speak
+      target:
+        entity_id: tts.google_translate_en_com
+      data:
+        media_player_entity_id: media_player.odio_remote_raspodio_music_player_daemon
+        message: Good morning!
+```
+
+## Night mode when every computer is off
+
+The reverse: late at night, once the HTPC and the desktop have both been off for 2 minutes, turn off the lights and arm the alarm in night mode. Each sensor triggers the automation, and the condition waits for the last one to go off.
+
+```yaml
+- alias: Night mode
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.odio_remote_htpc_connection
+        - binary_sensor.odio_remote_desktop_connection
+      to: "off"
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id:
+        - binary_sensor.odio_remote_htpc_connection
+        - binary_sensor.odio_remote_desktop_connection
+      state: "off"
+    - condition: state
+      entity_id: person.resident
+      state: home
+    - condition: time
+      after: "23:00:00"
+      before: "08:00:00"
+  actions:
+    - action: light.turn_off
+      target:
+        area_id: living_room
+    - if:
+        - condition: state
+          entity_id: alarm_control_panel.home
+          state: disarmed
+      then:
+        - action: alarm_control_panel.alarm_arm_night
+          target:
+            entity_id: alarm_control_panel.home
+```
