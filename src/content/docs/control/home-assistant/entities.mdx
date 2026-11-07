@@ -22,6 +22,7 @@ The main media player represents the node's audio stack.
 
 - **State**: `playing` when any audio client or MPRIS player is playing, `idle` otherwise, `off` while the node is disconnected.
 - **Volume and mute**: the node's default output.
+- **Attributes**: `active_clients`, the number of [audio clients](/api/pulseaudio/#clients-sink-inputs) on the node, and `playing_clients`, those not paused. See [powering an amplifier with playback](/control/home-assistant/examples/#power-the-amplifier-with-playback).
 - **Source list**: the node's audio outputs. Selecting a source changes the **default output**, it does not switch inputs. odio has no exclusive source: every source can play at the same time.
 
 ### Other audio entities
