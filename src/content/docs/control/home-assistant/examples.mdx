@@ -104,6 +104,53 @@ Starting the desktop in the morning disarms the night alarm, turns the amplifier
         message: Good morning!
 ```
 
+## Bedtime shutdown
+
+At a fixed time, announce bedtime on the speakers, then shut down the HTPC and the desktop 5 minutes later with their power off buttons. Each machine is only shut down if it is still on. Once both are off, the [night mode](#night-mode-when-every-computer-is-off) below takes over.
+
+The power off button is disabled by default on go-odio-api: enable it in the [power management](/api/configuration/#power-management) section of each machine's configuration.
+
+```yaml
+- alias: Bedtime shutdown
+  triggers:
+    - trigger: time
+      at: "23:30:00"
+  conditions:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.odio_remote_htpc_connection
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.odio_remote_desktop_connection
+          state: "on"
+  actions:
+    - action: tts.speak
+      target:
+        entity_id: tts.google_translate_en_com
+      data:
+        media_player_entity_id: media_player.odio_remote_raspodio_music_player_daemon
+        message: Time to go to bed, computers shut down in 5 minutes.
+    - delay:
+        minutes: 5
+    - if:
+        - condition: state
+          entity_id: binary_sensor.odio_remote_htpc_connection
+          state: "on"
+      then:
+        - action: button.press
+          target:
+            entity_id: button.odio_remote_htpc_power_off
+    - if:
+        - condition: state
+          entity_id: binary_sensor.odio_remote_desktop_connection
+          state: "on"
+      then:
+        - action: button.press
+          target:
+            entity_id: button.odio_remote_desktop_power_off
+```
+
 ## Night mode when every computer is off
 
 The reverse: late at night, once the HTPC and the desktop have both been off for 2 minutes, turn off the lights and arm the alarm in night mode. Each sensor triggers the automation, and the condition waits for the last one to go off.
