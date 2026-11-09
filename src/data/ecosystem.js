@@ -1,6 +1,7 @@
 export const ecosystemProjects = [
   {
     name: 'go-odio-api',
+    family: 'core',
     desc: 'The core. REST API + embedded web UI. Bridges systemd, PulseAudio, MPRIS, D-Bus and Bluetooth. The engine that makes everything else possible.',
     short: 'REST API + embedded web UI',
     url: 'https://github.com/b0bbywan/go-odio-api',
@@ -9,6 +10,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odios',
+    family: 'install',
     desc: 'The installer and service orchestrator. One script, full stack — MPD, Snapcast, Shairport Sync, upmpdcli, and all glue between them.',
     short: 'Installer and service orchestrator',
     url: 'https://github.com/b0bbywan/odios',
@@ -17,6 +19,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odioctl',
+    family: 'core',
     desc: 'System control for a node: upgrades, components, DAC overlay, and the settings page in the web UI. One static Go binary.',
     short: 'Settings page and CLI',
     url: 'https://github.com/b0bbywan/odioctl',
@@ -25,6 +28,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-pwa',
+    family: 'clients',
     desc: 'Progressive Web App. Install from your browser, manage all your odio nodes from one place.',
     short: 'Web application for multi-node management',
     url: 'https://github.com/b0bbywan/odio-pwa',
@@ -33,6 +37,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-ha',
+    family: 'clients',
     desc: 'Home Assistant integration. Complete odio support with native HA entities.',
     short: 'Home Assistant integration',
     url: 'https://github.com/b0bbywan/odio-ha',
@@ -41,6 +46,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'pyodio',
+    family: 'libraries',
     desc: 'Async Python client library for odio-api. Live state mirror over SSE, high-level hub and low-level REST client.',
     short: 'Async Python client library',
     url: 'https://github.com/b0bbywan/pyodio',
@@ -49,6 +55,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'go-mpd-discplayer',
+    family: 'disc',
     desc: 'CD and USB auto-play daemon with metadata.',
     short: 'CD and USB auto-play daemon',
     url: 'https://github.com/b0bbywan/go-mpd-discplayer',
@@ -57,6 +64,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'go-disc-cuer',
+    family: 'libraries',
     desc: 'Go library for CUE sheet. The metadata backbone behind go-mpd-discplayer, via GnuDB and MusicBrainz.',
     short: 'CUE sheet library (GnuDB, MusicBrainz)',
     url: 'https://github.com/b0bbywan/go-disc-cuer',
@@ -65,6 +73,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'go-odio-notify',
+    family: 'libraries',
     desc: 'Audio notification library and CLI. Sound feedback for system events across the odio stack.',
     short: 'Audio notification library (PulseAudio)',
     url: 'https://github.com/b0bbywan/go-odio-notify',
@@ -73,6 +82,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'mpd2mpris',
+    family: 'bridges',
     desc: 'MPRIS2 bridge for MPD. Complete rewrite around python-mpd2 and dbus-fast, with as_directory-aware cover-art lookup for CUE virtual folders.',
     short: 'Async MPRIS bridge for MPD with CUE cover-art support',
     url: 'https://github.com/b0bbywan/mpd2mpris',
@@ -81,6 +91,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'snapclientmpris',
+    family: 'bridges',
     desc: 'MPRIS2 bridge for the local Snapcast client. Forwards playback controls to the snapserver source, so pausing from one room pauses every listener.',
     short: 'MPRIS bridge for Snapcast client with multi-room controls',
     url: 'https://github.com/b0bbywan/snapclientmpris',
@@ -89,6 +100,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-framebuffer-ui',
+    family: 'display',
     desc: 'odio-kiosk, the browser behind the local screen. Qt 6 WebEngine drawn straight onto the framebuffer, no X server or compositor, one instance per screen.',
     short: 'Framebuffer kiosk browser for a local screen',
     url: 'https://github.com/b0bbywan/odio-framebuffer-ui',
@@ -97,6 +109,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-apt-repo',
+    family: 'install',
     desc: 'The apt repository. Fully CI-maintained. Packages are built and published automatically on every release.',
     short: 'apt repository, CI-managed',
     url: 'https://github.com/b0bbywan/odio-apt-repo',
@@ -105,6 +118,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-ci',
+    family: 'install',
     desc: 'Shared CI plumbing for the packaging repos. Reusable workflows, composite actions and pinned base images behind odio-qbz and odio-mympd; each repo keeps its own build.',
     url: 'https://github.com/b0bbywan/odio-ci',
     live: null,
@@ -112,6 +126,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-mympd',
+    family: 'install',
     desc: 'myMPD packaging pipeline. Tracks upstream releases via daily cron and publishes per-arch .deb to apt.odio.love.',
     url: 'https://github.com/b0bbywan/odio-mympd',
     live: null,
@@ -120,6 +135,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-qbz',
+    family: 'install',
     desc: 'qbzd packaging pipeline. Builds the headless Qobuz daemon from upstream qbz tags: daemon only, no GUI runtime, and an armhf build upstream does not ship.',
     url: 'https://github.com/b0bbywan/odio-qbz',
     live: null,
@@ -128,6 +144,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'spotifyd',
+    family: 'install',
     desc: 'Spotifyd build pipeline. Fork carrying the GitHub Actions that ship .deb to apt.odio.love, no source changes.',
     url: 'https://github.com/b0bbywan/spotifyd',
     live: null,
@@ -136,6 +153,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio-docs',
+    family: 'web',
     desc: 'The documentation site. Guides, API reference, and everything you need to get started or go deeper.',
     url: 'https://github.com/b0bbywan/odio-docs',
     live: 'https://docs.odio.love/',
@@ -143,6 +161,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'odio.love',
+    family: 'web',
     desc: 'This site. Static Astro build, deployed to Vercel.',
     url: 'https://github.com/b0bbywan/odio.love',
     live: null,
