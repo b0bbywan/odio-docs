@@ -58,7 +58,7 @@
   font-family: var(--sl-font-mono, monospace);
   font-size: 10px;
 }
-.axisLabelAmber { fill: #c8943a; opacity: 0.75; }
+.axisLabelStars { fill: var(--sl-color-gray-1); opacity: 0.75; }
 .tooltip {
   pointer-events: none;
   position: absolute;
@@ -79,14 +79,66 @@
 .tooltipVisible { opacity: 1; }
 .legend {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  flex-direction: column;
+  gap: 0.35rem;
   margin-top: 1rem;
   font-family: var(--sl-font-mono, monospace);
   font-size: 0.75rem;
   color: var(--sl-color-gray-2);
 }
+.legendGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.9rem;
+}
 .legendItem { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legendFamily,
+.legendRepo {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0.1rem 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: opacity 0.15s, color 0.15s;
+}
+.legendFamily { color: var(--sl-color-white); min-width: 11.5rem; }
+.legendFamily:hover,
+.legendRepo:hover { color: var(--sl-color-accent-high); }
+.legendFamily[aria-pressed='true'],
+.legendRepo[aria-pressed='true'] {
+  color: var(--sl-color-accent-high);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.legendDim { opacity: 0.4; }
+.focusBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--sl-font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--sl-color-gray-2);
+}
+.focusBar strong { color: var(--sl-color-white); font-weight: 600; }
+.focusReset {
+  font: inherit;
+  color: var(--sl-color-accent-high);
+  background: none;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+}
+.focusReset:hover { border-color: var(--sl-color-accent-high); }
 .legendSwatch {
   display: inline-block;
   width: 10px;
@@ -97,13 +149,13 @@
   display: inline-block;
   width: 14px;
   height: 2px;
-  background: #c8943a;
+  background: var(--sl-color-gray-1);
 }
 .legendDiamond {
   display: inline-block;
   width: 8px;
   height: 8px;
-  background: #e6e6e6;
+  background: var(--sl-color-white);
   transform: rotate(45deg);
 }
 

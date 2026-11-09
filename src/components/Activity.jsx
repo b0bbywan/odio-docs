@@ -13,25 +13,35 @@ const externalSet = new Set(
   ecosystemProjects.filter((p) => p.kind === 'apt-external').map((p) => p.name),
 );
 
-const repoColors = {
-  'go-odio-api': '#5ab81e',
-  'odios': '#c8943a',
-  'odio-ha': '#7ab8ff',
-  'odio-pwa': '#ff6a3d',
-  'go-mpd-discplayer': '#9ed65e',
-  'go-disc-cuer': '#4fc9a8',
-  'go-odio-notify': '#b090ff',
-  'mpDris2': '#d68aff',
-  'snapclientmpris': '#5fc3d6',
-  'odio-apt-repo': '#d9c758',
-  'odio-ci': '#6f92a8',
-  'odio-docs': '#e38dd6',
-  'odio.love': '#a09080',
+// Commit bars are colored by family (the `family` field in ecosystem.js), not
+// per repo: 17+ distinct hues can't be told apart. The array order is the stack
+// order, bottom to top, and it is what keeps the palette readable: it was picked
+// with the dataviz palette validator so every pair of neighbouring families stays
+// distinct on the dark surface, colorblind vision included. Install, one of the
+// busiest families, sits between the closest pair (libraries yellow, disc
+// orange), so those two are almost never stacked directly on each other.
+// Reorder or recolor only after re-validating.
+const FAMILIES = [
+  { key: 'core', label: 'Core', color: '#4ea619' },
+  { key: 'clients', label: 'Clients', color: '#3987e5' },
+  { key: 'display', label: 'Display', color: '#d55181' },
+  { key: 'libraries', label: 'Libraries', color: '#c98500' },
+  { key: 'install', label: 'Install & packaging', color: '#1fa3b8' },
+  { key: 'disc', label: 'Disc player', color: '#d95926' },
+  { key: 'web', label: 'Web', color: '#9085e9' },
+  { key: 'bridges', label: 'MPRIS bridges', color: '#a341be' },
+  // Fallback for a repo missing from ecosystem.js; only drawn if one shows up.
+  { key: 'other', label: 'Other', color: '#72797a' },
+];
+const familyIndex = new Map(FAMILIES.map((f, i) => [f.key, i]));
+const repoFamily = new Map(ecosystemProjects.map((p) => [p.name, p.family]));
+const familyOf = (name) => {
+  const key = repoFamily.get(name);
+  return FAMILIES[familyIndex.get(key) ?? FAMILIES.length - 1];
 };
-const colorOf = (name) => repoColors[name] || '#3a7020';
-const AMBER = '#c8943a';
-// Neutral on purpose: the upstream markers annotate the series, they aren't one.
-const UPSTREAM_MARK = '#e6e6e6';
+// Neutral: the stars line is a different measure than the commit bars, and
+// amber would clash with the Libraries yellow.
+const STARS = 'var(--sl-color-gray-1)';
 
 export default function Activity() {
   const [stats, setStats] = useState(null);
@@ -333,6 +343,8 @@ function Chart({ stats }) {
   const { commitsByWeek, starsByWeek = [], repos, upstream = [] } = stats;
   const chartRef = useRef(null);
   const [tip, setTip] = useState(null);
+  // null = everything, otherwise { kind: 'repo' | 'family', key }.
+  const [focus, setFocus] = useState(null);
 
   const chartW = 960, chartH = 240, padL = 40, padR = 44, padT = 20, padB = 32;
   const innerW = chartW - padL - padR;
@@ -341,13 +353,35 @@ function Chart({ stats }) {
   const starsSeries = starsByWeek.filter((s) => commitsByWeek.some((c) => c.w === s.w));
   const byWeekMap = new Map(starsSeries.map((s) => [s.w, s.cumul]));
 
+  // Grouped by family (stack order), busiest repo first inside a family.
   const activeRepos = repos
     .filter((r) => r.commits.total > 0 && !externalSet.has(r.name))
     .slice()
-    .sort((a, b) => b.commits.total - a.commits.total);
+    .sort(
+      (a, b) =>
+        familyIndex.get(familyOf(a.name).key) - familyIndex.get(familyOf(b.name).key) ||
+        b.commits.total - a.commits.total,
+    );
   const repoWeekMap = new Map(
     activeRepos.map((r) => [r.name, new Map(r.commits.byWeek.map((d) => [d.w, d.c]))]),
   );
+  const legendGroups = FAMILIES.map((f) => ({
+    ...f,
+    repos: activeRepos.filter((r) => familyOf(r.name).key === f.key),
+  })).filter((g) => g.repos.length);
+
+  const inFocus = (name) =>
+    !focus ||
+    (focus.kind === 'repo' ? focus.key === name : familyOf(name).key === focus.key);
+  const shownRepos = activeRepos.filter((r) => inFocus(r.name));
+  const toggleFocus = (kind, key) => {
+    setTip(null);
+    setFocus((f) => (f && f.kind === kind && f.key === key ? null : { kind, key }));
+  };
+
+  // Stars and upstream marks are global (no per-repo history), so they only
+  // show on the unfiltered view.
+  const showGlobal = !focus;
 
   // Upstream contributions land on the same ISO weeks as the commit bars (the
   // stats script stamps them), so they can be marked above the plot without
@@ -362,7 +396,10 @@ function Chart({ stats }) {
   }
   const hasUpstreamMarks = commitsByWeek.some((d) => upstreamByWeek.has(d.w));
 
-  const maxC = Math.max(1, ...commitsByWeek.map((d) => d.c));
+  // The scale follows what is drawn, so a single repo fills the plot height.
+  const weekTotal = (w) =>
+    shownRepos.reduce((sum, r) => sum + (repoWeekMap.get(r.name).get(w) || 0), 0);
+  const maxC = Math.max(1, ...commitsByWeek.map((d) => weekTotal(d.w)));
   const maxS = Math.max(1, ...starsSeries.map((d) => d.cumul));
   const barGap = 3;
   const barW = commitsByWeek.length
@@ -381,6 +418,14 @@ function Chart({ stats }) {
       return `${i === 0 ? 'M' : 'L'}${cx.toFixed(1)},${cy.toFixed(1)}`;
     })
     .join(' ');
+
+  const focusRepo = focus?.kind === 'repo' ? repos.find((r) => r.name === focus.key) : null;
+  const focusLabel = focus
+    ? focus.kind === 'repo'
+      ? focus.key
+      : FAMILIES[familyIndex.get(focus.key)].label
+    : null;
+  const focusCommits = shownRepos.reduce((sum, r) => sum + r.commits.total, 0);
 
   const showTip = (e, repo, week, count, color) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -415,11 +460,30 @@ function Chart({ stats }) {
             </>
           )}
         </div>
+        <div class={`${styles.focusBar} not-content`} aria-live="polite">
+          {focus ? (
+            <>
+              <span>
+                <strong>{focusLabel}</strong> · {fmt.format(focusCommits)} commits
+                {focusRepo ? ` · ${fmt.format(focusRepo.stars)} ★` : ''}
+              </span>
+              <button type="button" class={styles.focusReset} onClick={() => setFocus(null)}>
+                show all
+              </button>
+            </>
+          ) : (
+            <span>Click a repo or a family below to show only its commits.</span>
+          )}
+        </div>
         <svg
           viewBox={`0 0 ${chartW} ${chartH}`}
           preserveAspectRatio="xMidYMid meet"
           role="img"
-          aria-label="Commits per week chart with cumulative stars overlay"
+          aria-label={
+            focus
+              ? `Commits per week for ${focusLabel}`
+              : 'Commits per week chart with cumulative stars overlay'
+          }
         >
           {commitTicks.map((t) => (
             <g>
@@ -442,29 +506,31 @@ function Chart({ stats }) {
               </text>
             </g>
           ))}
-          {starTicks.map((t) => (
-            <text
-              x={chartW - padR + 8}
-              y={yStar(t)}
-              text-anchor="start"
-              dominant-baseline="middle"
-              class={`${styles.axisLabel} ${styles.axisLabelAmber}`}
-            >
-              {t}★
-            </text>
-          ))}
+          {showGlobal &&
+            starTicks.map((t) => (
+              <text
+                x={chartW - padR + 8}
+                y={yStar(t)}
+                text-anchor="start"
+                dominant-baseline="middle"
+                class={`${styles.axisLabel} ${styles.axisLabelStars}`}
+              >
+                {t}★
+              </text>
+            ))}
           {commitsByWeek.map((d, i) => {
             const x = padL + i * (barW + barGap);
             let cumul = 0;
             return (
               <g>
-                {activeRepos.map((r) => {
+                {shownRepos.map((r) => {
                   const c = repoWeekMap.get(r.name).get(d.w) || 0;
                   if (c === 0) return null;
                   const h = (c / maxC) * innerH;
                   const y = padT + innerH - ((cumul + c) / maxC) * innerH;
                   cumul += c;
-                  const col = colorOf(r.name);
+                  const col = familyOf(r.name).color;
+                  // The surface-colored stroke separates repos inside a family.
                   return (
                     <rect
                       x={x}
@@ -472,9 +538,12 @@ function Chart({ stats }) {
                       width={barW}
                       height={h}
                       fill={col}
-                      opacity="0.9"
+                      stroke="var(--sl-color-gray-5)"
+                      stroke-width="1"
                       onMouseEnter={(e) => showTip(e, r.name, d.w, c, col)}
                       onMouseLeave={() => setTip(null)}
+                      onClick={() => toggleFocus('repo', r.name)}
+                      style="cursor:pointer;"
                     >
                       <title>{`${r.name} — ${d.w}: ${c} commits`}</title>
                     </rect>
@@ -483,37 +552,41 @@ function Chart({ stats }) {
               </g>
             );
           })}
-          <path
-            d={starPath}
-            fill="none"
-            stroke={AMBER}
-            stroke-width="2"
-            stroke-linejoin="round"
-            stroke-linecap="round"
-          />
-          {commitsByWeek.map((d, i) => {
-            const cx = padL + i * (barW + barGap) + barW / 2;
-            const cy = yStar(byWeekMap.get(d.w) ?? 0);
-            return (
-              <circle cx={cx} cy={cy} r={2.5} fill={AMBER}>
-                <title>{`${d.w}: ${byWeekMap.get(d.w) ?? 0} total stars`}</title>
-              </circle>
-            );
-          })}
-          {commitsByWeek.map((d, i) => {
-            const marks = upstreamByWeek.get(d.w);
-            if (!marks) return null;
-            const cx = padL + i * (barW + barGap) + barW / 2;
-            return (
-              <g>
-                <title>{`${d.w} — upstream: ${marks.join(', ')}`}</title>
-                <path
-                  d={`M${cx.toFixed(1)},${padT - 16} L${(cx + 4).toFixed(1)},${padT - 12} L${cx.toFixed(1)},${padT - 8} L${(cx - 4).toFixed(1)},${padT - 12} Z`}
-                  fill={UPSTREAM_MARK}
-                />
-              </g>
-            );
-          })}
+          {showGlobal && (
+            <path
+              d={starPath}
+              fill="none"
+              stroke={STARS}
+              stroke-width="2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          )}
+          {showGlobal &&
+            commitsByWeek.map((d, i) => {
+              const cx = padL + i * (barW + barGap) + barW / 2;
+              const cy = yStar(byWeekMap.get(d.w) ?? 0);
+              return (
+                <circle cx={cx} cy={cy} r={2.5} fill={STARS}>
+                  <title>{`${d.w}: ${byWeekMap.get(d.w) ?? 0} total stars`}</title>
+                </circle>
+              );
+            })}
+          {showGlobal &&
+            commitsByWeek.map((d, i) => {
+              const marks = upstreamByWeek.get(d.w);
+              if (!marks) return null;
+              const cx = padL + i * (barW + barGap) + barW / 2;
+              return (
+                <g>
+                  <title>{`${d.w} — upstream: ${marks.join(', ')}`}</title>
+                  <path
+                    d={`M${cx.toFixed(1)},${padT - 16} L${(cx + 4).toFixed(1)},${padT - 12} L${cx.toFixed(1)},${padT - 8} L${(cx - 4).toFixed(1)},${padT - 12} Z`}
+                    fill="var(--sl-color-white)"
+                  />
+                </g>
+              );
+            })}
           {commitsByWeek.map((d, i) =>
             i % 4 === 0 || i === commitsByWeek.length - 1 ? (
               <text
@@ -527,22 +600,43 @@ function Chart({ stats }) {
             ) : null,
           )}
         </svg>
-        <div class={styles.legend}>
-          {activeRepos.map((r) => (
-            <span class={styles.legendItem}>
-              <span class={styles.legendSwatch} style={`background-color: ${colorOf(r.name)};`} />
-              {r.name}
-            </span>
+        <div class={`${styles.legend} not-content`}>
+          {legendGroups.map((g) => (
+            <div class={styles.legendGroup}>
+              <button
+                type="button"
+                class={`${styles.legendFamily} ${focus && !(focus.kind === 'family' && focus.key === g.key) ? styles.legendDim : ''}`}
+                aria-pressed={focus?.kind === 'family' && focus.key === g.key}
+                onClick={() => toggleFocus('family', g.key)}
+              >
+                <span class={styles.legendSwatch} style={`background-color: ${g.color};`} />
+                {g.label}
+              </button>
+              {g.repos.map((r) => (
+                <button
+                  type="button"
+                  class={`${styles.legendRepo} ${inFocus(r.name) ? '' : styles.legendDim}`}
+                  aria-pressed={focus?.kind === 'repo' && focus.key === r.name}
+                  onClick={() => toggleFocus('repo', r.name)}
+                >
+                  {r.name}
+                </button>
+              ))}
+            </div>
           ))}
-          <span class={styles.legendItem}>
-            <span class={styles.legendLine} />
-            cumulative stars
-          </span>
-          {hasUpstreamMarks && (
-            <span class={styles.legendItem}>
-              <span class={styles.legendDiamond} />
-              upstream contribution
-            </span>
+          {showGlobal && (
+            <div class={styles.legendGroup}>
+              <span class={styles.legendItem}>
+                <span class={styles.legendLine} />
+                cumulative stars
+              </span>
+              {hasUpstreamMarks && (
+                <span class={styles.legendItem}>
+                  <span class={styles.legendDiamond} />
+                  upstream contribution
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
