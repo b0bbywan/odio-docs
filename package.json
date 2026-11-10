@@ -21,7 +21,7 @@
     "@astrojs/starlight": "^0.42.10",
     "@vercel/analytics": "^2.0.1",
     "astro": "^7.4.7",
-    "preact": "^11.1.1",
+    "preact": "^11.2.0",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.35.5"
   },
