@@ -4,6 +4,16 @@
       "source": "/stats.json",
       "destination": "https://stats.odio.love/repos.json",
       "permanent": false
+    },
+    {
+      "source": "/:section(api|disc-player|notify)",
+      "destination": "/:section/overview/",
+      "permanent": true
+    },
+    {
+      "source": "/:section(api|disc-player|notify)/",
+      "destination": "/:section/overview/",
+      "permanent": true
     }
   ],
   "headers": [
