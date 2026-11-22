@@ -5,7 +5,7 @@ description: 'The GitHub Actions pipeline behind odio: CI checks on every pull r
 
 import { Aside } from '@astrojs/starlight/components';
 
-You don't need to know the whole CI/CD pipeline to contribute to odio. The sections below cover it piece by piece, with the workflow files linked inline, so you can jump straight to the part you care about. The pipeline runs on [GitHub Actions](https://github.com/features/actions); from a `v*` tag on a component repo to a signed `.deb` on [apt.odio.love](https://apt.odio.love), it's short enough to trace end to end whenever you do want the full view.
+The whole pipeline runs on [GitHub Actions](https://github.com/features/actions): a `v*` tag on a component repo ends as a signed `.deb` on [apt.odio.love](https://apt.odio.love), a CalVer tag on odios ends as the installer and the Pi images. Each section links the workflow files, so you can jump straight to the part you care about.
 
 <div class="screenshot-carousel wide">
 <figure>
@@ -17,65 +17,110 @@ You don't need to know the whole CI/CD pipeline to contribute to odio. The secti
 
 ## CI on every pull request
 
-Nothing merges to `main` without the relevant checks running green. The details vary by language:
+Nothing merges to `main` without the relevant checks running green.
 
-- **Go repos** ([go-odio-api](https://github.com/b0bbywan/go-odio-api/blob/main/.github/workflows/ci.yml), [go-odio-notify](https://github.com/b0bbywan/go-odio-notify/blob/main/.github/workflows/ci.yml)) run `go test -race`, a coverage gate (15% minimum, uploaded to [Codecov](https://about.codecov.io/)), [golangci-lint](https://golangci-lint.run/) v2.5.0, `gofmt`, and a `go mod tidy` drift check. `go-odio-api` pins Go 1.25 and compiles the embedded Tailwind CSS via [Task](https://taskfile.dev/) before the test and lint steps, because the binary ships the UI as an embedded asset; `go-odio-notify` runs the same checks across Go 1.24 and 1.25. [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer/blob/master/.github/workflows/lint.yml) checks `gofmt` and runs golangci-lint on Go 1.25, with the cgo headers it links against (ALSA, libdiscid, libudev) installed first.
-- **[odio-pwa](https://github.com/b0bbywan/odio-pwa/blob/main/.github/workflows/ci.yml)** runs `svelte-check` and the [Vitest](https://vitest.dev/) suite on Node 26.
-- **[odio-ha](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/ci.yml)** runs `ruff`, `mypy`, and `pytest` on Python 3.14. A [second workflow](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/validate.yml) runs the [HACS](https://hacs.xyz/) and Home Assistant `hassfest` validations on every pull request and once a day, so a change to either project's manifest rules surfaces here rather than in someone's Home Assistant log.
-- **[pyodio](https://github.com/b0bbywan/pyodio/blob/main/.github/workflows/build.yml)** runs `ruff` and `mypy` under [uv](https://docs.astral.sh/uv/), then `pytest` across Python 3.12, 3.13, and 3.14. On a `v*` tag it first checks that the tag matches the version declared in the project.
-- **[mpd2mpris](https://github.com/b0bbywan/mpd2mpris/blob/master/.github/workflows/build.yml)** and **[snapclientmpris](https://github.com/b0bbywan/snapclientmpris/blob/master/.github/workflows/build.yml)** share an identical Python pipeline: `ruff`, `mypy`, and `pytest` on Python 3.11, driven through `Makefile` targets (`make lint-ruff`, `make lint-mypy`, `make test`) so local dev and CI invoke the same commands. On `v*` tags both run `make check-tag` to fail fast when the git tag and the package's `__init__.py` disagree, before the `.deb` job spins up.
-- **[odios](https://github.com/b0bbywan/odios/tree/main/.github/workflows)** runs a unified [`checks.yml`](https://github.com/b0bbywan/odios/blob/main/.github/workflows/checks.yml) workflow combining `ansible-lint`, `shellcheck` (installer, test, image-builder, and `scripts/`), Python `unittest` against `tests/`, Python lint with [ruff](https://docs.astral.sh/ruff/) + [mypy](https://mypy.readthedocs.io/) on the progress callback plugin and the manifest scripts, and a role-drift check that fails any pull request whose touched files don't match a role-version bump. It exposes a `workflow_call` trigger so the release pipeline gates publishing on the very same checks.
-- **[odioctl](https://github.com/b0bbywan/odioctl/blob/main/.github/workflows/build.yml)** runs `gofmt`, [golangci-lint](https://golangci-lint.run/), and `go test -race`, plus a drift check that regenerates the sudoers fragment from the DAC catalog and fails when the committed one differs, then `visudo -c` on it. The `.deb` job installs the freshly built package in a container and smoke-tests the binary before anything is published.
-- **[odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo/blob/master/.github/workflows/pr-validate.yml)** runs `bash -n`, `shellcheck`, and a `--help` smoke test on every subcommand of the repository build script, plus a pandoc render of the README, which is what the repo serves as its index page. A [second workflow](https://github.com/b0bbywan/odio-apt-repo/blob/master/.github/workflows/pr-build.yml) builds the full signed repository and uploads it as a plain artifact, so the `reprepro` output of a change can be inspected without deploying it.
-- **[odio.love](https://github.com/b0bbywan/odio.love/blob/main/.github/workflows/ci.yml)** runs ESLint, `astro check`, Vitest, and the Astro build, then two checks of its own: `csp:check` fails when the Content-Security-Policy header committed to `vercel.json` has drifted from the built output, and `check:obfuscation` fails when the contact address or the Discord invite, both assembled at runtime so a crawler finds nothing to harvest, end up literal in the bundle or in a tracked file. A last job follows every redirect the site declares and requires a 200, because a renamed release asset otherwise 404s silently ([odio-docs#33](https://github.com/b0bbywan/odio-docs/issues/33)).
-- **[odio-docs](https://github.com/b0bbywan/odio-docs/blob/main/.github/workflows/lint.yml)** builds the Astro site, runs [lychee](https://github.com/lycheeverse/lychee-action) for broken links, and [cspell](https://cspell.org/) on every `.md` / `.mdx` file.
+| Repo | Checks | Worth knowing |
+|---|---|---|
+| [odios](https://github.com/b0bbywan/odios/blob/main/.github/workflows/checks.yml) | `ansible-lint`, `shellcheck`, Python `unittest`, [ruff](https://docs.astral.sh/ruff/) + [mypy](https://mypy.readthedocs.io/) | Role-drift check: a PR whose touched files don't match a role-version bump fails |
+| [go-odio-api](https://github.com/b0bbywan/go-odio-api/blob/main/.github/workflows/ci.yml) | `go test -race`, coverage gate (15%, on [Codecov](https://about.codecov.io/)), [golangci-lint](https://golangci-lint.run/), `gofmt`, `go mod tidy` drift | Compiles the embedded Tailwind CSS via [Task](https://taskfile.dev/) first, since the binary ships the UI |
+| [odioctl](https://github.com/b0bbywan/odioctl/blob/main/.github/workflows/build.yml) | `gofmt`, golangci-lint, `go test -race` | Regenerates the sudoers fragment from the DAC catalog and fails on drift, then `visudo -c`. The built `.deb` is installed and smoke-tested in a container |
+| [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer/blob/master/.github/workflows/lint.yml) | `gofmt`, golangci-lint, `go test -race` | Installs the cgo headers it links against (ALSA, libdiscid, libudev) first. The [build](https://github.com/b0bbywan/go-mpd-discplayer/blob/master/.github/workflows/build.yml) of all four arches also runs on every PR |
+| [mpd2mpris](https://github.com/b0bbywan/mpd2mpris/blob/master/.github/workflows/build.yml), [snapclientmpris](https://github.com/b0bbywan/snapclientmpris/blob/master/.github/workflows/build.yml) | ruff, mypy, pytest | CI calls the same `Makefile` targets as local dev. On a `v*` tag, `make check-tag` fails fast when the tag and `__init__.py` disagree |
+| [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) | Build, test, golangci-lint | |
+| [go-odio-notify](https://github.com/b0bbywan/go-odio-notify/blob/main/.github/workflows/ci.yml) | Same Go checks | Runs on Go 1.24 and 1.25 |
+| [pyodio](https://github.com/b0bbywan/pyodio/blob/main/.github/workflows/build.yml) | ruff, mypy, pytest on Python 3.12 to 3.14, under [uv](https://docs.astral.sh/uv/) | On a `v*` tag, checks the tag matches the declared version |
+| [odio-pwa](https://github.com/b0bbywan/odio-pwa/blob/main/.github/workflows/ci.yml) | `svelte-check`, [Vitest](https://vitest.dev/) | |
+| [odio-ha](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/ci.yml) | ruff, mypy, pytest | [HACS](https://hacs.xyz/) and `hassfest` validations run on every PR [and daily](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/validate.yml), so a manifest rule change surfaces here before it reaches a Home Assistant log |
+| [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo/blob/master/.github/workflows/pr-validate.yml) | `bash -n`, `shellcheck`, `--help` smoke test of every subcommand, README render | [Builds the full signed repository](https://github.com/b0bbywan/odio-apt-repo/blob/master/.github/workflows/pr-build.yml) as a plain artifact, so the `reprepro` output can be inspected without deploying |
+| [odio-upmpdcli](https://github.com/b0bbywan/odio-upmpdcli/blob/main/.github/workflows/ci.yml) | `shellcheck` | Runs the upstream sync read-only, so the PR shows what the next watch run would tag |
+| [gstreamer1.0-openaptx](https://github.com/b0bbywan/gstreamer1.0-openaptx/blob/main/.github/workflows/build.yml) | Full build and `check-binary` on every branch push | Publishes nothing until a tag |
+| [odio.love](https://github.com/b0bbywan/odio.love/blob/main/.github/workflows/ci.yml) | ESLint, `astro check`, Vitest, Astro build | `csp:check` fails when the CSP header in `vercel.json` drifts from the build, `check:obfuscation` when the contact address or Discord invite ends up literal. Every declared redirect must answer 200 ([odio-docs#33](https://github.com/b0bbywan/odio-docs/issues/33)) |
+| [odio-docs](https://github.com/b0bbywan/odio-docs/blob/main/.github/workflows/lint.yml) | Astro build, [lychee](https://github.com/lycheeverse/lychee-action), [cspell](https://cspell.org/) | |
 
 ## Shared CI plumbing
 
-Three of the packaging repos ([odioctl](https://github.com/b0bbywan/odioctl), [odio-mympd](https://github.com/b0bbywan/odio-mympd), [odio-qbz](https://github.com/b0bbywan/odio-qbz)) were repeating the same handful of steps: publish a Release, dispatch to the apt repo, poll an upstream project for new tags. That plumbing now lives in [odio-ci](https://github.com/b0bbywan/odio-ci) as two reusable workflows and two composite actions. The build itself stays in each repo, because the builds genuinely differ: myMPD is C/CMake delegating to upstream's `build.sh`, qbzd is a Rust workspace with local patches and its own nfpm config.
+[odio-ci](https://github.com/b0bbywan/odio-ci) holds what the packaging repos would otherwise repeat. The build itself stays in each repo, because the builds genuinely differ.
 
-- [`release.yml`](https://github.com/b0bbywan/odio-ci/blob/main/.github/workflows/release.yml) collects the per-arch artifacts, fails when no `.deb` came out of them, derives the prerelease flag from the tag, creates the Release, and fires the `repository_dispatch` at odio-apt-repo.
-- [`watch-upstream.yml`](https://github.com/b0bbywan/odio-ci/blob/main/.github/workflows/watch-upstream.yml) resolves an upstream project's latest release and pushes a matching tag here when it's new. The cron stays in the caller, since a reusable workflow carries no trigger of its own, and the push uses a dedicated `RELEASE_PAT`: a tag pushed with the default `GITHUB_TOKEN` starts no further workflow, so the build would never run.
-- [`resolve-version`](https://github.com/b0bbywan/odio-ci/tree/main/actions/resolve-version) turns whatever triggered the run into an upstream tag and a Debian version. A tag on a packaging repo names the upstream version it packages, so `v2.0.2-rc1` builds upstream `v2.0.2` and versions the package `2.0.2~rc1`, with a tilde rather than a dash: Debian sorts `~` below nothing, so `2.0.2~rc1 < 2.0.2`. With a dash the release candidate would sort above the final release and apt would never upgrade off it.
-- [`check-binary`](https://github.com/b0bbywan/odio-ci/tree/main/actions/check-binary) runs the gates provable from the ELF alone, so they need neither the target board nor QEMU: the ELF machine matches the package arch, the ARM baseline is what it claims (an armhf build assembled as ARMv7 `SIGILL`s on a Pi 1 or Zero), the glibc floor hasn't crept above what Raspberry Pi OS ships, and the `NEEDED` list is printed for cross-checking against the package's `Depends`. Runtime checks stay in the per-arch builder container, where execution is native.
+| Piece | What it does | Used by |
+|---|---|---|
+| [`release.yml`](https://github.com/b0bbywan/odio-ci/blob/main/.github/workflows/release.yml) | Collects the per-arch artifacts, fails when no `.deb` came out, derives the prerelease flag from the tag, creates the Release and dispatches odio-apt-repo | odioctl, odio-framebuffer-ui, odio-mympd, odio-qbz, odio-upmpdcli, gstreamer1.0-openaptx |
+| [`watch-upstream.yml`](https://github.com/b0bbywan/odio-ci/blob/main/.github/workflows/watch-upstream.yml) | Resolves an upstream project's latest GitHub release and pushes a matching tag when it's new. The cron stays in the caller, a reusable workflow has no trigger of its own | odio-mympd, odio-qbz |
+| [`resolve-version`](https://github.com/b0bbywan/odio-ci/tree/main/actions/resolve-version) | Turns the trigger into an upstream tag and a Debian version | odio-mympd |
+| [`check-binary`](https://github.com/b0bbywan/odio-ci/tree/main/actions/check-binary) | Gates provable from the ELF alone, no board or QEMU needed: machine matches the package arch, ARM baseline is what it claims (an ARMv7 build `SIGILL`s on a Pi 1 or Zero), glibc floor no higher than Raspberry Pi OS, `NEEDED` printed to cross-check `Depends` | odio-framebuffer-ui, odio-mympd, gstreamer1.0-openaptx |
 
-Callers pin an exact `vX.Y.Z`, never a floating `v1`. GitHub's immutable releases freeze a tag once a Release exists for it, so the usual trick of moving a major tag forward can't work; Dependabot bumps the `uses:` refs instead.
+A release candidate tag like `v2.0.2-rc1` builds upstream `v2.0.2` and versions the package `2.0.2~rc1`, with a tilde: Debian sorts `~` below the final release, while a dash would sort above it and apt would never upgrade off the RC.
+
+Callers pin an exact `vX.Y.Z`. GitHub's immutable releases freeze a tag once released, so there is no floating `v1` to move forward; Dependabot bumps the pins instead.
 
 ## The component release chain
 
-Nine upstream repos feed `.deb` into [apt.odio.love](https://apt.odio.love): the three Go components built in-house ([go-odio-api](https://github.com/b0bbywan/go-odio-api), [odioctl](https://github.com/b0bbywan/odioctl), [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer)), the [spotifyd](https://github.com/b0bbywan/spotifyd) fork, the two build-only pipelines [odio-mympd](https://github.com/b0bbywan/odio-mympd) and [odio-qbz](https://github.com/b0bbywan/odio-qbz), the two pure-Python rewrites [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) and [snapclientmpris](https://github.com/b0bbywan/snapclientmpris), and [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui), the kiosk browser behind the [local screen](/control/local-screen/). The flow is:
+Eleven repos feed `.deb` into [apt.odio.love](https://apt.odio.love):
 
-1. A `v*` tag gets pushed.
-2. The repo's `build.yml` produces the `.deb`. The Go components cross-compile for amd64, arm64, armv6, and armv7, packed via [nfpm](https://nfpm.goreleaser.com/); odio-mympd and odio-qbz build natively in a per-arch rootfs, under QEMU where the runner isn't already that arch, and gate the result on odio-ci's `check-binary`; mpd2mpris and snapclientmpris are pure Python, so a single `arch:all` `.deb` is built once inside a `debian:trixie` container; odio-framebuffer-ui runs `dpkg-buildpackage` in a per-arch `debian:trixie` builder image, amd64 and arm64 only on native runners, then `lintian` and `check-binary`. go-odio-api also packs `.rpm`.
-3. A [GitHub Release](https://github.com/b0bbywan/go-odio-api/releases) is created with every `.deb` attached.
-4. A `notify-apt-repo` job fires a `repository_dispatch` event of type `release-published` to [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo), signed with a dedicated `APT_REPO_TOKEN`. odioctl, odio-mympd, odio-qbz, and odio-framebuffer-ui do steps 3 and 4 through odio-ci's shared `release.yml`.
+| Repo | Build | Arches |
+|---|---|---|
+| [go-odio-api](https://github.com/b0bbywan/go-odio-api) | Go cross-compile, packed with [nfpm](https://nfpm.goreleaser.com/), plus `.rpm` and a multi-arch GHCR image | amd64, arm64, armhf, armv7hf |
+| [odioctl](https://github.com/b0bbywan/odioctl) | Go, smoke-tested in a container, plus bare binaries | amd64, arm64, armhf |
+| [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) | Go with cgo, ARM builds inside Raspberry Pi OS images under QEMU | amd64, arm64, armhf, armv7hf |
+| [mpd2mpris](https://github.com/b0bbywan/mpd2mpris), [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) | Pure Python, built once in a `debian:trixie` container | all |
+| [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui) | `dpkg-buildpackage` in per-arch `debian:trixie` builder images, `lintian` | amd64, arm64 |
+| [spotifyd](https://github.com/b0bbywan/spotifyd) | Rust fork, in a builder image | amd64, arm64, armhf |
+| [odio-mympd](https://github.com/b0bbywan/odio-mympd) | Upstream myMPD in per-arch builder images rebuilt [monthly](https://github.com/b0bbywan/odio-mympd/blob/main/.github/workflows/build-images.yml) | amd64, arm64, armhf |
+| [odio-qbz](https://github.com/b0bbywan/odio-qbz) | Upstream qbz tag plus the patches in `patches/`, `qbzd` daemon only, ELF gates in the builder | amd64, arm64, armhf |
+| [odio-upmpdcli](https://github.com/b0bbywan/odio-upmpdcli) | No build: upstream Debian packages republished unchanged | amd64, arm64, armhf, all |
+| [gstreamer1.0-openaptx](https://github.com/b0bbywan/gstreamer1.0-openaptx) | Debian's `gst-plugins-bad1.0` source, only `ext/openaptx/` compiled | amd64, arm64, armhf |
+
+The flow is the same for all of them:
+
+1. A `v*` tag is pushed, by hand or by an upstream watcher.
+2. `build.yml` produces the `.deb`.
+3. A GitHub Release is created with every `.deb` attached.
+4. A `repository_dispatch` of type `release-published`, signed with `APT_REPO_TOKEN`, tells [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo) to rebuild.
+
+Every `armhf` package targets ARMv6, so it runs on a Pi 1 or Zero; go-odio-api and go-mpd-discplayer add an ARMv7 build as `armv7hf`. Where armhf is compiled natively rather than cross-compiled, it runs under QEMU, since GitHub's ARM runners can't execute 32-bit ARM code. For odio-qbz that takes hours where amd64 and arm64 take minutes, hence a longer timeout and a build cache.
+
+### Tracking upstream
+
+Four repos package someone else's project. They vendor no source, only CI.
+
+| Repo | Upstream | New version detected by |
+|---|---|---|
+| odio-mympd | [jcorporation/myMPD](https://github.com/jcorporation/myMPD) releases | odio-ci's watcher, daily at 06:17 UTC |
+| odio-qbz | [vicrodh/qbz](https://github.com/vicrodh/qbz) releases | odio-ci's watcher, daily at 06:23 UTC |
+| odio-upmpdcli | The upstream APT repositories on [lesbonscomptes.com](https://www.lesbonscomptes.com/upmpdcli/) | Its [own watcher](https://github.com/b0bbywan/odio-upmpdcli/blob/main/.github/workflows/watch-upstream.yml), daily at 06:41 UTC, comparing the packages with the latest release |
+| gstreamer1.0-openaptx | `gst-plugins-bad1.0` in Debian trixie | Tagged by hand, following the GStreamer version trixie ships |
+
+odio-ci's watcher pushes its tag with [`RELEASE_PAT`](#secrets-and-trust). odio-upmpdcli does without: it pushes the tag with `GITHUB_TOKEN`, then starts `build.yml` on it with a `workflow_dispatch`, which that token is allowed to trigger.
+
+The `b0bbywan/spotifyd` fork carries CI-only commits, but the source lives in the repo, so it keeps a build workflow of its own rather than this shape.
+
+### The apt repository rebuild
 
 [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo/blob/master/.github/workflows/update-repo.yml) receives the dispatch and rebuilds from scratch:
 
-- `gh release list` resolves the latest stable and latest prerelease for the tracked repos: `go-odio-api`, `odioctl`, `go-mpd-discplayer`, `spotifyd`, `mpd2mpris`, `snapclientmpris`, `odio-mympd`, `odio-qbz`, `odio-framebuffer-ui`. Manual `workflow_dispatch` accepts an explicit version override per repo.
-- Every `.deb` is downloaded, minus the releases a previous run already fetched: `debs/` is cached on the resolved versions, so a rebuild that finds nothing new downloads nothing and the source repos' download counters stay honest.
+- `gh release list` resolves the latest stable and latest prerelease of every repo above. A manual `workflow_dispatch` accepts a version override per repo.
+- Only the `.deb` a previous run didn't fetch are downloaded: `debs/` is cached on the resolved versions, so a rebuild that finds nothing new downloads nothing and the download counters stay honest.
 - [`reprepro`](https://salsa.debian.org/debian/reprepro) assembles two suites, `stable` and `testing`, across `amd64`, `arm64`, `armhf`, and `armv7hf`.
-- The tree is GPG-signed with `GPG_PRIVATE_KEY`, written with a `CNAME` for `apt.odio.love`, and deployed via [GitHub Pages](https://pages.github.com/).
+- The tree is GPG-signed, written with a `CNAME` for `apt.odio.love`, and deployed to [GitHub Pages](https://pages.github.com/).
 
-A cron runs the same workflow every Monday and Thursday at 04:00 UTC as a safety net, so a missed dispatch can never leave the repo stale for more than a few days, and the `.deb` cache is touched inside the seven days after which GitHub evicts it. The workflow can also be triggered manually with explicit version overrides.
-
-[odio-mympd](https://github.com/b0bbywan/odio-mympd) and [odio-qbz](https://github.com/b0bbywan/odio-qbz) follow a build-only pattern: no source is vendored, just CI. Each has a daily `watch-upstream.yml` cron, staggered so they don't collide, polling [jcorporation/myMPD](https://github.com/jcorporation/myMPD) at 06:17 UTC and [vicrodh/qbz](https://github.com/vicrodh/qbz) at 06:23; a new upstream release gets a matching tag here, and the tag triggers `build.yml`.
-
-odio-mympd builds myMPD inside per-arch builder images, rebuilt monthly via [`build-images.yml`](https://github.com/b0bbywan/odio-mympd/blob/main/.github/workflows/build-images.yml) to pick up base image updates. odio-qbz checks out the upstream tag, applies the patches in `patches/`, and builds `qbzd`, the headless daemon. Upstream ships its own `qbzd` `.deb`, but only for amd64 and arm64. odio-qbz builds all three arches from the same patched tree and adds armhf, built for ARMv6 so it still runs on a Pi 1 or Zero. GitHub's ARM runners can't execute 32-bit ARM code, so that job runs under QEMU emulation and takes hours where amd64 and arm64 take minutes, which is why it gets a longer timeout and a build cache. The `b0bbywan/spotifyd` fork carries CI-only commits, but the source lives in the repo, so it keeps a build workflow of its own rather than this shape.
+A cron reruns it every Monday and Thursday at 04:00 UTC, so a missed dispatch never leaves the repo stale for long, and the `.deb` cache stays inside the seven days after which GitHub evicts it.
 
 ## odios releases
 
-[odios](https://github.com/b0bbywan/odios) uses a different track: it ships the installer, not `.deb` packages. On a CalVer tag like `2026.4.1`, [`release.yml`](https://github.com/b0bbywan/odios/blob/main/.github/workflows/release.yml) runs a long pipeline that:
+[odios](https://github.com/b0bbywan/odios) ships the installer, not `.deb` packages. On a CalVer tag like `2026.4.1`, [`release.yml`](https://github.com/b0bbywan/odios/blob/main/.github/workflows/release.yml) runs:
 
-- Gates the `build` job on the shared [`checks.yml`](https://github.com/b0bbywan/odios/blob/main/.github/workflows/checks.yml) workflow (ansible-lint, shellcheck, Python unit tests, plus a role-drift check that fails any PR whose touched files don't match a role-version bump), so a red lint or test never produces a release.
-- Vendors `ansible-core` as pure Python, strips platform-specific bits, and packs an `odio-<version>.tar.gz` alongside `install.sh` and a `manifest.json`.
-- Runs the playbook on `ubuntu-latest` with an idempotence rerun, then a single-pass cross-arch sanity check on native ARM64 and on ARM/v7 + ARM/v6 under [QEMU](https://www.qemu.org/) (the ARM rerun was dropped to keep matrix runtime in check; ARM/v6 stays marked experimental).
-- Runs `test.sh` in `install` and `install-root` modes against the just-published pre-release, which exercises the full `curl | bash` installer path end to end.
-- Runs an upgrade matrix against pre-provisioned baselines covering every supported `state.json` generation, so each upgrade path is exercised before publication. The matrix walks four entry points: fetching the last published `odio_upgrade.py` (2026.7.0rc2, the migration path off a pre-[odioctl](/operations/settings/) baseline) over `curl`, re-applying through the `odioctl upgrade apply` that run installed, triggering `odio-upgrade.service` via `systemctl --user`, which exercises the sudoers switch to the `odioctl` group, and one run with `--progress` that asserts the `ODIO_PROGRESS` events the callback plugin emits. Two further entries cover what only shows up off the happy path: an upgrade triggered by a user who isn't the target user, and baselines installed without the MPD stack, where `state.roles` legitimately omits those entries. arm64 baselines come from the published SD images via [`scripts/img-to-docker.sh`](https://github.com/b0bbywan/odios/blob/main/scripts/img-to-docker.sh), also rebuilt on demand from [`test-baseline-image.yml`](https://github.com/b0bbywan/odios/blob/main/.github/workflows/test-baseline-image.yml). amd64 baselines are layered onto `Dockerfile.test` via [`scripts/build-baseline-amd64.sh`](https://github.com/b0bbywan/odios/blob/main/scripts/build-baseline-amd64.sh) so the systemctl path runs under real systemd-logind without QEMU emulation. All baselines live at `ghcr.io/b0bbywan/odios/test-baseline:<tag>-<arch>`.
-- Builds Raspberry Pi images (`odio-*.img.xz`) for `armhf` and `arm64` via `image-builder/build.sh`.
-- Publishes a combined [Raspberry Pi Imager](https://www.raspberrypi.com/software/) manifest (`odio.rpi-imager-manifest`) as a release asset, so the images show up inline in the Imager UI. Pre-releases also publish per-arch manifests (`odio.armhf.rpi-imager-manifest`, `odio.arm64.rpi-imager-manifest`), so a PR can be tested in Imager as soon as one arch is built, without waiting for the other.
+| Stage | What it does |
+|---|---|
+| Gate | Reuses [`checks.yml`](https://github.com/b0bbywan/odios/blob/main/.github/workflows/checks.yml), so a red lint or test never produces a release |
+| Package | Vendors `ansible-core` as pure Python and packs `odio-<version>.tar.gz` with `install.sh` and `manifest.json` |
+| Playbook test | Full run on `ubuntu-latest` with an idempotence rerun, then a single pass on native ARM64 and on ARM/v7 + ARM/v6 under [QEMU](https://www.qemu.org/) (ARM/v6 marked experimental) |
+| Install test | `test.sh` in `install` and `install-root` modes against the just-published pre-release, through the real `curl` one-liner |
+| Upgrade test | A matrix over baselines of every supported `state.json` generation, detailed below |
+| Images | Raspberry Pi images (`odio-*.img.xz`) for armhf and arm64 |
+| Imager manifest | A combined `odio.rpi-imager-manifest` for [Raspberry Pi Imager](https://www.raspberrypi.com/software/). Pre-releases also get one per arch, so a PR can be tested in Imager as soon as one arch is built |
 
-Pull requests to odios run the same matrix against a `pr-<N>` pre-release instead of the tag, which means the install path you'd take is tested before merge, not only before release.
+The upgrade matrix enters through every path a node can take: the last published `odio_upgrade.py` over `curl` (the migration off a pre-[odioctl](/operations/settings/) baseline), `odioctl upgrade apply`, `odio-upgrade.service` via `systemctl --user` (which exercises the sudoers switch to the `odioctl` group), and a `--progress` run asserting the `ODIO_PROGRESS` events. Two more entries cover an upgrade triggered by a user other than the target user, and baselines installed without the MPD stack. The baselines live at `ghcr.io/b0bbywan/odios/test-baseline:<tag>-<arch>`: arm64 ones are converted from the published SD images by [`img-to-docker.sh`](https://github.com/b0bbywan/odios/blob/main/scripts/img-to-docker.sh), amd64 ones are layered onto `Dockerfile.test` by [`build-baseline-amd64.sh`](https://github.com/b0bbywan/odios/blob/main/scripts/build-baseline-amd64.sh) so the systemctl path runs under real systemd-logind without QEMU.
+
+Pull requests run the same matrix against a `pr-<N>` pre-release, so the install path you'd take is tested before merge, not only before release.
 
 <div class="screenshot-carousel wide">
 <figure>
@@ -85,40 +130,36 @@ Pull requests to odios run the same matrix against a `pr-<N>` pre-release instea
 </figure>
 </div>
 
-All of it lands on a single [GitHub Release](https://github.com/b0bbywan/odios/releases). The URLs users hit, `odio.love/install`, `/manifest.json`, and `/odio.rpi-imager-manifest`, are 307 redirects served by the [odio.love](https://github.com/b0bbywan/odio.love) Astro site on Vercel, pointing at `github.com/b0bbywan/odios/releases/latest/download/<asset>`. The URLs stay stable across releases, so `curl -fsSL https://odio.love/install | bash` never needs updating. Pinning a specific version means calling the GitHub URL with the tag directly, as shown in [Upgrade](/operations/upgrade/).
+Everything lands on a single [GitHub Release](https://github.com/b0bbywan/odios/releases). `odio.love/install`, `/manifest.json`, and `/odio.rpi-imager-manifest` are 307 redirects from the [odio.love](https://github.com/b0bbywan/odio.love) site to `releases/latest/download/<asset>`, so `curl -fsSL https://odio.love/install | bash` never changes. To pin a version, call the GitHub URL with the tag, as shown in [Upgrade](/operations/upgrade/).
 
-## PWA and Home Assistant
+## PWA, Home Assistant, and PyPI
 
-[odio-pwa](https://github.com/b0bbywan/odio-pwa) releases on `v*` tags. [`release.yml`](https://github.com/b0bbywan/odio-pwa/blob/main/.github/workflows/release.yml) zips the built `dist/` as `odio-pwa-<version>.zip`, then builds the Docker image for amd64 and arm64 on their own native runners, pushes each by digest, and merges the digests into one multi-arch tag on `ghcr.io/b0bbywan/odio-pwa`. Prereleases (tags containing `-`) are marked as such on GitHub; only stable releases move the `:latest` tag on the container registry.
-
-[odio-ha](https://github.com/b0bbywan/odio-ha) uses a two-step pattern: a semver-tagged push runs the [CI workflow](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/ci.yml), and a [separate workflow](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/release.yml) waits for CI to succeed via `workflow_run` before creating the release. Prerelease detection is based on the tag suffix (`-alpha`, `-beta`, `-rc`).
-
-The three Python packages, [mpd2mpris](https://pypi.org/project/mpd2mpris/), [snapclientmpris](https://pypi.org/project/snapclientmpris/), and [pyodio](https://pypi.org/project/pyodio/), also publish the sdist and wheel they build to PyPI through [trusted publishing](https://docs.pypi.org/trusted-publishers/): the job authenticates with a short-lived OIDC token bound to the repository and workflow, so there is no API token to store or rotate. Every tag goes to [TestPyPI](https://test.pypi.org/); release candidates stop there, and only final releases go on to PyPI.
+- [odio-pwa](https://github.com/b0bbywan/odio-pwa)'s [`release.yml`](https://github.com/b0bbywan/odio-pwa/blob/main/.github/workflows/release.yml) zips the built `dist/` as `odio-pwa-<version>.zip` and builds the Docker image for amd64 and arm64 on native runners, merged into one multi-arch tag on `ghcr.io/b0bbywan/odio-pwa`. Only stable releases move `:latest`.
+- [odio-ha](https://github.com/b0bbywan/odio-ha)'s [release workflow](https://github.com/b0bbywan/odio-ha/blob/master/.github/workflows/release.yml) waits for CI to pass on the tag, via `workflow_run`, before creating the release. Prereleases are detected from the tag suffix (`-alpha`, `-beta`, `-rc`).
+- [mpd2mpris](https://pypi.org/project/mpd2mpris/), [snapclientmpris](https://pypi.org/project/snapclientmpris/), and [pyodio](https://pypi.org/project/pyodio/) publish their sdist and wheel through PyPI [trusted publishing](https://docs.pypi.org/trusted-publishers/). Every tag goes to [TestPyPI](https://test.pypi.org/), only final releases continue to PyPI.
 
 ## Secrets and trust
 
-The pipeline relies on three scoped secrets:
+| Secret | Held by | Used for |
+|---|---|---|
+| `APT_REPO_TOKEN` | The repos publishing to apt.odio.love | The cross-repo dispatch. A personal access token scoped to `b0bbywan/odio-apt-repo`, so nothing else can trigger the rebuild from outside |
+| `GPG_PRIVATE_KEY` | odio-apt-repo only | Signing the `Release` files, which `apt` verifies on every node before installing anything |
+| `RELEASE_PAT` | odio-mympd, odio-qbz | Pushing the tag for a new upstream release, since a tag pushed with the default token starts no workflow |
 
-- `APT_REPO_TOKEN`, a personal access token with `repo` scope on `b0bbywan/odio-apt-repo`. Held by component repos so they can fire cross-repo dispatches. Nothing else can trigger the apt-repo rebuild from outside.
-- `GPG_PRIVATE_KEY`, held only by `odio-apt-repo`. Used by `reprepro` to sign the `Release` files, so `apt` clients on every odio node can verify the signature chain before installing anything.
-- `RELEASE_PAT`, held by the two repos that track an upstream project. Used for one thing only: pushing the tag that a new upstream release produces. A tag pushed with the default token starts no workflow, so without it the build the tag exists to trigger would never run.
-
-PyPI publishing needs no secret at all: the three Python packages authenticate with a short-lived OIDC token that PyPI trusts because of which repository and workflow asked for it.
-
-Everything else (creating GitHub Releases, downloading release assets in another repo, deploying to Pages) uses the default `GITHUB_TOKEN` scoped to each workflow run.
+PyPI needs no secret: the publishing job authenticates with a short-lived OIDC token bound to the repository and workflow, so there is nothing to store or rotate. Everything else (GitHub Releases, cross-repo asset downloads, Pages deploys) runs on the default `GITHUB_TOKEN`, scoped to each workflow run.
 
 ## Manual verification on hardware
 
-On top of the automated matrix, two Raspberry Pis cover the manual checks, with split responsibilities:
+On top of the automated matrix, two Raspberry Pis cover the manual checks:
 
-- A **Pi 3B+** (arm64), a dedicated test rig, validates each PR. The [`pr-N` pre-release](#odios-releases) is run both as an upgrade from the previous release to the PR version, and as a reflash from the PR's image.
-- A **Pi B+** (armv6) takes the post-publication upgrade path: every newly-tagged stable is applied to the previous one on this board, after the release ships. This is also the maintainer's production node, where a full playbook run takes around two hours, so it picks up upgrades on a post-publication cadence rather than mid-cycle.
+- A **Pi 3B+** (arm64), a dedicated test rig, validates each PR: the [`pr-N` pre-release](#odios-releases) is run both as an upgrade from the previous release and as a reflash from the PR's image.
+- A **Pi B+** (armv6), the maintainer's production node, takes every newly tagged stable as an upgrade from the previous one, after the release ships. A full playbook run takes around two hours there, so it stays off the mid-cycle loop.
 
-Transcripts of these sessions, Ansible `PLAY RECAP` outputs with `failed=0`, and the upgrade paths walked are kept publicly in the [upgrade-system RFC](https://github.com/b0bbywan/odios/discussions/34). That discussion also captures many additional manual hardware runs done while the upgrade system was being built out, kept as design notes rather than a per-release routine.
+Transcripts of these sessions, `PLAY RECAP` outputs with `failed=0`, and the upgrade paths walked are public in the [upgrade-system RFC](https://github.com/b0bbywan/odios/discussions/34), along with the hardware runs done while the upgrade system was being built.
 
 ## Repository overview
 
-The ecosystem is nineteen repositories, most connected to each other at build time (Go modules, `.deb` ingest into the apt repo, archives fetch at install time) or at runtime (client apps hitting the API over HTTP). Green solid edges are build, install, or deploy events; grey dashed edges are runtime. The hosting row at the bottom shows which platform serves each public endpoint: GitHub Pages for `apt.odio.love` and `stats.odio.love`, Vercel for everything else. Deploy arrows point from each hosted artifact down to its platform, and the `apt install` arrow goes from GitHub Pages back up to odios, since that's where the `.deb` actually lands at install time.
+The graph shows how the repositories connect, at build time (Go modules, `.deb` ingest, archives fetched at install) and at runtime (clients calling the API over HTTP). Green solid edges are build, install, or deploy; grey dashed edges are runtime. The bottom row is hosting: GitHub Pages for `apt.odio.love` and `stats.odio.love`, Vercel for the rest.
 
 <div class="screenshot-carousel wide">
 <figure>
@@ -128,27 +169,29 @@ The ecosystem is nineteen repositories, most connected to each other at build ti
 </figure>
 </div>
 
-| Repo | CI | Release output | Role in the ecosystem |
-|---|---|---|---|
-| [go-odio-api](https://github.com/b0bbywan/go-odio-api) | Go tests, lint, coverage, CSS build | `.deb` + `.rpm` (4 arches), multi-arch GHCR image | Core REST API, installed on every node via `apt install odio-api`. Consumed at runtime by `odio-pwa` and `odio-ha` over HTTP |
-| [odioctl](https://github.com/b0bbywan/odioctl) | gofmt, golangci-lint, `go test -race`, sudoers drift, `.deb` smoke test | `.deb` (3 arches) + bare binaries | Node control: upgrades, components, DAC overlay, and the [settings page](/operations/settings/). Installed via `apt install odioctl` |
-| [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) | gofmt, golangci-lint, build matrix | `.deb` (4 arches) | CD / USB auto-play daemon, installed via `apt install mpd-discplayer`. Embeds `go-disc-cuer` as a Go module |
-| [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) | build, test, golangci-lint | Go library, tagged releases | CUE sheet + GnuDB / MusicBrainz lookup, compiled into `go-mpd-discplayer` |
-| [go-odio-notify](https://github.com/b0bbywan/go-odio-notify) | Go matrix, lint, coverage | Cross-arch binaries | Shared audio notification lib. Planned as Go module dependency for `go-odio-api` and `go-mpd-discplayer` |
-| [odios](https://github.com/b0bbywan/odios) | ansible-lint, shellcheck, playbook + install + upgrade tests | Installer tarball, Pi images, Imager manifest | Orchestrator. Adds `apt.odio.love` as a source, installs `odio-api`, `odioctl`, `mpd-discplayer`, `spotifyd`, `mpd2mpris`, `mympd`, `qbzd`, `snapclientmpris`, and optionally `odio-kiosk` |
-| [odio-pwa](https://github.com/b0bbywan/odio-pwa) | `svelte-check`, Vitest | Zip archive, multi-arch GHCR images | Standalone client app, talks to `go-odio-api` over HTTP at runtime |
-| [odio-ha](https://github.com/b0bbywan/odio-ha) | ruff, mypy, pytest, HACS + hassfest | GitHub Release, CI-gated | Home Assistant custom component, talks to `go-odio-api` over HTTP at runtime |
-| [pyodio](https://github.com/b0bbywan/pyodio) | ruff, mypy, pytest (3.12 to 3.14) | sdist + wheel on PyPI, GitHub Release | Async Python client for `odio-api`: a live state mirror over SSE, a high-level hub and a low-level REST client |
-| [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) | ruff, mypy, pytest, `make check-tag` on `v*` | `.deb` (`arch:all`), sdist + wheel on PyPI | MPRIS2 D-Bus bridge for MPD. Complete rewrite around `python-mpd2` and `dbus-fast`, with [`as_directory`-aware](/disc-player/configuration/#cue-file-storage) cover-art lookup for virtual CUE folders. Ingested into `apt.odio.love` |
-| [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) | ruff, mypy, pytest, `make check-tag` on `v*` | `.deb` (`arch:all`), sdist + wheel on PyPI | MPRIS2 D-Bus bridge for the local Snapcast client. Forwards Play/Pause/Next/Previous to the snapserver source so multi-room pauses pause every listener. Ingested into `apt.odio.love` |
-| [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui) | builder images, per-arch native build, lintian, ELF gates | `.deb` (amd64, arm64) | `odio-kiosk`, a Qt 6 WebEngine browser drawn straight onto the framebuffer, one instance per screen. Shows the embedded UI on the [local screen](/control/local-screen/). Ingested into `apt.odio.love` |
-| [odio-mympd](https://github.com/b0bbywan/odio-mympd) | builder images, per-arch build, ELF gates | `.deb` (3 arches) | Build-only pipeline (no source vendored). Daily cron tracks upstream [jcorporation/myMPD](https://github.com/jcorporation/myMPD); tagging here ships the matching myMPD `.deb` to `apt.odio.love` |
-| [odio-qbz](https://github.com/b0bbywan/odio-qbz) | per-arch native build, ELF gates | `.deb` (3 arches) | Build-only pipeline for `qbzd`, the headless Qobuz daemon from upstream [vicrodh/qbz](https://github.com/vicrodh/qbz), patched, with the armhf build upstream doesn't ship |
-| [spotifyd](https://github.com/b0bbywan/spotifyd) | Rust build matrix | `.deb` (4 arches) | Fork of [Spotifyd](https://github.com/Spotifyd/spotifyd) carrying the CI that ships `.deb` to `apt.odio.love`, no source changes. Provides Spotify Connect |
-| [odio-ci](https://github.com/b0bbywan/odio-ci) | (reusable workflows and actions) | Immutable `vX.Y.Z` releases | Shared CI plumbing: release + apt-repo dispatch, upstream watching, `resolve-version` and `check-binary`, and the pinned base images |
-| [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo) | shellcheck, `--help` smoke test, PR build of the signed repo | `apt.odio.love` via GitHub Pages | Ingests `.deb` from `go-odio-api`, [odioctl](https://github.com/b0bbywan/odioctl), `go-mpd-discplayer`, [spotifyd](https://github.com/b0bbywan/spotifyd), [mpd2mpris](https://github.com/b0bbywan/mpd2mpris), [snapclientmpris](https://github.com/b0bbywan/snapclientmpris), [odio-mympd](https://github.com/b0bbywan/odio-mympd), [odio-qbz](https://github.com/b0bbywan/odio-qbz), and [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui) |
-| [odio.love](https://github.com/b0bbywan/odio.love) | ESLint, `astro check`, Vitest, CSP + obfuscation checks, lychee, redirect check | Stable 307 redirects | Serves `/install`, `/manifest.json`, `/odio.rpi-imager-manifest` from the latest `odios` GitHub Release |
-| [odio-docs](https://github.com/b0bbywan/odio-docs) | Astro build, lychee, cspell | Deployed separately, plus a daily stats build | This site. A [daily workflow](https://github.com/b0bbywan/odio-docs/blob/main/.github/workflows/stats.yml) also publishes the ecosystem stats behind the [activity page](/community/activity/) to `stats.odio.love` |
+| Repo | Role in the ecosystem |
+|---|---|
+| [odios](https://github.com/b0bbywan/odios) | Orchestrator. Adds `apt.odio.love` as a source, installs `odio-api`, `odioctl`, `mpd-discplayer`, `spotifyd`, `upmpdcli`, `mpd2mpris`, `mympd`, `qbzd`, `snapclientmpris`, and optionally `odio-kiosk` |
+| [go-odio-api](https://github.com/b0bbywan/go-odio-api) | Core REST API, on every node via `apt install odio-api`. Called over HTTP by `odio-pwa` and `odio-ha` |
+| [odioctl](https://github.com/b0bbywan/odioctl) | Node control: upgrades, components, DAC overlay, and the [settings page](/operations/settings/) |
+| [go-mpd-discplayer](https://github.com/b0bbywan/go-mpd-discplayer) | CD / USB auto-play daemon (`mpd-discplayer`). Embeds `go-disc-cuer` as a Go module |
+| [mpd2mpris](https://github.com/b0bbywan/mpd2mpris) | MPRIS2 bridge for MPD, with [`as_directory`-aware](/disc-player/configuration/#cue-file-storage) cover-art lookup for virtual CUE folders |
+| [snapclientmpris](https://github.com/b0bbywan/snapclientmpris) | MPRIS2 bridge for the local Snapcast client, forwarding controls to the snapserver source so pausing one room pauses every listener |
+| [odio-framebuffer-ui](https://github.com/b0bbywan/odio-framebuffer-ui) | `odio-kiosk`, a Qt 6 WebEngine browser drawn straight onto the framebuffer, behind the [local screen](/control/local-screen/) |
+| [go-disc-cuer](https://github.com/b0bbywan/go-disc-cuer) | CUE sheet + GnuDB / MusicBrainz lookup, compiled into `go-mpd-discplayer` |
+| [go-odio-notify](https://github.com/b0bbywan/go-odio-notify) | Shared audio notification lib, released as cross-arch binaries. Planned as Go module dependency for `go-odio-api` and `go-mpd-discplayer` |
+| [pyodio](https://github.com/b0bbywan/pyodio) | Async Python client for `odio-api`: live state mirror over SSE, high-level hub, low-level REST client |
+| [odio-pwa](https://github.com/b0bbywan/odio-pwa) | Standalone client app, talks to `go-odio-api` over HTTP |
+| [odio-ha](https://github.com/b0bbywan/odio-ha) | Home Assistant custom component, talks to `go-odio-api` over HTTP |
+| [odio-apt-repo](https://github.com/b0bbywan/odio-apt-repo) | Ingests the `.deb` of every repo in the [release chain](#the-component-release-chain) |
+| [odio-ci](https://github.com/b0bbywan/odio-ci) | [Shared CI plumbing](#shared-ci-plumbing) and the pinned base images |
+| [spotifyd](https://github.com/b0bbywan/spotifyd) | Fork of [Spotifyd](https://github.com/Spotifyd/spotifyd) carrying the CI, no source changes. Provides Spotify Connect |
+| [odio-mympd](https://github.com/b0bbywan/odio-mympd) | Build-only pipeline for [myMPD](https://github.com/jcorporation/myMPD) |
+| [odio-qbz](https://github.com/b0bbywan/odio-qbz) | Build-only pipeline for `qbzd`, the headless Qobuz daemon, with the armhf build upstream doesn't ship |
+| [odio-upmpdcli](https://github.com/b0bbywan/odio-upmpdcli) | upmpdcli with its libraries and plugins, so odio doesn't depend on a third-party APT repository. Provides the [UPnP/DLNA renderer](/guides/dlna/) |
+| [gstreamer1.0-openaptx](https://github.com/b0bbywan/gstreamer1.0-openaptx) | The GStreamer aptX / aptX HD plugin PulseAudio's Bluetooth module encodes through, without the rest of `gst-plugins-bad` |
+| [odio.love](https://github.com/b0bbywan/odio.love) | Serves `/install`, `/manifest.json`, `/odio.rpi-imager-manifest` from the latest `odios` GitHub Release |
+| [odio-docs](https://github.com/b0bbywan/odio-docs) | This site. A [daily workflow](https://github.com/b0bbywan/odio-docs/blob/main/.github/workflows/stats.yml) also publishes the stats behind the [activity page](/community/activity/) to `stats.odio.love` |
 
 <Aside type="tip">Something in this pipeline could be better? Open an [issue on odio-docs](https://github.com/b0bbywan/odio-docs/issues) or start a [discussion on odios](https://github.com/b0bbywan/odios/discussions).</Aside>
 
