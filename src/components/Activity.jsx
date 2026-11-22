@@ -24,12 +24,12 @@ const externalSet = new Set(
 const FAMILIES = [
   { key: 'core', label: 'Core', color: '#4ea619' },
   { key: 'clients', label: 'Clients', color: '#3987e5' },
-  { key: 'display', label: 'Display', color: '#d55181' },
-  { key: 'libraries', label: 'Libraries', color: '#c98500' },
-  { key: 'install', label: 'Install & packaging', color: '#1fa3b8' },
-  { key: 'disc', label: 'Disc player', color: '#d95926' },
-  { key: 'web', label: 'Web', color: '#9085e9' },
+  { key: 'players', label: 'Players', color: '#d95926' },
   { key: 'bridges', label: 'MPRIS bridges', color: '#a341be' },
+  { key: 'install', label: 'Install & packaging', color: '#1fa3b8' },
+  { key: 'libraries', label: 'Libraries', color: '#c98500' },
+  { key: 'web', label: 'Web', color: '#9085e9' },
+  { key: 'display', label: 'Display', color: '#d55181' },
   // Fallback for a repo missing from ecosystem.js; only drawn if one shows up.
   { key: 'other', label: 'Other', color: '#72797a' },
 ];

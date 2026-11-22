@@ -55,7 +55,7 @@ export const ecosystemProjects = [
   },
   {
     name: 'go-mpd-discplayer',
-    family: 'disc',
+    family: 'players',
     desc: 'CD and USB auto-play daemon with metadata.',
     short: 'CD and USB auto-play daemon',
     url: 'https://github.com/b0bbywan/go-mpd-discplayer',
