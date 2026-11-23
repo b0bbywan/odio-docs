@@ -23,6 +23,8 @@ The [odio application](https://pwa.odio.love) is a web app that lets you manage 
 
 ## How it works
 
+The application runs entirely in your browser: pwa.odio.love only delivers its files, and from then on the app talks to each node directly on your local network, which is why your browser has to allow [LAN access](#lan-access). Your list of nodes is saved in the browser itself. Apart from loading the app, the only request that leaves your network is the check for a newer version of the app on GitHub (see [Updates](#updates)).
+
 The application loads each node's [embedded web UI](/control/embedded-ui/) in an iframe. You get the full interface of each node, playback, audio routing, Bluetooth, services, power, all accessible from a single app.
 
 ## Installation
