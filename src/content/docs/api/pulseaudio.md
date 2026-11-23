@@ -124,12 +124,37 @@ GET /audio/cookie
 
 Downloads the PulseAudio authentication cookie — useful for setting up network audio sinks.
 
+### Processing
+
+Since [v0.19.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.19.0), odio can load a few server modules itself and toggle them at runtime. Each feature is opt-in in the [configuration](#processing-features); these routes exist only when at least one is enabled.
+
+```
+GET /audio/processing
+```
+```json
+[
+  { "name": "mono", "state": "active" },
+  { "name": "network_sink", "state": "error", "error": "auth-ip-acl is not supported by PipeWire, set acl: false" },
+  { "name": "zeroconf_discover", "state": "disabled" }
+]
+```
+
+`state` is `active`, `disabled` or `error`, with the reason under `error`. The same list is included as `processing` in `GET /audio`.
+
+```
+POST /audio/processing/{feature}/enable
+POST /audio/processing/{feature}/disable
+```
+
+`{feature}` is a `name` from the list above. An unknown or disabled feature answers `404`, one that can't be applied on this server `500` with the reason.
+
 ## Events
 
 | Event | Trigger |
 |---|---|
 | `audio.updated` | Sink input added or changed |
 | `audio.removed` | Sink input removed |
+| `audio.processing.updated` | A [processing](#processing) feature changed state, carries the changed features |
 
 ## Configuration
 
@@ -143,6 +168,29 @@ pulseaudio:
 `serve_cookie` exposes `GET /audio/cookie` — save the downloaded cookie on your client as `~/.config/pulse/cookie` with `600` permissions to enable network audio streaming.
 
 `volumeStep` is how far a [remote](/api/input/) moves the default output on `volume.up` and `volume.down`, from `0.01` to `1`. Since [v0.18.0](https://github.com/b0bbywan/go-odio-api/releases/tag/v0.18.0).
+
+### Processing features
+
+```yaml
+pulseaudio:
+  processing:
+    mono:
+      enabled: true      # mono remap sink, set as default output while on
+      onBoot: false
+    networkSink:
+      enabled: true      # TCP sink (module-native-protocol-tcp + module-zeroconf-publish)
+      onBoot: false
+      port: 4713
+      acl: true          # loopback + private subnets of `bind`; false accepts any client
+      # extraAcl: "10.8.0.0/24;192.168.50.7"   # more IPs / CIDRs, `;`-separated
+    zeroconfDiscover:
+      enabled: true      # LAN PulseAudio servers as tunnel sinks (module-zeroconf-discover)
+      onBoot: false
+```
+
+A feature that is not `enabled` is hidden from the API and the UI. An enabled one can be toggled from both; `onBoot` is its state when the session starts, then odio keeps the last one across its own and the audio server's restarts. Stopping odio-api leaves the modules loaded.
+
+On PipeWire, `pipewire-pulse` ignores the IP ACL, so `networkSink` needs `acl: false` there. With `acl: true` the feature reports an error and loads nothing.
 
 ## How it works
 
