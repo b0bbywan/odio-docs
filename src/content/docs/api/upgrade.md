@@ -18,6 +18,7 @@ upgrade:
   checkUnit: odio-check-upgrade.service        # optional user unit, enables POST /upgrade/check
   upgradeUnit: odio-upgrade.service            # optional user unit, enables POST /upgrade/start
   # progressSocket default: $XDG_RUNTIME_DIR/odio-api/upgrade.sock
+  # stateFile default: ~/.cache/odio-api/upgrade-run.json
 ```
 
 | Key | Role |
@@ -26,6 +27,7 @@ upgrade:
 | `checkUnit` | systemd user unit triggered by `POST /upgrade/check`. Omit to disable re-checks. |
 | `upgradeUnit` | systemd user unit triggered by `POST /upgrade/start`. Omit for a read-only status badge. |
 | `progressSocket` | Unix socket the upgrade script streams live progress to. Defaults under `$XDG_RUNTIME_DIR`, tmpfs, no SD-card writes. |
+| `stateFile` | Snapshot of the last run, kept across reboots so a `failed` verdict survives them. |
 
 ## Endpoints
 
@@ -78,6 +80,8 @@ Starts the upgrade unit. `202 Accepted` on trigger, `409 Conflict` if a run is a
 
 To build your own upgrade system, supply three pieces. The API wires them together.
 
+For a plain Debian, Ubuntu or Raspberry Pi OS, [`share/examples/apt-upgrade`](https://github.com/b0bbywan/go-odio-api/tree/main/share/examples/apt-upgrade) is a ready-made check and upgrade script with its units.
+
 ### 1. The detector and its result file
 
 A detector (a script on a timer, a daemon, anything) writes JSON to `resultFile`. The API watches the file and re-reads it on every change. Three fields are required; `checked_at` is optional and any other key is preserved under `extra`:
@@ -101,6 +105,8 @@ The API never re-checks on its own, it only reads the file when it changes. Keep
 `checkUnit` and `upgradeUnit` are ordinary systemd **user** units. The check unit re-runs detection (and rewrites `resultFile`); pair it with a timer for the scheduled refresh above. The upgrade unit performs the upgrade.
 
 The run verdict comes from the **systemd job result**, which is authoritative and independent of anything the script reports. A non-zero exit means the run failed, regardless of progress messages.
+
+A run belongs to the upgrade unit as soon as the unit is activating, whoever started it (`POST /upgrade/start`, the admin app, a shell). The socket only feeds `percent` and `step`, and one unit may stream several `begin`…`end` sequences (a disable, then the upgrade). A unit that fails before it was seen activating is still reported `failed`. Only a run with no unit behind it (`origin: "socket"`) is closed by its `end` line.
 
 Going through systemd also decouples the upgrade's lifecycle from the API. Because the unit runs independently, the upgrade can restart go-odio-api itself, likely when odio-api is among the updated packages, without losing the run: on startup the API reads the unit's state, and if it is still activating it re-announces `running` and waits for the verdict over the bus. A restart mid-upgrade is transparent to clients.
 
