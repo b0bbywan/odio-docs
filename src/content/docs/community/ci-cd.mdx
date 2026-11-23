@@ -159,7 +159,7 @@ Transcripts of these sessions, `PLAY RECAP` outputs with `failed=0`, and the upg
 
 ## Repository overview
 
-The graph shows how the repositories connect, at build time (Go modules, `.deb` ingest, archives fetched at install) and at runtime (clients calling the API over HTTP). Green solid edges are build, install, or deploy; grey dashed edges are runtime. The bottom row is hosting: GitHub Pages for `apt.odio.love` and `stats.odio.love`, Vercel for the rest.
+The graph reads left to right: each repo, the channel that ships it, and where it ends up running. Green edges are build and delivery; grey dashed edges are runtime calls to a node over HTTP. odio-pwa is served by Vercel as static files only: it runs entirely in the browser, which talks to the nodes directly on the LAN.
 
 <div class="screenshot-carousel wide">
 <figure>
