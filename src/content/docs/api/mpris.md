@@ -156,6 +156,14 @@ POST /players/{player}/tracklist/add
 | `player.position` | Periodic position tick |
 | `player.tracklist.updated` | Queue replaced, or a track added, removed, or its metadata changed |
 
+## Configuration
+
+```yaml
+mpris:
+  enabled: true
+  timeout: 5s   # D-Bus call timeout to players
+```
+
 ## How it works
 
 The backend listens on D-Bus for `org.mpris.MediaPlayer2` interfaces. Player state is cached and invalidated via D-Bus signals, with a heartbeat for accurate position tracking.
