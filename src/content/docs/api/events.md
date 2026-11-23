@@ -33,6 +33,7 @@ GET /events
 | `player.tracklist.updated` | mpris | [Tracklist](/api/mpris/#tracklist) replaced, or a track added, removed, or its metadata changed |
 | `audio.updated` | pulseaudio | Sink input added or changed |
 | `audio.removed` | pulseaudio | Sink input removed |
+| `audio.processing.updated` | pulseaudio | [Processing](/api/pulseaudio/#processing) feature changed state |
 | `service.updated` | systemd | Unit state change |
 | `bluetooth.updated` | bluetooth | Adapter or device state change |
 | `power.action` | power | Reboot or power-off triggered |
