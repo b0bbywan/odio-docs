@@ -94,6 +94,28 @@ systemd:
 
 Since odio-api v0.12.0, each entry is a map with a `name` and an optional `url`, and since v0.17.4 an optional `open`.
 
+### `open: panel`
+
+The app opens in an iframe over the dashboard, so it has to accept being framed from another origin. Check its response headers first:
+
+```bash
+curl -sI http://<host>:<port>/ | grep -iE 'x-frame-options|content-security-policy'
+```
+
+- nothing, or a CSP with `frame-ancestors *`: fine
+- `X-Frame-Options: DENY|SAMEORIGIN`, or a restrictive `frame-ancestors`: the browser refuses it, keep `open: tab`
+
+Other things that break in a frame:
+
+- **login and sessions**: cookies are partitioned in a third-party iframe, so apps you sign in to (streaming services) usually fail there
+- **mixed content**: desktop Firefox and Safari block an `http` app framed in an `https` page. Inside the [PWA](/control/pwa/) this changes nothing: those browsers already refuse the PWA's own connection to odio-api for the same reason
+
+Known to work: snapweb, myMPD. Refuses to be framed: open.spotify.com.
+
+### `open: self`
+
+The app replaces the dashboard in the tab, so it needs a link back to odio, otherwise the browser's back button is the only way out. In the PWA the app loads in the same frame, so both stay inside it. myMPD does this with a home icon pointing at odio (`openExternalLink`, `newWindow` `false`).
+
 ## How it works
 
 The backend communicates with systemd via D-Bus (both user and system bus). State updates come from D-Bus signals, with a filesystem monitoring fallback via fsnotify on `/run/user/{uid}/systemd/units`.
