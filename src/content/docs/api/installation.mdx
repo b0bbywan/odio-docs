@@ -47,6 +47,26 @@ ghcr.io/b0bbywan/go-odio-api:latest
 
 <Aside type="caution">Docker support is available but has not been tested in production. `bind` must be set to `all` in `config.yaml` for remote access through the bridge network. See [Configuration](/api/configuration/) for details.</Aside>
 
+From a clone of the repository:
+
+```bash
+cp share/config.yaml config.yaml   # then set bind: all
+docker compose up -d
+```
+
+The container talks to the host's user session, so `docker-compose.yml` passes `XDG_RUNTIME_DIR`, `DBUS_SESSION_BUS_ADDRESS` and `HOME` straight from your shell. If your shell doesn't export them (fish, for example), copy `.env.example` to `.env` and fill them in. All mounts are read-only:
+
+| Volume | Purpose |
+|---|---|
+| `./config.yaml` | odio configuration |
+| `$XDG_RUNTIME_DIR/bus` | user D-Bus session socket |
+| `$XDG_RUNTIME_DIR/pulse` | PulseAudio socket |
+| `$HOME/.config/pulse/cookie` | PulseAudio cookie |
+| `/var/run/dbus/system_bus_socket` | system D-Bus socket |
+| `$XDG_RUNTIME_DIR/systemd`, `/run/utmp` | user systemd state, whichever the host provides |
+
+Zeroconf doesn't work in bridge network mode, and host network mode is strongly discouraged. The image builds locally with `docker build -t odio-api .`, Tailwind CSS included.
+
 ## From source
 
 ```bash
