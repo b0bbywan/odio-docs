@@ -32,6 +32,8 @@ const repoNames = [
 
 console.log(`[downloads] ${repoNames.length} repos for ${owner}`);
 
+const DEB_ONLY = new Set(['odio-upmpdcli']);
+
 async function gh(argv) {
   const { stdout } = await exec('gh', argv, { maxBuffer: 100 * 1024 * 1024 });
   return stdout;
@@ -63,8 +65,15 @@ async function fetchRepo(name) {
   // Checksums, signatures, branding images and debug-symbol packages are noise on
   // a downloads chart, never an artifact a human installs. Drop them so
   // downloads.json carries only real files.
+  // Debian source packages (.dsc, .debian.tar.*, .orig.tar.*, .diff.gz) are build
+  // inputs, never installed; drop them everywhere. odio-upmpdcli is a pure apt
+  // mirror whose releases also carry the upstream source tarballs, so only its
+  // .deb are real targets.
   const isNoise = (n) =>
-    /\.(sha512|sha256|sha1|md5|asc|sig|png|jpe?g|gif|webp)$/i.test(n) || /dbgsym/i.test(n);
+    /\.(sha512|sha256|sha1|md5|asc|sig|png|jpe?g|gif|webp)$/i.test(n) ||
+    /dbgsym/i.test(n) ||
+    /\.(dsc|debian\.tar\.\w+|orig\.tar\.\w+|diff\.gz)$/i.test(n) ||
+    (DEB_ONLY.has(name) && !/\.deb$/i.test(n));
 
   const mapped = releases
     .filter((r) => !r.draft && !r.prerelease)

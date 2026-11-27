@@ -54,10 +54,17 @@ export default function Downloads() {
 }
 
 // Collapse an asset name to a version-independent key by blanking the release
-// version inside it: spotifyd_0.4.4_amd64.deb -> spotifyd_{v}_amd64.deb, so every
-// per-arch .deb across releases folds into one logical asset. Names with no
+// version inside it: odio-api-0.10.2-1.x86_64.rpm -> odio-api-{v}-1.x86_64.rpm, so every
+// per-arch file across releases folds into one logical asset. Names with no
 // embedded version (manifest.json, install.sh) stay as-is and group by exact name.
+// A .deb is always `package_version_arch.deb` (Debian forbids `_` in both name and
+// version), so it keys on its own version rather than the tag's: a release can bundle
+// packages at other versions (odio-upmpdcli ships libnpupnp 6.3.2 under v1.10.1+1).
+const DEB_RE = /^([^_]+)_([^_]+)_([^_]+)\.deb$/;
+
 function assetKey(name, tag) {
+  const deb = name.match(DEB_RE);
+  if (deb) return `${deb[1]}_{v}_${deb[3]}.deb`;
   const ver = (tag || '').replace(/^v/, '');
   const key = ver && name.includes(ver) ? name.split(ver).join('{v}') : name;
   // Fold renamed/variant assets onto their current name:
@@ -75,6 +82,16 @@ function assetKey(name, tag) {
     .replace(/-(default|full|slim)\.tar\.gz$/, '-*.tar.gz');
 }
 
+// Upstream version of a .deb (epoch and Debian revision stripped), shown next to
+// the tag only when it differs from it, so a repackaged or bundled lib reads as
+// `v1.10.1+1 · 6.3.2` instead of hiding which build was downloaded.
+function packageVersion(name, tag) {
+  const deb = name.match(DEB_RE);
+  if (!deb) return null;
+  const ver = deb[2].replace(/^\d+:/, '').replace(/-[^-]*$/, '');
+  return ver === (tag || '').replace(/^v/, '') ? null : ver;
+}
+
 // Group a repo's release assets into logical assets, each with a per-version
 // breakdown. Assets that net zero downloads are dropped to keep the table legible.
 function groupAssets(repo) {
@@ -88,7 +105,12 @@ function groupAssets(repo) {
         map.set(key, g);
       }
       g.total += a.downloads;
-      g.versions.push({ tag: rel.tag, date: rel.date, downloads: a.downloads });
+      g.versions.push({
+        tag: rel.tag,
+        pkg: packageVersion(a.name, rel.tag),
+        date: rel.date,
+        downloads: a.downloads,
+      });
     }
   }
   return [...map.values()]
@@ -216,6 +238,7 @@ function AssetRows({ asset, owner, repo, max }) {
                 rel="noopener noreferrer"
               >
                 <span class={styles.releaseTag}>{v.tag}</span>
+                {v.pkg && <span class={styles.muted}> · {v.pkg}</span>}
                 {v.date && <span class={styles.releaseDate}>{v.date}</span>}
               </a>
             </td>
