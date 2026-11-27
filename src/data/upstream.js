@@ -29,4 +29,8 @@ export const upstreamProjects = [
     repo: 'jcorporation/webradiodb',
     why: "Station database behind myMPD's webradio browser",
   },
+  {
+    repo: 'hacs/default',
+    why: 'Home Assistant Marketplace (HACS), where odio-ha is listed',
+  },
 ];
