@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy-retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
 
@@ -66,6 +66,19 @@ jobs:
         with:
           path: _site
 
+      # deploy-pages looks the artifact up once, right after the upload, and the
+      # listing can lag by up to ~1 min (actions/deploy-pages#451). Re-running
+      # the job is no fix (it can then find two artifacts), so retry in-job.
       - name: Deploy to GitHub Pages
         id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Wait for the artifact listing
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+
+      - name: Deploy to GitHub Pages (retry)
+        id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v5
